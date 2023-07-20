@@ -1,0 +1,61 @@
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using DG.Tweening;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+namespace MainCore.Common
+{
+    public class SceneTransit : MonoBehaviour
+    {
+        private static readonly int UseColor = Shader.PropertyToID("_UseColor");
+        private static readonly int Cutoff = Shader.PropertyToID("_Cutoff");
+        private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
+        [SerializeField] private Image transitionImage;
+        [SerializeField] private List<Texture2D> ruleImages;
+
+
+        private Stack<string> _sceneTraceStack = new Stack<string>();
+        private Material transitMaterial = null;
+
+        public static SceneTransit Instance { get; private set; }
+
+
+        // Start is called before the first frame update
+        void Start()
+        {
+            if (Instance != null)
+                DestroyImmediate(Instance);
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            transitMaterial = transitionImage.material;
+            _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
+        }
+
+        public async void TransitTo(string sceneName)
+        {
+            transitionImage.raycastTarget = true;
+            var operation = SceneManager.LoadSceneAsync(sceneName);
+            operation.allowSceneActivation = false;
+
+            transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
+            transitMaterial.DOFloat(1f, Cutoff, .5f);
+
+            await Task.Delay(500);
+            operation.allowSceneActivation = true;
+
+            transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
+            transitMaterial.DOFloat(0f, Cutoff, .5f).OnComplete(() => { transitMaterial.SetFloat(Cutoff, 0f); })
+                .OnKill(() => { transitMaterial.SetFloat(Cutoff, 0f); });
+            await Task.Delay(500);
+            transitionImage.raycastTarget = false;
+        }
+
+        public void Back()
+        {
+            TransitTo(_sceneTraceStack.Pop());
+            _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
+        }
+    }
+}

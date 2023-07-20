@@ -1,0 +1,54 @@
+# =============== #
+# Unity generated #
+# =============== #
+Temp/
+Obj/
+UnityGenerated/
+Library/
+Builds/
+
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+ExportedObj/
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
+*.unityproj
+*.booproj
+*.orig
+
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# ========= #
+# Build logs #
+# ========= #
+BuildLog.htm
+*.txt
+*.xml
+*.log
+*.xsl
+*.cache
+*.ilk
+*.pdb
+*.asmdef.json
+
+# ============ #
+# Unity3D Tests #
+# ============ #
+test-results/
+UserSettings/Layouts/default-2021.dwlt
+UserSettings/Layouts/CurrentMaximizeLayout.dwlt

@@ -1,0 +1,87 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+namespace MainCore.UI
+{
+    public class LoadIntoManager : MonoBehaviour
+    {
+        [SerializeField] private Text chartName;
+        [SerializeField] private Text difficulty;
+        [SerializeField] private Text difficultyNumber;
+        [SerializeField] private Text charter;
+        [SerializeField] private Text illustrator;
+        [SerializeField] private Text composer;
+
+        [SerializeField] private Image songCover;
+        [SerializeField] private Image backgroundImage;
+
+        [SerializeField] private Animator slideInto;
+        [SerializeField] private Animator cutOut;
+        [SerializeField] private AudioClip enter;
+
+        public static string Charter { get; set; } = "Unknown";
+        public static string Composer { get; set; } = "Unknown";
+        public static string Illustrator { get; set; } = "Unknown";
+
+
+        // Start is called before the first frame update
+        void Start()
+        {
+            chartName.text = GlobalSetting.chartName;
+
+            songCover.sprite = GlobalSetting.backgroundImage;
+            backgroundImage.sprite = GlobalSetting.backgroundImage;
+
+            try //Try Parse difficulty
+            {
+                difficultyNumber.text =
+                    GlobalSetting.difficulty.Substring(GlobalSetting.difficulty.LastIndexOf('.') + 1);
+                difficulty.text = GlobalSetting.difficulty.Substring(0, GlobalSetting.difficulty.LastIndexOf(' '));
+            }
+            catch
+            {
+                difficultyNumber.text = GlobalSetting.difficulty;
+            }
+
+            if (GlobalSetting.infoTxt != null)
+            {
+                Charter = GlobalSetting.infoTxt.GetCharter();
+                Composer = GlobalSetting.infoTxt.GetComposer();
+                Illustrator = GlobalSetting.infoTxt.GetIllustrator();
+            }
+
+
+            if (GlobalSetting.formatVersion == 1919810)
+            {
+                Charter = GlobalSetting.charter;
+                Composer = GlobalSetting.composer;
+            }
+
+            charter.text = Charter;
+            composer.text = Composer;
+            illustrator.text = Illustrator;
+
+            StartCoroutine(YieldDoAnimation());
+        }
+
+        IEnumerator YieldDoAnimation()
+        {
+            yield return new WaitForSeconds(1);
+            GlobalSetting.PlayClipAtPoint(enter, new Vector3(0, 0, -10), 1);
+            var operation = SceneManager.LoadSceneAsync("PlayingScene");
+            operation.allowSceneActivation = false;
+            slideInto.enabled = true;
+            yield return new WaitForSeconds(5);
+            while (operation.progress < .9f)
+            {
+                yield return new WaitForSeconds(.2f);
+            }
+
+            cutOut.enabled = true;
+            yield return new WaitForSeconds(1);
+            operation.allowSceneActivation = true;
+        }
+    }
+}

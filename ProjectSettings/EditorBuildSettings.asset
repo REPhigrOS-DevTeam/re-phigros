@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/EntryScene.unity
+    guid: 14fb2726c792eb84abb8a85cc6d26fad
+  - enabled: 1
+    path: Assets/Scenes/ChartSelectorScene.unity
+    guid: 239461c72289fa94d8ca07ddb86590d9
+  - enabled: 1
+    path: Assets/Scenes/PlayingScene.unity
+    guid: 6c6423278cf77aa4b999c364fa56e635
+  - enabled: 1
+    path: Assets/Scenes/LevelOver 1.unity
+    guid: fc332418bf4b58647858fca9d08c429b
+  - enabled: 1
+    path: Assets/Scenes/DSPScene.unity
+    guid: f2afd469b7632f54d9048a331d312670
+  - enabled: 1
+    path: Assets/Scenes/SettingsScene.unity
+    guid: 5cac6fb6eece08a4189baf127e41d4cc
+  - enabled: 0
+    path: Assets/Scenes/LoadingScene.unity
+    guid: b665a1d1f44fe7d4c9d5a69fe685ff96
+  - enabled: 0
+    path: Assets/Scenes/ResultScene.unity
+    guid: ef74fe1f21d17ff44854f91ba11396ce
+  - enabled: 0
+    path: Assets/Scenes/TEST/NetworkTest.unity
+    guid: bd44713326932b443935dbae5a16d819
+  - enabled: 1
+    path: Assets/Scenes/LoadInto.unity
+    guid: 627027ef07d0484408277989b163b309
+  - enabled: 1
+    path: Assets/Scenes/WahtThe.unity
+    guid: 6e7d485c042492e4191f6d6ca0c528d7
+  m_configObjects: {}

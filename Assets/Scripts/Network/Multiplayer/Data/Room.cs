@@ -1,0 +1,24 @@
+﻿using Newtonsoft.Json;
+
+namespace Network.Multiplayer.Data
+{
+    public class CreateRoomReceive : BackReceiveData
+    {
+        [JsonProperty("RoomID")] public string? RoomId;
+    }
+
+    public class GetSongIdReceive : BackReceiveData
+    {
+        [JsonProperty("songId")] public RoomInfo SongId;
+    }
+
+    public class RoomInfoReceive : BackReceiveData
+    {
+        [JsonProperty("RoomInfo")] public RoomInfo RoomInfo;
+    }
+
+    public class RoomInfo
+    {
+        [JsonProperty("playerList")] public string[] PlayerList;
+    }
+}

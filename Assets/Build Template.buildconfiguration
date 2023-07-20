@@ -1,0 +1,76 @@
+{
+    "Show": true,
+    "Dependencies": [
+        "GlobalObjectId_V1-0-00000000000000000000000000000000-0-0"
+    ],
+    "Components": [
+        {
+            "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
+            "ScriptingBackend": 1,
+            "Il2CppCompilerConfiguration": 1,
+            "UseIncrementalGC": true
+        },
+        {
+            "$type": "Unity.Build.Classic.ClassicCodeStrippingOptions, Unity.Build.Classic",
+            "StripEngineCode": true,
+            "ManagedStrippingLevel": 4
+        },
+        {
+            "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
+            "ProductName": "REPhigros",
+            "CompanyName": "totorowldox",
+            "Version": "1.17"
+        },
+        {
+            "$type": "Unity.Build.Common.RunSettings, Unity.Build",
+            "RedirectOutput": false,
+            "BatchMode": false,
+            "NoGraphics": false,
+            "ExtraArguments": []
+        },
+        {
+            "$type": "Unity.Build.Common.SceneList, Unity.Build",
+            "$version": 1,
+            "BuildCurrentScene": false,
+            "SceneInfos": [
+                {
+                    "Scene": "GlobalObjectId_V1-1-14fb2726c792eb84abb8a85cc6d26fad-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-239461c72289fa94d8ca07ddb86590d9-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-6c6423278cf77aa4b999c364fa56e635-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-fc332418bf4b58647858fca9d08c429b-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-f2afd469b7632f54d9048a331d312670-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-5cac6fb6eece08a4189baf127e41d4cc-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-627027ef07d0484408277989b163b309-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-6e7d485c042492e4191f6d6ca0c528d7-102900000-0",
+                    "AutoLoad": false
+                }
+            ]
+        },
+        {
+            "$type": "Unity.Build.DotsRuntime.IL2CPPSettings, Unity.Build.DotsRuntime",
+            "ScriptDebugging": 0,
+            "WaitForDebugger": false
+        }
+    ]
+}
