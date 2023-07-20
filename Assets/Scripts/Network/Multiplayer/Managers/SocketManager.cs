@@ -4,15 +4,17 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using Baracuda.Threading;
 using JetBrains.Annotations;
+using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Verify.API;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using Utilities;
 
-namespace Network.Multiplayer
+namespace Network.Multiplayer.Managers
 {
-    public class SocketUtil : MonoBehaviour
+    public static class SocketManager
     {
         private static Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static string username = "";
@@ -22,7 +24,21 @@ namespace Network.Multiplayer
         private static Task receiveTask = null;
         private static JObject[] packs;
         private static bool stopReceive = false;
-        public static ClientOperate CurrentClientOperate = ClientOperate.LoginToServer;
+        private static ClientOperate currentClientOperate = ClientOperate.LoginToServer;
+        private static bool isInited = false;
+        private static ChatManager chatManager;
+
+        public static Action OnLoginSucceeded = () => { },
+            OnCreateRoomSucceeded = () => { },
+            OnJoinRoomSucceeded = () => { },
+            OnCloseRoomSucceeded = () => { },
+            OnSendMessageSucceeded = () => { };
+
+        public static void Init(ChatManager chatManager)
+        {
+            SocketManager.chatManager = chatManager;
+            isInited = true;
+        }
 
         public static int CreateSocket(string serverUrl)
         {
@@ -43,17 +59,22 @@ namespace Network.Multiplayer
             }
         }
 
-        public static int Login(string username)
+        public static int Login(string userName)
         {
             if (!socket.Connected) return -1; // 未连接
+            if (username != "")
+            {
+                throw new ArgumentException("Has already Login");
+            }
+
+            username = userName;
             try
             {
-                SocketUtil.username = username;
-                CurrentClientOperate = ClientOperate.LoginToServer;
+                currentClientOperate = ClientOperate.LoginToServer;
                 LoginSendData<string> pack = new LoginSendData<string>
                 {
-                    Operate = CurrentClientOperate.ToString(),
-                    Username = MPServerTest.Username,
+                    Operate = currentClientOperate.ToString(),
+                    Username = username,
                     VerifyToken = "" // TODO: 输入rep账户系统的token
                 };
                 pack.VerifyToken = RepAPI.VerifyToken;
@@ -100,7 +121,7 @@ namespace Network.Multiplayer
             if (string.IsNullOrEmpty(token)) return -3; // 未登录
             try
             {
-                CurrentClientOperate = clientOperate;
+                currentClientOperate = clientOperate;
                 socket.Send(value);
                 return 0;
             }
@@ -116,7 +137,7 @@ namespace Network.Multiplayer
             SendDataWithToken<T> pack = new SendDataWithToken<T>
             {
                 Operate = operate.ToString(),
-                Username = MPServerTest.Username,
+                Username = username,
                 LoginToken = token
             };
             return pack;
@@ -133,7 +154,7 @@ namespace Network.Multiplayer
                 {
                     packs = socket.Receive();
                     if (packs == null) continue;
-                    ClientOperate clientOperate = CurrentClientOperate;
+                    ClientOperate clientOperate = currentClientOperate;
                     foreach (JObject pack in packs)
                     {
                         Task.Run(() => { Dispatcher.Invoke(AnalyzePack(pack, clientOperate)); });
@@ -168,19 +189,26 @@ namespace Network.Multiplayer
             switch (clientOperate)
             {
                 case ClientOperate.LoginToServer:
-                    DealWithMsg<LoginReceive>(pack, "错误：无法登录", loginReceive => loginReceive.token != null,
-                        loginReceive => token = loginReceive.token);
+                    DealWithLogin(pack);
                     break;
                 case ClientOperate.User_CreateNewRoom:
                     DealWithMsg<CreateRoomReceive>(pack, "错误：无法创建房间",
                         createRoomReceive => createRoomReceive.RoomId != null,
-                        createRoomReceive => roomId = createRoomReceive.RoomId);
+                        createRoomReceive =>
+                        {
+                            OnCreateRoomSucceeded.Invoke();
+                            roomId = createRoomReceive.RoomId;
+                        });
                     break;
                 case ClientOperate.User_CloseRoom:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间", callback: _ => roomId = "");
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间", callback: _ => OnRoomClosed());
                     break;
                 case ClientOperate.User_JoinRoom:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法加入房间", callback: _ => roomId = tryJoinRoomId);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法加入房间", callback: _ =>
+                    {
+                        OnJoinRoomSucceeded.Invoke();
+                        roomId = tryJoinRoomId;
+                    });
                     break;
                 case ClientOperate.Room_UpdateSong:
                     DealWithMsg<BackReceiveData>(pack, "错误：无法更换谱面");
@@ -189,7 +217,7 @@ namespace Network.Multiplayer
                     DealWithMsg<BackReceiveData>(pack, "错误：无法开始游戏");
                     break;
                 case ClientOperate.Room_SendMessage:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法发送信息");
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法发送信息", callback: _ => OnSendMessageSucceeded.Invoke(),printOnSuccess: false);
                     break;
                 case ClientOperate.Room_GetRoomSongId:
                     DealWithMsg<GetSongIdReceive>(pack, "错误：无法获取歌曲id");
@@ -202,29 +230,62 @@ namespace Network.Multiplayer
             }
         }
 
+        private static void DealWithLogin(JObject jObject)
+        {
+            string errorMessage = "错误：无法登录";
+            LoginReceive? received = jObject.ToObject<LoginReceive>();
+            if (received == null) throw new ArgumentException("Unknown Exception");
+            Debug.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
+            string serializeObject = JsonConvert.SerializeObject(received);
+            if (!received.Status)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n" + received.Message, () => { }, "确认");
+                Debug.Log("错误：无法完成操作\n" + serializeObject);
+            }
+            else
+            {
+                if (received.token == null)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n返回包体有误\n" + serializeObject,
+                        () => { }, "确认");
+                    Debug.Log("返回的数据有误：\n" + received.Message);
+                    return;
+                }
+
+                OnLoginSucceeded.Invoke();
+                token = received.token;
+            }
+
+            InGameUIManager.ShowModalWindowWithClose("提示", received.Message, () => { }, "确认");
+        }
+
         private static void DealWithMsg<T>(JObject jObject,
-            string errorMessage, [CanBeNull] Func<T, bool> checkData = null, [CanBeNull] Action<T> callback = null)
+            string errorMessage, [CanBeNull] Func<T, bool> checkData = null, [CanBeNull] Action<T> callback = null,
+            bool printOnSuccess = true)
             where T : BackReceiveData
         {
             T? received = jObject.ToObject<T>();
             if (received == null) throw new ArgumentException("Unknown Exception");
             Debug.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
+            string serializeObject = JsonConvert.SerializeObject(received);
             if (!received.Status)
             {
-                Debug.Log("错误：无法完成操作\n" + JsonConvert.SerializeObject(received));
+                chatManager.AddMessage("Server", errorMessage + "\n" + received.Message, MessageType.Error);
+                Debug.Log("错误：无法完成操作\n" + serializeObject);
             }
             else
             {
                 if (checkData != null && !checkData.Invoke(received))
                 {
-                    Debug.Log(errorMessage + "\n" + received.Message);
+                    chatManager.AddMessage("Server", errorMessage + "\n返回包体有误\n" + serializeObject, MessageType.Error);
+                    Debug.Log("返回的数据有误：\n" + received.Message);
                     return;
                 }
 
                 callback?.Invoke(received);
             }
 
-            InGameUIManager.ShowModalWindowWithClose(received.Status ? "信息" : "错误", received.Message, () => { }, "确定");
+            if (printOnSuccess) chatManager.AddMessage("Server", received.Message, MessageType.Server);
         }
 
         private static void ExecuteActivePack(JObject pack)
@@ -245,10 +306,17 @@ namespace Network.Multiplayer
             switch (serverOperate) // TODO: 分析Active包
             {
                 case ServerOperate.NewMessage:
+                    NewMessageActiveReceive receive = pack.ToObject<NewMessageActiveReceive>();
+                    chatManager.AddMessage(receive.Author, receive.Message,
+                        receive.IsServer
+                            ? MessageType.Server
+                            : (receive.Author == username ? MessageType.Self : MessageType.Common));
                     break;
                 case ServerOperate.GameStart:
+                    chatManager.AddMessage("Server", "游戏开始了，但我没做，只是愣着", MessageType.Server);
                     break;
                 case ServerOperate.RoomClosed:
+                    OnRoomClosed();
                     break;
                 case ServerOperate.UpdateSong:
                     break;
@@ -265,6 +333,13 @@ namespace Network.Multiplayer
         public static string GetRoomId()
         {
             return roomId;
+        }
+
+        private static void OnRoomClosed()
+        {
+            roomId = "";
+            chatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
+            OnCloseRoomSucceeded.Invoke();
         }
 
         public static void Close()

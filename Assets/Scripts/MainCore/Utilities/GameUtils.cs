@@ -51,6 +51,11 @@ namespace Utilities
             Main.Mian.TEST_COUNT++;
 #endif
         }
+        
+        public static void Print(this Exception exception)
+        {
+            Debug.Log(exception.Message + "\n" + exception.StackTrace);
+        }
 
         #region TEMPPPP
 

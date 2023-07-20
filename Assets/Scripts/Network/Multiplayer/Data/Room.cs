@@ -12,6 +12,13 @@ namespace Network.Multiplayer.Data
         [JsonProperty("songId")] public RoomInfo SongId;
     }
 
+    public class NewMessageActiveReceive : ActiveReceiveData
+    {
+        [JsonProperty("from")] public string Author;
+        [JsonProperty("isServer")] public bool IsServer;
+        [JsonProperty("message")] public string Message;
+    }
+
     public class RoomInfoReceive : BackReceiveData
     {
         [JsonProperty("RoomInfo")] public RoomInfo RoomInfo;
@@ -20,5 +27,13 @@ namespace Network.Multiplayer.Data
     public class RoomInfo
     {
         [JsonProperty("playerList")] public string[] PlayerList;
+    }
+
+    public enum MessageType
+    {
+        Common = 0,
+        Self = 1,
+        Server = 2,
+        Error = 3
     }
 }

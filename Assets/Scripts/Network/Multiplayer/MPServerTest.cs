@@ -1,22 +1,22 @@
 using System;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
-using Network.Multiplayer;
-using Network.Verify.API;
+using Network.Multiplayer.Components;
+using Network.Multiplayer.Managers;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.UI;
+using MessageType = Network.Multiplayer.Data.MessageType;
 
 public class MPServerTest : MonoBehaviour
 {
+    public ChatManager chatManager;
     public InputField ifUsername, ifUrl;
-    public InputField ifRoomId;
-    public InputField ifMessage;
 
     public Button bConnect, bDisconnect, bLogin;
-    public Button bCreateRoom, bJoinRoom, bCloseRoom, bNewMessage;
+    public Button bCreateRoom, bCloseRoom;
 
     private static readonly Regex usernameRegex = new Regex("[^a-zA-Z0-9]");
 
@@ -28,15 +28,18 @@ public class MPServerTest : MonoBehaviour
 
     public Text tLoginToken, tRoomId;
 
+    public GameObject loginObj;
+
     // Start is called before the first frame update
     void Start()
     {
         // Username = RepAPI.Username;
+        loginObj.SetActive(true);
         tConnectState.text = "服务器状态：未连接";
         bConnect.onClick.AddListener(() =>
         {
             tConnectState.text = "服务器状态：连接中";
-            int state = SocketUtil.CreateSocket(ifUrl.text);
+            int state = SocketManager.CreateSocket(ifUrl.text);
             if (state == 0)
             {
                 tConnectState.text = "服务器状态：连接成功";
@@ -57,7 +60,7 @@ public class MPServerTest : MonoBehaviour
             tConnectState.text = "服务器状态：断开连接中";
             try
             {
-                SocketUtil.Close();
+                SocketManager.Close();
 #if UNITY_EDITOR
                 EditorApplication.isPlaying = false;
 #else
@@ -72,47 +75,27 @@ public class MPServerTest : MonoBehaviour
             }
         });
 
-        string[] generalErrorMessages = { "未连接服务器", "无法发送信息", "你小子没登录" };
-        bLogin.onClick.AddListener(() => GeneralListener(() => SocketUtil.Login(Username), generalErrorMessages));
-        bCreateRoom.onClick.AddListener(() => GeneralListener(SocketUtil.CreateRoom, generalErrorMessages));
-        bJoinRoom.onClick.AddListener(() =>
-        {
-            if (roomId < 0)
-            {
-                InGameUIManager.ShowModalWindowWithClose("错误", "未输入房间id", () => { }, "确定");
-                return;
-            }
-
-            GeneralListener(() => SocketUtil.JoinRoom(roomId + ""), generalErrorMessages);
-        });
-        bCloseRoom.onClick.AddListener(() => GeneralListener(SocketUtil.CloseRoom, generalErrorMessages));
-        bNewMessage.onClick.AddListener(() =>
-        {
-            if (string.IsNullOrEmpty(ifMessage.text))
-            {
-                InGameUIManager.ShowModalWindowWithClose("错误", "信息为空", () => { }, "确定");
-                return;
-            }
-            GeneralListener(() => SocketUtil.SendRoomMessage(ifMessage.text), generalErrorMessages);
-        });
+        string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
+        bLogin.onClick.AddListener(() => GeneralListener(() => SocketManager.Login(Username), generalErrorMessages));
+        bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
+        bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         ifUsername.onEndEdit.AddListener(CheckUsername);
         ifUsername.text = Username;
-        ifMessage.onEndEdit.AddListener(CheckMessage);
-        ifRoomId.onEndEdit.AddListener(CheckRoomId);
-        ifRoomId.text = "";
+        SocketManager.Init(chatManager);
+        SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
     }
 
     private void GeneralListener(Func<int> getState, params string[] errorMessages)
     {
         int state = getState.Invoke();
         if (state == 0) return;
-        InGameUIManager.ShowModalWindowWithClose("错误", errorMessages[-state - 1], () => { }, "确定");
+        chatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
     }
 
     private void Update()
     {
-        string token = SocketUtil.GetToken();
-        string roomId = SocketUtil.GetRoomId();
+        string token = SocketManager.GetToken();
+        string roomId = SocketManager.GetRoomId();
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
     }
@@ -128,26 +111,5 @@ public class MPServerTest : MonoBehaviour
             Username = input;
             // RepAPI.Username = Username;
         }
-    }
-
-    private void CheckRoomId(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            roomId = -1;
-        }
-        else if (int.TryParse(input, out int i))
-        {
-            roomId = i;
-        }
-        else
-        {
-            ifRoomId.text = roomId < 0 ? "" : roomId + "";
-        }
-    }
-
-    private void CheckMessage(string input)
-    {
-        ifMessage.text = input.TrimEnd();
     }
 }

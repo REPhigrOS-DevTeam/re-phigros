@@ -68,11 +68,6 @@ namespace Network.Multiplayer.Data
             }
             return packs.ToArray();
         }
-
-        public static void Print(this Exception exception)
-        {
-            Debug.Log(exception.Message + "\n" + exception.StackTrace);
-        }
     }
 
     public class GeneralSendData<T>
@@ -106,12 +101,6 @@ namespace Network.Multiplayer.Data
     public class ActiveReceiveData : GeneralReceiveData
     {
         [JsonProperty("operate")] public string Operate;
-    }
-
-    public class NewMessageActiveReceiveData : ActiveReceiveData
-    {
-        [JsonProperty("from")] public string Author;
-        [JsonProperty("message")] public string Message;
     }
 
     public enum ClientOperate
