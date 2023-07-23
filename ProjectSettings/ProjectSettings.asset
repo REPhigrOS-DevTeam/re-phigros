@@ -149,7 +149,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 1.17
+  bundleVersion: 1.18
   preloadedAssets:
   - {fileID: 8300000, guid: ac84813ae7ce0a54dacd715214e32666, type: 3}
   - {fileID: 8300000, guid: e293ca7772e65624c9769b9f6f78f297, type: 3}
@@ -178,10 +178,10 @@ PlayerSettings:
     iPhone: com.totorowldox.RE-Phigros
   buildNumber:
     Standalone: 0
-    iPhone: 3
+    iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
-  AndroidBundleVersionCode: 2
+  AndroidBundleVersionCode: 3
   AndroidMinSdkVersion: 22
   AndroidTargetSdkVersion: 29
   AndroidPreferredInstallLocation: 2
