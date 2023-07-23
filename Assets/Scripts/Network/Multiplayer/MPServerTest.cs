@@ -28,6 +28,18 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject loginObj;
 
+    private void Awake()
+    {
+        try
+        {
+            RepAPI.Init();
+        }
+        catch (ArgumentException)
+        {
+            
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {

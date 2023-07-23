@@ -15,15 +15,14 @@ namespace MainCore.UI
         // [SerializeField] private Text touchToStartText;
 
         private bool temp = false;
-
-        public void Start()
+        private void Awake() {            ZipConstants.DefaultCodePage = 65001; // UTF-8
+                                          RepAPI.Init();}
+        private void Start()
         {
-            ZipConstants.DefaultCodePage = 65001; // UTF-8
-            RepAPI.Init();
             Update();
         }
 
-        void Update()
+        private void Update()
         {
             if (Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0) || temp) return;
             GlobalSetting.OriginResolution = Screen.currentResolution;
@@ -88,6 +87,7 @@ namespace MainCore.UI
 
         private void NeedUpdate()
         {
+        Debug.Log("时间炸弹炸了");
             InGameUIManager.ShowModalWindowWithClose("错误", "请升级到最新版", () =>
             {
 #if UNITY_EDITOR
