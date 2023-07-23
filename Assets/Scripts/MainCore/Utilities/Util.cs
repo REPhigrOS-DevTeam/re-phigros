@@ -1,4 +1,8 @@
+#if UNITY_EDITOR
 using UnityEditor;
+#else
+using UnityEngine;
+#endif
 
 namespace MainCore.Utilities
 {
