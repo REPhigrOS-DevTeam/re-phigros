@@ -269,8 +269,8 @@ PlayerSettings:
   AndroidTargetDevices: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{dedicated}: RPGR.keystore'
-  AndroidKeyaliasName: totorowldox_rpgr
+  AndroidKeystoreName: '{inproject}: RPGR_greenball233.keystore'
+  AndroidKeyaliasName: greenball233_rpgr
   AndroidBuildApkPerCpuArchitecture: 0
   AndroidTVCompatibility: 0
   AndroidIsGame: 1

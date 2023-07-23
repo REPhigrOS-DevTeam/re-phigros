@@ -19,7 +19,7 @@
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "REPhigros",
             "CompanyName": "totorowldox",
-            "Version": "1.17"
+            "Version": "1.18"
         },
         {
             "$type": "Unity.Build.Common.RunSettings, Unity.Build",
