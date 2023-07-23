@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
+using Network.Verify.API;
 using UnityEditor;
 using UnityEngine;
 using Utilities;
@@ -18,6 +19,7 @@ namespace MainCore.UI
         public void Start()
         {
             ZipConstants.DefaultCodePage = 65001; // UTF-8
+            RepAPI.Init();
             Update();
         }
 
@@ -58,6 +60,7 @@ namespace MainCore.UI
                 NeedUpdate();
                 return;
             }
+
             StartCoroutine(TimeBomb.IsInRange(new DateTime(2023, 9, 28, 0, 0, 0, DateTimeKind.Utc), true, b =>
             {
 //#if !UNITY_EDITOR
@@ -77,17 +80,9 @@ namespace MainCore.UI
                     t.Dispose();
                     File.WriteAllText(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
                 }
-//#endif
 
-                if (!PlayerPrefs.HasKey("first_start"))
-                {
-                    PlayerPrefs.SetInt("first_start", 1);
-                    SceneTransit.Instance.TransitTo("SettingsScene");
-                }
-                else
-                {
-                    SceneTransit.Instance.TransitTo("ChartSelectorScene");
-                }
+//#endif
+                SceneTransit.Instance.TransitTo("LoginScene");
             }));
         }
 

@@ -1,4 +1,5 @@
-﻿using Network.Verify.API;
+﻿#if UNITY_EDITOR
+using Network.Verify.API;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,12 +9,10 @@ namespace Network.Verify
     {
         [SerializeField] private Button button1;
 
-        private RepAPI api = null;
-
         void Awake()
         {
             return;
-            api = new RepAPI();
+            RepAPI.Init();
             button1.onClick.AddListener(Request);
         }
 
@@ -22,13 +21,14 @@ namespace Network.Verify
             //if (!api.IsLoggedIn())
             {
                 Debug.Log("Logging in...");
-                api.Login("Debug", "RepRunDebug2023");
+                RepAPI.Login("Debug", "RepRunDebug2023");
             }
             //else
             {
                 Debug.Log("Verifying...");
-                api.Verify();
+                RepAPI.Verify();
             }
         }
     }
 }
+#endif

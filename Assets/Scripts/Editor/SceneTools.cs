@@ -73,6 +73,12 @@ namespace Editor
         {
             IntoScene("TEST/NetworkTest");
         }
+        
+                [MenuItem("Scene Tools/Into Login")]
+                private static void IntoLogin()
+                {
+                    IntoScene("LoginScene");
+                }
 
         private static void IntoScene(string name)
         {

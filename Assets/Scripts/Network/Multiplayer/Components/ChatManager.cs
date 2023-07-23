@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using UnityEngine;
@@ -84,6 +85,11 @@ namespace Network.Multiplayer.Components
             if (string.IsNullOrEmpty(ifMessage.text))
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "信息为空", () => { }, "确定");
+                return;
+            }
+            if (new StringInfo(ifMessage.text).LengthInTextElements > 233)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "信息长度过长", () => { }, "确定");
                 return;
             }
             GeneralListener(() => SocketManager.SendRoomMessage(ifMessage.text), GeneralErrorMessages);

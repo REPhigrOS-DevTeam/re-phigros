@@ -5,6 +5,9 @@ using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace Network.Multiplayer.Data
@@ -105,15 +108,16 @@ namespace Network.Multiplayer.Data
 
     public enum ClientOperate
     {
-        LoginToServer = 0,
-        User_CreateNewRoom = 1,
-        User_CloseRoom = 2,
-        User_JoinRoom = 3,
-        Room_UpdateSong = 4,
-        Room_GameStart = 5,
-        Room_SendMessage = 6,
-        Room_GetRoomSongId = 7,
-        Room_GetRoomInfo = 8
+        User_LoginToServer = 0,
+        User_LeaveServer = 1,
+        User_CreateNewRoom = 2,
+        User_CloseRoom = 3,
+        User_JoinRoom = 4,
+        Room_UpdateSong = 5,
+        Room_GameStart = 6,
+        Room_SendMessage = 7,
+        Room_GetRoomSongId = 8,
+        Room_GetRoomInfo = 9
     }
 
     public enum ServerOperate

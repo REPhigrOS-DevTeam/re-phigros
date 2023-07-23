@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Managers;
+using Network.Verify.API;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -13,14 +15,10 @@ using MessageType = Network.Multiplayer.Data.MessageType;
 public class MPServerTest : MonoBehaviour
 {
     public ChatManager chatManager;
-    public InputField ifUsername, ifUrl;
+    public InputField ifUrl;
 
     public Button bConnect, bDisconnect, bLogin;
     public Button bCreateRoom, bCloseRoom;
-
-    private static readonly Regex usernameRegex = new Regex("[^a-zA-Z0-9]");
-
-    public static string Username = "Sky";
 
     private int roomId = -1;
 
@@ -76,11 +74,9 @@ public class MPServerTest : MonoBehaviour
         });
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        bLogin.onClick.AddListener(() => GeneralListener(() => SocketManager.Login(Username), generalErrorMessages));
+        bLogin.onClick.AddListener(() => GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录"));
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
-        ifUsername.onEndEdit.AddListener(CheckUsername);
-        ifUsername.text = Username;
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
     }
@@ -98,18 +94,5 @@ public class MPServerTest : MonoBehaviour
         string roomId = SocketManager.GetRoomId();
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
-    }
-
-    private void CheckUsername(string input)
-    {
-        if (usernameRegex.IsMatch(input) || string.IsNullOrEmpty(input))
-        {
-            ifUsername.text = Username;
-        }
-        else
-        {
-            Username = input;
-            // RepAPI.Username = Username;
-        }
     }
 }

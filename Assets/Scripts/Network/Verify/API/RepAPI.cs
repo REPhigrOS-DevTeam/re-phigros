@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
-using JetBrains.Annotations;
+using System.Security.Cryptography;
+using System.Text;
+using MainCore.Common;
 using Network.Verify.Serialized;
 using Network.Verify.Utils;
 using Newtonsoft.Json;
@@ -8,40 +11,49 @@ using UnityEngine;
 
 namespace Network.Verify.API
 {
-    public class RepAPI
+    public static class RepAPI
     {
-        private const string APIBase = "https://api.rephigros.top";
-        private const string ManifestDirectory = "manifest.json";
+        public static bool RememberMe;
 
-        private string loginUrl;
-
-        private Manifest manifest;
-        private string verifyUrl;
-
-        public static string Username
+        private static readonly string APIBase = Encoding.ASCII.GetString(new byte[]
         {
-            get => PlayerPrefs.GetString("repapi_playername", "");
-            set
+            104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 104, 105, 103, 114, 111, 115, 46, 116,
+            111, 112
+        });
+
+        private static readonly string ManifestDirectory = Encoding.ASCII.GetString(new byte[]
+            { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 });
+
+        private static string loginUrl;
+
+        private static Manifest manifest;
+        private static string verifyUrl;
+
+        private static bool inited = false;
+        public static string Username = "";
+        public static string VerifyToken = "";
+
+        public static void Init(bool refresh = false)
+        {
+            if (!refresh && inited)
             {
-                PlayerPrefs.SetString("repapi_playername", value);
-                PlayerPrefs.Save();
+                throw new ArgumentException("Has inited");
             }
-        }
-        
-        public static string VerifyToken
-        {
-            get => PlayerPrefs.GetString("repapi_verifytoken", "");
-            set
-            {
-                PlayerPrefs.SetString("repapi_verifytoken", value);
-                PlayerPrefs.Save();
-            }
-        }
 
-        public RepAPI()
-        {
+            inited = true;
+            RememberMe = PlayerPrefsExtension.GetBoolean("repapi_rememberme", false);
+            if (RememberMe)
+            {
+                Username = PlayerPrefs.GetString("repapi_playername", "");
+                VerifyToken = PlayerPrefs.GetString("repapi_verifytoken", "");
+            }
+            else if (refresh)
+            {
+                Username = "";
+            }
+
             var res = JsonConvert.DeserializeObject<Base>(APIBase.SendGetRequest());
-            if (res is not {status: "OK"})
+            if (res is not { status: "OK" })
             {
                 throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
             }
@@ -49,7 +61,7 @@ namespace Network.Verify.API
             GetManifest();
         }
 
-        private void GetManifest()
+        private static void GetManifest()
         {
             var res = JsonConvert.DeserializeObject<Manifest>(APIBase.UrlCombine(ManifestDirectory).SendGetRequest());
             manifest = res;
@@ -63,66 +75,82 @@ namespace Network.Verify.API
             Debug.Log("RePhigros API: Manifest got.");
         }
 
-        public StatusCode Login(string username, string password)
+        public static StatusCode Login(string username, string password)
         {
             var builder = new UriBuilder(APIBase.UrlCombine(loginUrl))
             {
                 Query = $"username={username}&password={password}"
             };
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(builder.Uri.ToString().SendGetRequest());
+            string uri = builder.Uri.ToString();
+            // Debug.Log("Try send for login: " + uri);
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(uri.SendGetRequest());
             if (res == null || res.status == false)
             {
-                Debug.LogError($"RePhigros API: Error logging in, with code {(int) (res?.Code ?? StatusCode.Unknown)}");
+                Debug.LogError($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
                 return res?.Code ?? StatusCode.Unknown;
             }
 
-            Debug.Log($"RePhigros API: Successfully logged in with verifyToken: {res.verifyToken}");
-            SaveUsernameAndToken(username, res.verifyToken);
+            if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
+            Debug.Log($"RePhigros API: Successfully logged in with verifyToken: {ProtectToken(res.verifyToken)}");
+            Username = username;
+            VerifyToken = res.verifyToken;
             return StatusCode.OK;
         }
 
-        public StatusCode Verify()
+        public static StatusCode Verify()
         {
-            string userName = Username;
-            string verifyToken = Username;
-            if (userName == "" || verifyToken == "")
+            if (Username == "" || VerifyToken == "")
             {
                 Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify without login.");
             }
 
             var builder = new UriBuilder(APIBase.UrlCombine(verifyUrl))
             {
-                Query = $"username={userName}&verifytoken={verifyToken}"
+                Query = $"username={Username}&verifytoken={VerifyToken}"
             };
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(builder.Uri.ToString().SendGetRequest());
+            string uri = builder.Uri.ToString();
+            // Debug.Log("Try send for verify: " + uri);
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(uri.SendGetRequest());
             if (res == null || res.status == false)
             {
-                Debug.LogError($"RePhigros API: Error verifying, with code {(int) (res?.Code ?? StatusCode.Unknown)}");
+                Debug.LogError($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
                 return res?.Code ?? StatusCode.Unknown;
             }
 
+            if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
             Debug.Log($"RePhigros API: Access granted");
-            SaveUsernameAndToken(userName, res.verifyToken);
+            VerifyToken = res.verifyToken;
             return StatusCode.OK;
         }
 
-        public bool IsLoggedIn()
+        public static bool IsLoggedIn()
         {
             return Username != "" && VerifyToken != "";
         }
 
-        private void SaveUsernameAndToken([CanBeNull] string username = null, [CanBeNull] string token = null)
+        public static void SaveRememberMe()
         {
-            if (username != null) PlayerPrefs.SetString("repapi_playername", username);
-            if (token != null) PlayerPrefs.SetString("repapi_verifytoken", token);
+            PlayerPrefsExtension.SetBoolean("repapi_rememberme", RememberMe);
             PlayerPrefs.Save();
         }
 
-        private void ResetUsernameAndToken()
+        public static void SaveUsernameAndToken()
         {
-            PlayerPrefs.SetString("repapi_playername", "");
-            PlayerPrefs.SetString("repapi_verifytoken", "");
+            PlayerPrefs.SetString("repapi_playername", Username);
+            PlayerPrefs.SetString("repapi_verifytoken", VerifyToken);
             PlayerPrefs.Save();
+        }
+
+        public static void ResetUsernameAndToken()
+        {
+            Username = "";
+            VerifyToken = "";
+            SaveUsernameAndToken();
+        }
+
+        private static string ProtectToken(string token)
+        {
+            return token.Substring(0, 7) + string.Concat(Enumerable.Repeat("*", token.Length - 14)) + token.Substring(token.Length - 7);
         }
     }
 }
