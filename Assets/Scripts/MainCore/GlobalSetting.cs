@@ -101,7 +101,7 @@ namespace MainCore
             }
         }
         
-        public static HitFxType HitFxType = HitFxType.Sacabam;
+        public static HitFxType HitFxType = HitFxType.Official;
 
         public static void PlayNoteSound(int notetype)
         {
