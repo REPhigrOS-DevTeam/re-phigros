@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DRFV.inokana
+namespace MainCore.Common
 {
     public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>
     {

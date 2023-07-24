@@ -1,12 +1,13 @@
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-#else
-using UnityEngine;
 #endif
 
 namespace MainCore.Utilities
 {
-    public class Util
+    public static class Util
     {
         public static void QuitApp()
         {
@@ -15,6 +16,13 @@ namespace MainCore.Utilities
 #else
             Application.Quit();
 #endif
+        }
+        
+        public static TaskAwaiter GetAwaiter(this AsyncOperation asyncOp)
+        {
+            var tcs = new TaskCompletionSource<object>();
+            asyncOp.completed += obj => { tcs.SetResult(null); };
+            return ((Task)tcs.Task).GetAwaiter();
         }
     }
 }

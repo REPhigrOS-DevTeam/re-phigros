@@ -5,7 +5,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DG.Tweening;
-using DRFV.inokana;
 using Lean.Gui;
 using LeTai.Asset.TranslucentImage;
 using MainCore.Common;

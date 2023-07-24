@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using MainCore.Common;
 using Network.Verify.Serialized;
 using Network.Verify.Utils;
@@ -75,15 +76,20 @@ namespace Network.Verify.API
             Debug.Log("RePhigros API: Manifest got.");
         }
 
-        public static StatusCode Login(string username, string password)
+        public static async Task<StatusCode> Login(string username, string password)
         {
+#if !UNITY_EDITOR
+            Debug.Log("Try login");
+#endif
             var builder = new UriBuilder(APIBase.UrlCombine(loginUrl))
             {
                 Query = $"username={username}&password={password}"
             };
             string uri = builder.Uri.ToString();
-            // Debug.Log("Try send for login: " + uri);
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(uri.SendGetRequest());
+#if UNITY_EDITOR
+            Debug.Log("Try send for login: " + uri);
+#endif
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(await uri.SendGetRequestAsync());
             if (res == null || res.status == false)
             {
                 Debug.LogError($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
@@ -97,8 +103,11 @@ namespace Network.Verify.API
             return StatusCode.OK;
         }
 
-        public static StatusCode Verify()
+        public static async Task<StatusCode> Verify()
         {
+#if !UNITY_EDITOR
+            Debug.Log("Try verify");
+#endif
             if (Username == "" || VerifyToken == "")
             {
                 Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify without login.");
@@ -109,8 +118,10 @@ namespace Network.Verify.API
                 Query = $"username={Username}&verifytoken={VerifyToken}"
             };
             string uri = builder.Uri.ToString();
-            // Debug.Log("Try send for verify: " + uri);
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(uri.SendGetRequest());
+#if UNITY_EDITOR
+            Debug.Log("Try send for verify: " + uri);
+#endif
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(await uri.SendGetRequestAsync());
             if (res == null || res.status == false)
             {
                 Debug.LogError($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
@@ -150,7 +161,8 @@ namespace Network.Verify.API
 
         private static string ProtectToken(string token)
         {
-            return token.Substring(0, 7) + string.Concat(Enumerable.Repeat("*", token.Length - 14)) + token.Substring(token.Length - 7);
+            return token.Substring(0, 7) + string.Concat(Enumerable.Repeat("*", token.Length - 14)) +
+                   token.Substring(token.Length - 7);
         }
     }
 }

@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using E7.Native;
+using MainCore.Common;
 using UnityEngine;
 
 namespace MainCore
 {
-    public class HitSoundManager : MonoBehaviour
+    public class HitSoundManager : MonoSingleton<HitSoundManager>
     {
-        public static HitSoundManager Instance;
-
         private static Dictionary<int, NativeAudioPointer> _nativeAudios;
         private static Dictionary<int, AudioSource[]> _unityAudios;
         private static Dictionary<int, int> _audioIndexes;
@@ -20,11 +19,9 @@ namespace MainCore
 
         private List<int> nativeIndexes = new();
 
-        void Awake()
+        protected override void OnAwake()
         {
-            DontDestroyOnLoad(this);
-
-            Instance = this;
+            DontDestroyOnLoad(gameObject);
 
 #if UNITY_ANDROID && !UNITY_EDITOR
             InitNativeAudio();
