@@ -21,13 +21,12 @@ namespace MainCore
 
         protected override void OnAwake()
         {
-            DontDestroyOnLoad(gameObject);
-
 #if UNITY_ANDROID && !UNITY_EDITOR
             InitNativeAudio();
 #else
             InitUnityAudio();
 #endif
+            DontDestroyOnLoad(gameObject);
         }
 
         //Handle NativeAudio's sounds later to achieve a sync.

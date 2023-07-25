@@ -1,15 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
+using MainCore.Common;
 using UnityEngine;
 using UnityEngine.UI;
 using Utilities;
 
-public class InGameModalWindow : MonoBehaviour
+public class InGameModalWindow : MonoSingleton<InGameModalWindow>
 {
-    public static InGameModalWindow Instance = null;
-
     [SerializeField] private Image backPanel;
     [SerializeField] private Image modalWindow;
 
@@ -34,7 +32,6 @@ public class InGameModalWindow : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private void Start()
     {
-        Instance = this;
         backPanel.gameObject.SetActive(false);
     }
 

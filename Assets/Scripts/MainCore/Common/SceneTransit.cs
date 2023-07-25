@@ -28,7 +28,7 @@ namespace MainCore.Common
             if (Instance != null)
                 DestroyImmediate(Instance);
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // DontDestroyOnLoad(gameObject);
             transitMaterial = transitionImage.material;
             _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
         }
