@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using System.Collections;
 using Network.Verify.API;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,15 +19,20 @@ namespace Network.Verify
 
         void Request()
         {
+            StartCoroutine(RequestCoroutine());
+        }
+
+        private IEnumerator RequestCoroutine()
+        {
             //if (!api.IsLoggedIn())
             {
                 Debug.Log("Logging in...");
-                RepAPI.Login("Debug", "RepRunDebug2023");
+                yield return RepAPI.Login("Debug", "RepRunDebug2023", _ => {});
             }
             //else
             {
                 Debug.Log("Verifying...");
-                RepAPI.Verify();
+                yield return RepAPI.Verify(_ => {});
             }
         }
     }

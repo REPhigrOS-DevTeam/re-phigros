@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Baracuda.Threading;
@@ -109,97 +110,100 @@ public class LoginManager : MonoBehaviour
         loginMask.SetActive(true);
         if (lastRememberMe && RepAPI.RememberMe)
         {
-            Task.Run(async () =>
-            {
-                StatusCode code = await RepAPI.Verify();
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    loginMask.SetActive(false);
-                    switch (code)
-                    {
-                        case StatusCode.Unknown:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了未定义的状态码，请联系开发者\n程序即将退出", Util.QuitApp,
-                                "确定");
-                            break;
-                        case StatusCode.OK:
-                            InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", OnLoginSucceeded, "确定");
-                            break;
-                        case StatusCode.InvalidParam:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码（上传了非法参数），请联系开发者\n程序即将退出",
-                                Util.QuitApp, "确定");
-                            break;
-                        case StatusCode.ServerInternalError:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "服务器出错，请联系开发者\n程序即将退出", Util.QuitApp, "确定");
-                            break;
-                        case StatusCode.IllegalLogin:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "登录次数已用完", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidUsername:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法（但是已经登录过了为啥报这个）", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidToken:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "Token无效，请重新登录", () => { }, "确定");
-                            break;
-                        case StatusCode.NoPermission:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "没有内测权限", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidPassword:
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-                });
-            });
+            StartCoroutine(VerifyCoroutine());
         }
         else
         {
-            Task.Run(async () =>
-            {
-                StatusCode code = await RepAPI.Login(username, password);
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    loginMask.SetActive(false);
-                    switch (code)
-                    {
-                        case StatusCode.Unknown:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了未定义的状态码，请联系开发者\n程序即将退出", Util.QuitApp,
-                                "确定");
-                            break;
-                        case StatusCode.OK:
-                            InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", OnLoginSucceeded, "确定");
-                            break;
-                        case StatusCode.InvalidParam:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码（上传了非法参数），请联系开发者\n程序即将退出",
-                                Util.QuitApp, "确定");
-                            break;
-                        case StatusCode.ServerInternalError:
-                            InGameUIManager.ShowModalWindowWithClose("致命错误", "服务器出错，请联系开发者\n程序即将退出", Util.QuitApp,
-                                "确定");
-                            break;
-                        case StatusCode.IllegalLogin:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "登录次数已用完", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidUsername:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidPassword:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "密码错误", () => { }, "确定");
-                            break;
-                        case StatusCode.NoPermission:
-                            InGameUIManager.ShowModalWindowWithClose("错误", "没有内测权限", () => { }, "确定");
-                            break;
-                        case StatusCode.InvalidToken:
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    return Task.CompletedTask;
-                });
-            });
+            StartCoroutine(LoginCoroutine());
         }
     }
 
+    private IEnumerator VerifyCoroutine()
+    {
+        yield return RepAPI.Verify(code =>
+        {
+            loginMask.SetActive(false);
+            switch (code)
+            {
+                case StatusCode.Unknown:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了未定义的状态码，请联系开发者\n程序即将退出", Util.QuitApp,
+                        "确定");
+                    break;
+                case StatusCode.OK:
+                    InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", OnLoginSucceeded, "确定");
+                    break;
+                case StatusCode.InvalidParam:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码（上传了非法参数），请联系开发者\n程序即将退出",
+                        Util.QuitApp, "确定");
+                    break;
+                case StatusCode.ServerInternalError:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "服务器出错，请联系开发者\n程序即将退出", Util.QuitApp, "确定");
+                    break;
+                case StatusCode.IllegalLogin:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "登录次数已用完", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidUsername:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法（但是已经登录过了为啥报这个）", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidToken:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "Token无效，请重新登录", () => { }, "确定");
+                    break;
+                case StatusCode.NoPermission:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "没有内测权限", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidPassword:
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        });
+    }
+
+    private IEnumerator LoginCoroutine()
+    {
+        yield return RepAPI.Login(username, password, code =>
+        {
+            loginMask.SetActive(false);
+            switch (code)
+            {
+                case StatusCode.Unknown:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了未定义的状态码，请联系开发者\n程序即将退出", Util.QuitApp,
+                        "确定");
+                    break;
+                case StatusCode.OK:
+                    InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", OnLoginSucceeded, "确定");
+                    break;
+                case StatusCode.InvalidParam:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码（上传了非法参数），请联系开发者\n程序即将退出",
+                        Util.QuitApp, "确定");
+                    break;
+                case StatusCode.ServerInternalError:
+                    InGameUIManager.ShowModalWindowWithClose("致命错误", "服务器出错，请联系开发者\n程序即将退出", Util.QuitApp,
+                        "确定");
+                    break;
+                case StatusCode.IllegalLogin:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "登录次数已用完", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidUsername:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidPassword:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "密码错误", () => { }, "确定");
+                    break;
+                case StatusCode.NoPermission:
+                    InGameUIManager.ShowModalWindowWithClose("错误", "没有内测权限", () => { }, "确定");
+                    break;
+                case StatusCode.InvalidToken:
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        });
+    }
+
+    private bool qwq;
     private void OnLoginSucceeded()
     {
+        if (qwq) return;
+        qwq = true;
         if (RepAPI.RememberMe) RepAPI.SaveUsernameAndToken();
         if (!PlayerPrefs.HasKey("first_start"))
         {

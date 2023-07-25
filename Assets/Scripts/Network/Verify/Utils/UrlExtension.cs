@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 using MainCore.Utilities;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace Network.Verify.Utils
             return new Uri(new Uri(urlBase), combined).ToString();
         }
         
-        public static string SendGetRequest(this string url)
+        public static string SendGetRequestSync(this string url)
         {
             var uwr = UnityWebRequest.Get(url);
             uwr.downloadHandler = new DownloadHandlerBuffer();
@@ -43,6 +44,18 @@ namespace Network.Verify.Utils
             }
 
             return uwr.downloadHandler.text;
+        }
+
+        public static IEnumerator SendGetRequest(this string url, Action<string?> callback)
+        {
+            var uwr = UnityWebRequest.Get(url);
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"Error while requesting {url}, code: {uwr.responseCode}, message: {uwr.error}");
+                callback.Invoke(null);
+            } else callback.Invoke(uwr.downloadHandler.text);
         }
     }
 }

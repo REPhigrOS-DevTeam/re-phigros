@@ -1,8 +1,10 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using UnityEngine;
+using UnityEngine.Networking;
 #if UNITY_EDITOR
 using UnityEditor;
+#else
+using UnityEngine;
 #endif
 
 namespace MainCore.Utilities
@@ -18,11 +20,15 @@ namespace MainCore.Utilities
 #endif
         }
         
-        public static TaskAwaiter GetAwaiter(this AsyncOperation asyncOp)
+
+        public static TaskAwaiter<object> GetAwaiter(this UnityWebRequestAsyncOperation op)
         {
             var tcs = new TaskCompletionSource<object>();
-            asyncOp.completed += obj => { tcs.SetResult(null); };
-            return ((Task)tcs.Task).GetAwaiter();
+            op.completed += (obj) =>
+            {
+                tcs.SetResult(null);
+            };
+            return tcs.Task.GetAwaiter();
         }
     }
 }

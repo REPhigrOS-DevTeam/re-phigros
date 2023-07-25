@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -9,6 +10,7 @@ using Network.Verify.API;
 using UnityEditor;
 #endif
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 using MessageType = Network.Multiplayer.Data.MessageType;
 
@@ -91,6 +93,23 @@ public class MPServerTest : MonoBehaviour
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
+        // StartCoroutine(Tmp("https://api.rephigros.top/auth/login?username=Debug&password=RepRunDebug2023", str =>
+        // {
+        //     Debug.Log("Received: " + str);
+        // }));
+        //
+        // IEnumerator Tmp(string url, Action<string?> callback)
+        // {
+        //     var uwr = UnityWebRequest.Get(url);
+        //     uwr.downloadHandler = new DownloadHandlerBuffer();
+        //     yield return uwr.SendWebRequest();
+        //
+        //     if (uwr.result != UnityWebRequest.Result.Success)
+        //     {
+        //         Debug.LogError($"Error while requesting {url}, code: {uwr.responseCode}, message: {uwr.error}");
+        //         callback.Invoke(null);
+        //     } else callback.Invoke(uwr.downloadHandler.text);
+        // }
     }
 
     private void GeneralListener(Func<int> getState, params string[] errorMessages)
