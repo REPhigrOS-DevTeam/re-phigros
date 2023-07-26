@@ -109,6 +109,7 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
         backPanel.color.SetAlpha(0);
         modalWindow.rectTransform.localScale = new Vector3(0, 0);
         backPanel.gameObject.SetActive(false);
+        IsActive = false;
     }
 
     private void confirmClicked()

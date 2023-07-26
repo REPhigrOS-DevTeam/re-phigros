@@ -49,7 +49,23 @@ public static class InGameUIManager
         string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
         Action alternateAction = null, string alternatetext = "Alternate")
     {
-        if (IsActive) return;
+        if (IsActive)
+        {
+            queue.Enqueue(new WindowInfo
+            {
+                withClose = true,
+                title = title,
+                content = content,
+                confirmAction = confirmAction,
+                confirmText = confirmtext,
+                cancelAction = cancelAction,
+                cancelText = canceltext,
+                alternateAction = alternateAction,
+                alternateText = alternatetext
+            });
+            return;
+        }
+
         confirmAction += HideModalWindow;
 
         if (cancelAction != null)

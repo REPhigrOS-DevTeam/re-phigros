@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
+using MainCore.Utilities;
 using Network.Verify.API;
 using UnityEditor;
 using UnityEngine;
@@ -14,26 +15,42 @@ namespace MainCore.UI
         // [SerializeField] private Button touchToStart;
         // [SerializeField] private Text touchToStartText;
 
-        private bool temp = false;
+        private bool clicked = false;
+        private bool apiPrepared = false;
 
         private void Awake()
         {
             ZipConstants.DefaultCodePage = 65001; // UTF-8
-            RepAPI.Init();
+        }
+
+        private async void InitAPI()
+        {
+            PopupMessageManager.Instance.Message("尝试连接服务器……");
+            bool succeeded = await RepAPI.Init();
+            if (!succeeded)
+            {
+                InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
+            }
+            else
+            {
+                apiPrepared = true;
+                PopupMessageManager.Instance.Message("连接成功");
+            }
         }
 
         private void Start()
         {
+            InitAPI();
             Update();
         }
 
         private void Update()
         {
-            if (Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0) || temp) return;
+            if (clicked || Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0) || !apiPrepared) return;
             GlobalSetting.OriginResolution = Screen.currentResolution;
             LoadIn();
             // StartCoroutine(CountDown());
-            temp = true;
+            clicked = true;
         }
 
         // private IEnumerator CountDown()

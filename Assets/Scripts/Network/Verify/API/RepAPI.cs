@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using MainCore.Common;
@@ -35,7 +33,7 @@ namespace Network.Verify.API
         public static string Username = "";
         public static string VerifyToken = "";
 
-        public static void Init(bool refresh = false)
+        public static async Task<bool> Init(bool refresh = false)
         {
             if (!refresh && inited)
             {
@@ -54,19 +52,31 @@ namespace Network.Verify.API
                 Username = "";
             }
 
-            var res = JsonConvert.DeserializeObject<Base>(APIBase.SendGetRequestSync());
+            string result = await APIBase.SendGetRequestAsync();
+            if (result == null)
+            {
+                Debug.Log("Error while connect to server root page");
+                return false;
+            }
+
+            var res = JsonConvert.DeserializeObject<Base>(result);
             if (res is not { status: "OK" })
             {
                 throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
             }
 
-            GetManifest();
+            return await GetManifest();
         }
 
-        private static void GetManifest()
+        private static async Task<bool> GetManifest()
         {
-            var res = JsonConvert.DeserializeObject<Manifest>(APIBase.UrlCombine(ManifestDirectory).SendGetRequestSync());
-            manifest = res;
+            var result = await APIBase.UrlCombine(ManifestDirectory).SendGetRequestAsync();
+            if (result == null)
+            {
+                Debug.Log("Error while get server manifest");
+                return false;
+            }
+            manifest = JsonConvert.DeserializeObject<Manifest>(result);
             if (manifest == null)
             {
                 throw new HttpRequestException($"RePhigros API: Service Error while getting manifest");
@@ -75,9 +85,10 @@ namespace Network.Verify.API
             loginUrl = manifest.apiURL.userlogin;
             verifyUrl = manifest.apiURL.userverify;
             Debug.Log("RePhigros API: Manifest got.");
+            return true;
         }
 
-        public static IEnumerator Login(string username, string password, Action<StatusCode> onFinished)
+        public static async Task<StatusCode> Login(string username, string password)
         {
 #if !UNITY_EDITOR
             Debug.Log("Try login");
@@ -90,31 +101,27 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for login: " + uri);
 #endif
-            yield return uri.SendGetRequest(result =>
+            string? result = await uri.SendGetRequestAsync();
+            if (result == null)
             {
-                if (result == null)
-                {
-                    Debug.LogError($"RePhigros API: Unable to connect to server when logging");
-                    onFinished.Invoke(StatusCode.Unknown);
-                    return;
-                }
-                var res = JsonConvert.DeserializeObject<VerifyRequest>(result) ;
-                if (res == null || res.status == false)
-                {
-                    Debug.LogError($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
-                    onFinished.Invoke(res?.Code ?? StatusCode.Unknown);
-                    return;
-                }
+                Debug.LogError($"RePhigros API: Unable to connect to server when logging");
+                return StatusCode.Unknown;
+            }
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(result) ;
+            if (res == null || res.status == false)
+            {
+                Debug.LogError($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
+                return res?.Code ?? StatusCode.Unknown;
+            }
 
-                if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
-                Debug.Log($"RePhigros API: Successfully logged in with verifyToken: {ProtectToken(res.verifyToken)}");
-                Username = username;
-                VerifyToken = res.verifyToken;
-                onFinished.Invoke(StatusCode.OK);
-            });
+            if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
+            Debug.Log($"RePhigros API: Successfully logged in with verifyToken: {ProtectToken(res.verifyToken)}");
+            Username = username;
+            VerifyToken = res.verifyToken;
+            return StatusCode.OK;
         }
 
-        public static IEnumerator Verify(Action<StatusCode> onFinished)
+        public static async Task<StatusCode> Verify()
         {
 #if !UNITY_EDITOR
             Debug.Log("Try verify");
@@ -132,33 +139,29 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for verify: " + uri);
 #endif
-            yield return uri.SendGetRequest(result =>
+            string? result = await uri.SendGetRequestAsync();
+            if (result == null)
             {
-                if (result == null)
-                {
-                    Debug.LogError($"RePhigros API: Unable to connect to server when verifying");
-                    onFinished.Invoke(StatusCode.Unknown);
-                    return;
-                }
-                var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
-                if (res == null || res.status == false)
-                {
-                    Debug.LogError($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
-                    onFinished.Invoke(res?.Code ?? StatusCode.Unknown);
-                    return;
-                }
+                Debug.LogError($"RePhigros API: Unable to connect to server when verifying");
+                return StatusCode.Unknown;
+            }
+            var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
+            if (res == null || res.status == false)
+            {
+                Debug.LogError($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
+                return res?.Code ?? StatusCode.Unknown;
+            }
 
-                if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
-                Debug.Log($"RePhigros API: Access granted");
-                VerifyToken = res.verifyToken;
-                onFinished.Invoke(StatusCode.OK);
-            });
+            if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
+            Debug.Log($"RePhigros API: Access granted");
+            VerifyToken = res.verifyToken;
+            return StatusCode.OK;
         }
 
-        public static bool IsLoggedIn()
-        {
-            return Username != "" && VerifyToken != "";
-        }
+        // public static bool IsLoggedIn()
+        // {
+        //     return Username != "" && VerifyToken != "";
+        // }
 
         public static void SaveRememberMe()
         {

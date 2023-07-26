@@ -1,10 +1,11 @@
 using System.Threading;
+using MainCore.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace MainCore.UI
 {
-    public class PopupMessageManager : MonoBehaviour
+    public class PopupMessageManager : MonoSingleton<PopupMessageManager>
     {
         private static int unityThread;
 
@@ -15,15 +16,12 @@ namespace MainCore.UI
 
         private string popupMessage = "";
 
-        public static PopupMessageManager Instance { get; private set; }
-
         private bool OnUnityThread => Thread.CurrentThread.ManagedThreadId == unityThread;
 
         // Start is called before the first frame update
-        void Start()
+        protected override void OnAwake()
         {
             unityThread = Thread.CurrentThread.ManagedThreadId;
-            Instance = this;
         }
 
         void Update()

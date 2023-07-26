@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Net.Http;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -13,37 +15,22 @@ namespace Network.Verify.Utils
         {
             return new Uri(new Uri(urlBase), combined).ToString();
         }
-        
-        public static string SendGetRequestSync(this string url)
-        {
-            var uwr = UnityWebRequest.Get(url);
-            uwr.downloadHandler = new DownloadHandlerBuffer();
-            uwr.SendWebRequest();
-            while (!uwr.isDone)
-            {
-            }
 
-            if (uwr.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError($"Error while requesting {url}, code: {uwr.responseCode}, message: {uwr.error}");
-                return "ERROR";
-            }
-
-            return uwr.downloadHandler.text;
-        }
-
+        [ItemCanBeNull]
         public static async Task<string> SendGetRequestAsync(this string url)
         {
-            var uwr = UnityWebRequest.Get(url);
-            await uwr.SendWebRequest();
-
-            if (uwr.result != UnityWebRequest.Result.Success)
+            HttpClient httpClient = new HttpClient();
+            HttpResponseMessage message = await httpClient.GetAsync(url);
+            try
             {
-                Debug.LogError($"Error while requesting {url}, code: {uwr.responseCode}, message: {uwr.error}");
-                return "ERROR";
+                message.EnsureSuccessStatusCode();
+                return await message.Content.ReadAsStringAsync();
             }
-
-            return uwr.downloadHandler.text;
+            catch (HttpRequestException)
+            {
+                Debug.LogError($"Error while requesting {url}, http code: {message.StatusCode}");
+                return null;
+            }
         }
 
         public static IEnumerator SendGetRequest(this string url, Action<string?> callback)

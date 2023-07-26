@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
-using System.Collections;
+using System.Threading.Tasks;
+using MainCore.Utilities;
 using Network.Verify.API;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,27 +13,30 @@ namespace Network.Verify
 
         void Awake()
         {
-            return;
-            RepAPI.Init();
-            button1.onClick.AddListener(Request);
+            Task.Run(async () =>
+            {
+                if (await RepAPI.Init())
+                {
+                    button1.onClick.AddListener(Request);
+                }
+                else
+                {
+                    Util.QuitApp();
+                }
+            });
         }
 
-        void Request()
-        {
-            StartCoroutine(RequestCoroutine());
-        }
-
-        private IEnumerator RequestCoroutine()
+        async void Request()
         {
             //if (!api.IsLoggedIn())
             {
                 Debug.Log("Logging in...");
-                yield return RepAPI.Login("Debug", "RepRunDebug2023", _ => {});
+                await RepAPI.Login("Debug", "RepRunDebug2023");
             }
             //else
             {
                 Debug.Log("Verifying...");
-                yield return RepAPI.Verify(_ => {});
+                await RepAPI.Verify();
             }
         }
     }
