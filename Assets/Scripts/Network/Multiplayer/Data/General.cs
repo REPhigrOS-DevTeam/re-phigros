@@ -109,15 +109,15 @@ namespace Network.Multiplayer.Data
     public enum ClientOperate
     {
         User_LoginToServer = 0,
-        User_LeaveServer = 1,
-        User_CreateNewRoom = 2,
-        User_CloseRoom = 3,
-        User_JoinRoom = 4,
-        Room_UpdateSong = 5,
-        Room_GameStart = 6,
-        Room_SendMessage = 7,
-        Room_GetRoomSongId = 8,
-        Room_GetRoomInfo = 9
+        User_LeaveServer,
+        User_CreateNewRoom,
+        User_CloseRoom,
+        User_JoinRoom,
+        Room_UpdateSong,
+        Room_GameStart,
+        Room_SendMessage,
+        Room_GetRoomSongId,
+        Room_GetRoomInfo,
     }
 
     public enum ServerOperate

@@ -1,5 +1,9 @@
 using System;
 using System.Net.Sockets;
+using System.Threading;
+using Baracuda.Threading;
+using MainCore.UI;
+using MainCore.Utilities;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Managers;
 using Network.Verify.API;
@@ -26,15 +30,38 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject loginObj;
 
+    public GameObject goCreateRoomButtons, goRoomOwnerButtons, goRoomMemberButtons;
+
+    private static int unityThreadId;
+    private Func<bool> IsFromUnityThread = () => true;
+
+    public GameObject sendMask;
+
     private void Awake()
     {
+        unityThreadId = Thread.CurrentThread.ManagedThreadId;
+        IsFromUnityThread = () => unityThreadId == Thread.CurrentThread.ManagedThreadId;
         try
         {
-            RepAPI.Init();
+            InitAPI();
         }
         catch (ArgumentException)
         {
-            
+        }
+    }
+
+    private async void InitAPI()
+    {
+        await Dispatcher.InvokeAsync(() => PopupMessageManager.Instance.Message("尝试连接api服务器……"));
+        bool succeeded = await RepAPI.Init();
+        if (succeeded)
+        {
+            await Dispatcher.InvokeAsync(() => PopupMessageManager.Instance.Message("连接成功"));
+        }
+        else
+        {
+            await Dispatcher.InvokeAsync(() =>
+                InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定"));
         }
     }
 
@@ -68,7 +95,7 @@ public class MPServerTest : MonoBehaviour
             tConnectState.text = "服务器状态：断开连接中";
             try
             {
-                SocketManager.Close();
+                SocketManager.LeaveServer();
 #if UNITY_EDITOR
                 EditorApplication.isPlaying = false;
 #else
@@ -84,11 +111,24 @@ public class MPServerTest : MonoBehaviour
         });
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        bLogin.onClick.AddListener(() => GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录"));
+        bLogin.onClick.AddListener(() =>
+            GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录"));
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
+        ifUrl.onEndEdit.AddListener(str =>
+        {
+            if (str.Trim() == ifUrl.text) return;
+            ifUrl.text = str.Trim();
+        });
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
+        SocketManager.OnCreateRoomSucceeded += () => { SetButtonState(RoomState.RoomOwner); };
+        SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
+        SocketManager.OnJoinRoomSucceeded += () => { SetButtonState(RoomState.RoomMember); };
+        SocketManager.OnSendPrepared += () => { sendMask.SetActive(true); };
+        SocketManager.OnBackReceived += () => { sendMask.SetActive(false); };
+        SetButtonState(0);
+        sendMask.SetActive(false);
     }
 
     private void GeneralListener(Func<int> getState, params string[] errorMessages)
@@ -105,4 +145,19 @@ public class MPServerTest : MonoBehaviour
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
     }
+
+    private void SetButtonState(RoomState state)
+    {
+        if (!IsFromUnityThread.Invoke()) return;
+        goCreateRoomButtons.SetActive(state == RoomState.NotInRoom);
+        goRoomOwnerButtons.SetActive(state == RoomState.RoomOwner);
+        goRoomMemberButtons.SetActive(state == RoomState.RoomMember);
+    }
+}
+
+public enum RoomState
+{
+    NotInRoom = 0,
+    RoomOwner = 1,
+    RoomMember = 2
 }

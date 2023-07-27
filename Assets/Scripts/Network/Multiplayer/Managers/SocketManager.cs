@@ -9,8 +9,12 @@ using Network.Multiplayer.Data;
 using Network.Verify.API;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using Utilities;
+using MessageType = Network.Multiplayer.Data.MessageType;
 
 namespace Network.Multiplayer.Managers
 {
@@ -27,8 +31,12 @@ namespace Network.Multiplayer.Managers
         private static bool isInited = false;
         private static ChatManager chatManager;
         private static object threadLock = new();
+        public static RoomState state;
 
-        public static Action OnConnecting = () => { },
+        public static Action
+            OnSendPrepared = () => { },
+            OnBackReceived = () => { },
+            OnConnecting = () => { },
             OnConnectSucceeded = () => { },
             OnConnectFailed = () => { },
             OnDisconnect = () => { },
@@ -46,8 +54,17 @@ namespace Network.Multiplayer.Managers
         {
             SocketManager.chatManager = chatManager;
             isInited = true;
+#if UNITY_EDITOR
+            EditorApplication.playModeStateChanged += playModeState =>
+            {
+                if (playModeState != PlayModeStateChange.ExitingPlayMode) return;
+                LeaveServer();
+            };
+#else
+            Application.quitting += LeaveServer;
+            Application.wantsToQuit += () => true;
+#endif
         }
-
         public static int CreateSocket(string serverUrl)
         {
             Close();
@@ -77,6 +94,7 @@ namespace Network.Multiplayer.Managers
             if (token != "") return -3;
             try
             {
+                OnSendPrepared.Invoke();
                 currentClientOperate = ClientOperate.User_LoginToServer;
                 LoginSendData<string> pack = new LoginSendData<string>
                 {
@@ -127,6 +145,27 @@ namespace Network.Multiplayer.Managers
             return GeneralSend(ClientOperate.Room_GameStart, GetSendDataWithToken<string>());
         }
 
+        public static void LeaveServer()
+        {
+            lock (threadLock)
+            {
+                if (!socket.Connected) return; // 未连接
+                if (string.IsNullOrEmpty(token)) return; // 未登录
+                try
+                {
+                    var value = GetSendDataWithToken<string>();
+                    currentClientOperate = ClientOperate.User_LeaveServer;
+                    value.Operate = ClientOperate.User_LeaveServer.ToString();
+                    socket.Send(value);
+                    Close();
+                }
+                catch (SocketException e)
+                {
+                    e.Print();
+                }
+            }
+        }
+
         private static int GeneralSend<T>(ClientOperate clientOperate, GeneralSendData<T> value)
         {
             lock (threadLock)
@@ -135,6 +174,7 @@ namespace Network.Multiplayer.Managers
                 if (string.IsNullOrEmpty(token)) return -3; // 未登录
                 try
                 {
+                    OnSendPrepared.Invoke();
                     currentClientOperate = clientOperate;
                     value.Operate = clientOperate.ToString();
                     socket.Send(value);
@@ -201,6 +241,7 @@ namespace Network.Multiplayer.Managers
 
         private static void ExecuteBackPack(JObject pack, ClientOperate clientOperate)
         {
+            OnBackReceived.Invoke();
             switch (clientOperate)
             {
                 case ClientOperate.User_LoginToServer:
@@ -273,9 +314,8 @@ namespace Network.Multiplayer.Managers
 
                 token = received.token;
                 OnLoginSucceeded.Invoke();
+                InGameUIManager.ShowModalWindowWithClose("提示", received.Message, () => { }, "确认");
             }
-
-            InGameUIManager.ShowModalWindowWithClose("提示", received.Message, () => { }, "确认");
         }
 
         private static void DealWithMsg<T>(JObject jObject,
@@ -379,7 +419,7 @@ namespace Network.Multiplayer.Managers
             OnCloseRoomSucceeded.Invoke();
         }
 
-        public static void Close()
+        private static void Close()
         {
             if (socket == null) return;
             stopReceive = true;

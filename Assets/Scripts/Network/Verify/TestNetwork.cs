@@ -13,6 +13,7 @@ namespace Network.Verify
 
         void Awake()
         {
+            return;
             Task.Run(async () =>
             {
                 if (await RepAPI.Init())

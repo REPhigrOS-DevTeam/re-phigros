@@ -21,13 +21,14 @@ public class LoginManager : MonoBehaviour
     private string username = "", password = "";
     private bool firstLogin = true;
     public GameObject loginMask;
+    private bool lastRememberMe;
 
     private void Awake()
     {
         ifUsername.onEndEdit.AddListener(CheckUsername);
         ifPassword.onEndEdit.AddListener(CheckPassword);
         bLogin.onClick.AddListener(Login);
-        tRememberMe.isOn = RepAPI.RememberMe;
+        lastRememberMe = tRememberMe.isOn = RepAPI.RememberMe;
         if (RepAPI.RememberMe)
         {
             ifUsername.text = username = RepAPI.Username;
@@ -43,10 +44,10 @@ public class LoginManager : MonoBehaviour
     private void OnInputFieldsClicked(bool a)
     {
         if (!RepAPI.RememberMe) return;
-        RepAPI.RememberMe = false;
         RepAPI.Username = RepAPI.VerifyToken = "";
         firstLogin = false;
         ifPassword.text = password = "";
+        lastRememberMe = false;
     }
 
     private void CheckUsername(string input)
@@ -103,8 +104,7 @@ public class LoginManager : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "用户名过长", () => { }, "确定");
             return;
         }
-
-        bool lastRememberMe = RepAPI.RememberMe;
+        
         RepAPI.RememberMe = tRememberMe.isOn;
         RepAPI.SaveRememberMe();
         loginMask.SetActive(true);
@@ -153,7 +153,6 @@ public class LoginManager : MonoBehaviour
             Dispatcher.Invoke(async () =>
             {
                 StatusCode code = await RepAPI.Login(username, password);
-                Debug.Log(code);
                 loginMask.SetActive(false);
                 switch (code)
                 {
