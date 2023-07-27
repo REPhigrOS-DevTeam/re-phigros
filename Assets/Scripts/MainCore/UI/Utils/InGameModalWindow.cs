@@ -89,6 +89,9 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
     public void Hide()
     {
         if (!IsActive) return;
+        confirmButton.onClick.RemoveAllListeners();
+        cancelButton.onClick.RemoveAllListeners();
+        alternateButton.onClick.RemoveAllListeners();
         modalWindow.rectTransform.DOAnchorPosY(-800, .3f).SetEase(Ease.InBack);
         backPanel.DOFade(0, .3f);
         modalWindow.rectTransform.DOScale(new Vector3(0, 0), .3f).SetEase(Ease.InBack).onComplete +=
@@ -105,11 +108,15 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
 
     public void HideForcely()
     {
+        confirmButton.onClick.RemoveAllListeners();
+        cancelButton.onClick.RemoveAllListeners();
+        alternateButton.onClick.RemoveAllListeners();
         modalWindow.rectTransform.anchoredPosition = new Vector2(modalWindow.rectTransform.anchoredPosition.x, -800);
         backPanel.color.SetAlpha(0);
         modalWindow.rectTransform.localScale = new Vector3(0, 0);
         backPanel.gameObject.SetActive(false);
         IsActive = false;
+        InGameUIManager.CheckWindowToShow();
     }
 
     private void confirmClicked()

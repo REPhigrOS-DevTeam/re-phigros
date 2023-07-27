@@ -194,7 +194,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: cn-sz-plc-1.o
+  m_Text: 192.168.1.31
 --- !u!222 &53949949
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2792,7 +2792,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: cn-sz-plc-1.openfrp.top:57018
+  m_Text: 192.168.1.31:26377
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -5276,6 +5276,7 @@ MonoBehaviour:
   bLogin: {fileID: 1995669528}
   bCreateRoom: {fileID: 1412161356}
   bCloseRoom: {fileID: 765210854}
+  bStartGame: {fileID: 1615796316}
   tConnectState: {fileID: 1126128685}
   tLoginToken: {fileID: 734854381}
   tRoomId: {fileID: 1200061780}

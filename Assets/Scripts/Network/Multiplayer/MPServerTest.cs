@@ -5,6 +5,7 @@ using Baracuda.Threading;
 using MainCore.UI;
 using MainCore.Utilities;
 using Network.Multiplayer.Components;
+using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using Network.Verify.API;
 #if UNITY_EDITOR
@@ -21,6 +22,7 @@ public class MPServerTest : MonoBehaviour
 
     public Button bConnect, bDisconnect, bLogin;
     public Button bCreateRoom, bCloseRoom;
+    public Button bStartGame;
 
     private int roomId = -1;
 
@@ -120,13 +122,22 @@ public class MPServerTest : MonoBehaviour
             if (str.Trim() == ifUrl.text) return;
             ifUrl.text = str.Trim();
         });
+        bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
         SocketManager.OnCreateRoomSucceeded += () => { SetButtonState(RoomState.RoomOwner); };
         SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnJoinRoomSucceeded += () => { SetButtonState(RoomState.RoomMember); };
-        SocketManager.OnSendPrepared += () => { sendMask.SetActive(true); };
-        SocketManager.OnBackReceived += () => { sendMask.SetActive(false); };
+        SocketManager.OnSendPrepared += clientOperate =>
+        {
+            if (clientOperate == ClientOperate.Room_SendMessage) return;
+            sendMask.SetActive(true);
+        };
+        SocketManager.OnBackReceived += clientOperate =>
+        {
+            if (clientOperate == ClientOperate.Room_SendMessage) return;
+            sendMask.SetActive(false);
+        };
         SetButtonState(0);
         sendMask.SetActive(false);
     }

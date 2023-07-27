@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Baracuda.Threading;
 using JetBrains.Annotations;
@@ -33,9 +34,10 @@ namespace Network.Multiplayer.Managers
         private static object threadLock = new();
         public static RoomState state;
 
+        public static Action<ClientOperate>
+            OnSendPrepared = _ => { },
+            OnBackReceived = _ => { };
         public static Action
-            OnSendPrepared = () => { },
-            OnBackReceived = () => { },
             OnConnecting = () => { },
             OnConnectSucceeded = () => { },
             OnConnectFailed = () => { },
@@ -94,8 +96,8 @@ namespace Network.Multiplayer.Managers
             if (token != "") return -3;
             try
             {
-                OnSendPrepared.Invoke();
                 currentClientOperate = ClientOperate.User_LoginToServer;
+                OnSendPrepared.Invoke(currentClientOperate);
                 LoginSendData<string> pack = new LoginSendData<string>
                 {
                     Operate = currentClientOperate.ToString(),
@@ -157,6 +159,7 @@ namespace Network.Multiplayer.Managers
                     currentClientOperate = ClientOperate.User_LeaveServer;
                     value.Operate = ClientOperate.User_LeaveServer.ToString();
                     socket.Send(value);
+                    Thread.Sleep(1000);
                     Close();
                 }
                 catch (SocketException e)
@@ -174,8 +177,8 @@ namespace Network.Multiplayer.Managers
                 if (string.IsNullOrEmpty(token)) return -3; // 未登录
                 try
                 {
-                    OnSendPrepared.Invoke();
                     currentClientOperate = clientOperate;
+                    OnSendPrepared.Invoke(currentClientOperate);
                     value.Operate = clientOperate.ToString();
                     socket.Send(value);
                     return 0;
@@ -241,7 +244,7 @@ namespace Network.Multiplayer.Managers
 
         private static void ExecuteBackPack(JObject pack, ClientOperate clientOperate)
         {
-            OnBackReceived.Invoke();
+            OnBackReceived.Invoke(clientOperate);
             switch (clientOperate)
             {
                 case ClientOperate.User_LoginToServer:
