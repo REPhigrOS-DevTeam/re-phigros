@@ -102,7 +102,7 @@ namespace Network.Multiplayer.Managers
         public static int Login()
         {
             if (!socket.Connected) return -1; // 未连接
-            if (token != "") return -3;
+            if (token != "") return -3; // 已登录
             try
             {
                 currentClientOperate = ClientOperate.User_LoginToServer;
@@ -111,9 +111,8 @@ namespace Network.Multiplayer.Managers
                 {
                     Operate = currentClientOperate.ToString(),
                     Username = RepAPI.Username,
-                    VerifyToken = "" // TODO: 输入rep账户系统的token
+                    VerifyToken = RepAPI.VerifyToken
                 };
-                pack.VerifyToken = RepAPI.VerifyToken;
                 socket.Send(pack);
                 return 0;
             }
@@ -126,18 +125,24 @@ namespace Network.Multiplayer.Managers
 
         public static int CreateRoom()
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             return GeneralSend(ClientOperate.User_CreateNewRoom,
                 GetSendDataWithToken());
         }
 
         public static int CloseRoom()
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             return GeneralSend(ClientOperate.User_CloseRoom,
                 GetSendDataWithToken());
         }
         
         public static int JoinRoom(string roomId)
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             tryJoinRoomId = roomId;
             SendDataWithToken pack = GetSendDataWithToken();
             pack.Addition.Add("RoomID", roomId);
@@ -146,11 +151,15 @@ namespace Network.Multiplayer.Managers
 
         public static int QuitRoom()
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             return GeneralSend(ClientOperate.User_QuitRoom, GetSendDataWithToken());
         }
 
         public static int SendRoomMessage(string msg)
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             SendDataWithToken pack = GetSendDataWithToken();
             pack.Addition.Add("NewMessage", msg);
             return GeneralSend(ClientOperate.Room_SendMessage, pack);
@@ -158,6 +167,8 @@ namespace Network.Multiplayer.Managers
 
         public static int StartGame()
         {
+            if (!socket.Connected) return -1; // 未连接
+            if (token == "") return -3; // 未登录
             return GeneralSend(ClientOperate.Room_GameStart, GetSendDataWithToken());
         }
 
