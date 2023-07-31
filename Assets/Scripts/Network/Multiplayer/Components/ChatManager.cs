@@ -40,7 +40,7 @@ namespace Network.Multiplayer.Components
 
         private void Update()
         {
-            if (!Input.GetKeyDown(KeyCode.Return) || ifMessage.isFocused) return;
+            if ((!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) || ifMessage.isFocused) return;
             ifMessage.ActivateInputField();
             bSend.onClick.Invoke();
         }
