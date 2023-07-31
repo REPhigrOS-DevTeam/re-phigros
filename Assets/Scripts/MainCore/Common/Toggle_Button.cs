@@ -17,15 +17,17 @@ namespace MainCore.Common
             set => ChangeValue(value);
         }
 
-        public void Awake()
+        private void Awake()
         {
+            if (button != null) return;
             button = gameObject.GetComponent<Button>();
-            buttonText = button.transform.GetChild(0).GetComponent<Text>();
+            buttonText = transform.GetChild(0).gameObject.GetComponent<Text>();
             IsOn = false;
         }
 
         private void ChangeValue(bool value)
         {
+            if (button == null) Awake();
             isOn = value;
             OnValueChanged.Invoke(button, buttonText, value);
             button.onClick.RemoveAllListeners();

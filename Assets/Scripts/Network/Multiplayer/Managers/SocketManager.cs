@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Baracuda.Threading;
 using JetBrains.Annotations;
+using MainCore.Utilities;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Verify.API;
@@ -34,12 +35,13 @@ namespace Network.Multiplayer.Managers
         private static bool isInited = false;
         private static ChatManager chatManager;
         private static object threadLock = new();
-        public static RoomState state;
 
         public static Action<int> OnUpdateSongReceived = _ => { };
+
         public static Action<ClientOperate>
             OnSendPrepared = _ => { },
             OnBackReceived = _ => { };
+
         public static Action
             OnConnecting = () => { },
             OnConnectSucceeded = () => { },
@@ -47,8 +49,9 @@ namespace Network.Multiplayer.Managers
             OnDisconnect = () => { },
             OnLoginSucceeded = () => { },
             OnCreateRoomSucceeded = () => { },
-            OnJoinRoomSucceeded = () => { },
             OnCloseRoomSucceeded = () => { },
+            OnJoinRoomSucceeded = () => { },
+            OnQuitRoomSucceeded = () => { },
             OnUpdateSongSucceeded = () => { },
             OnStartGameSucceeded = () => { },
             OnSendMessageSucceeded = () => { },
@@ -71,6 +74,7 @@ namespace Network.Multiplayer.Managers
             Application.wantsToQuit += () => true;
 #endif
         }
+
         public static int CreateSocket(string serverUrl)
         {
             Close();
@@ -94,6 +98,7 @@ namespace Network.Multiplayer.Managers
         }
 
         #region ClientOperations
+
         public static int Login()
         {
             if (!socket.Connected) return -1; // 未连接
@@ -125,6 +130,12 @@ namespace Network.Multiplayer.Managers
                 GetSendDataWithToken());
         }
 
+        public static int CloseRoom()
+        {
+            return GeneralSend(ClientOperate.User_CloseRoom,
+                GetSendDataWithToken());
+        }
+        
         public static int JoinRoom(string roomId)
         {
             tryJoinRoomId = roomId;
@@ -133,10 +144,9 @@ namespace Network.Multiplayer.Managers
             return GeneralSend(ClientOperate.User_JoinRoom, pack);
         }
 
-        public static int CloseRoom()
+        public static int QuitRoom()
         {
-            return GeneralSend(ClientOperate.User_CloseRoom,
-                GetSendDataWithToken());
+            return GeneralSend(ClientOperate.User_QuitRoom, GetSendDataWithToken());
         }
 
         public static int SendRoomMessage(string msg)
@@ -179,6 +189,7 @@ namespace Network.Multiplayer.Managers
             pack.Addition.Add("songId", songId + "");
             return GeneralSend(ClientOperate.Room_UpdateSong, pack);
         }
+
         #endregion
 
         private static int GeneralSend(ClientOperate clientOperate, GeneralSendData value)
@@ -269,28 +280,26 @@ namespace Network.Multiplayer.Managers
                         {
                             OnCreateRoomSucceeded.Invoke();
                             roomId = createRoomReceive.RoomId;
-                        });
+                        }, printOnSuccess: true);
                     break;
                 case ClientOperate.User_CloseRoom:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间", callback: _ => OnRoomClosed());
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间", printOnSuccess: true);
                     break;
                 case ClientOperate.User_JoinRoom:
                     DealWithMsg<BackReceiveData>(pack, "错误：无法加入房间", callback: _ =>
                     {
                         OnJoinRoomSucceeded.Invoke();
                         roomId = tryJoinRoomId;
-                    });
+                    }, printOnSuccess: true);
                     break;
                 case ClientOperate.Room_UpdateSong:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法更换谱面", callback: _ => OnUpdateSongSucceeded.Invoke(), printOnSuccess:false);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法更换谱面", callback: _ => OnUpdateSongSucceeded.Invoke());
                     break;
                 case ClientOperate.Room_GameStart:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法开始游戏", callback: _ => OnStartGameSucceeded.Invoke(),
-                        printOnSuccess: false);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法开始游戏", callback: _ => OnStartGameSucceeded.Invoke());
                     break;
                 case ClientOperate.Room_SendMessage:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法发送信息", callback: _ => OnSendMessageSucceeded.Invoke(),
-                        printOnSuccess: false);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法发送信息", callback: _ => OnSendMessageSucceeded.Invoke());
                     break;
                 case ClientOperate.Room_GetRoomSongId:
                     DealWithMsg<GetSongIdReceive>(pack, "错误：无法获取歌曲id",
@@ -298,6 +307,17 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ClientOperate.Room_GetRoomInfo:
                     DealWithMsg<RoomInfoReceive>(pack, "错误：无法获取房间信息", callback: _ => OnGetRoomInfoSucceeded.Invoke());
+                    break;
+                case ClientOperate.User_QuitRoom:
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法退出房间", callback: _ => OnQuitRoomSucceeded.Invoke(), printOnSuccess: true);
+                    break;
+                case ClientOperate.User_Ready:
+                    break;
+                case ClientOperate.User_UnReady:
+                    break;
+                case ClientOperate.Room_UserGameEnd:
+                    break;
+                case ClientOperate.Room_UserQuitGame:
                     break;
                 case ClientOperate.User_LeaveServer:
                 default:
@@ -335,7 +355,7 @@ namespace Network.Multiplayer.Managers
 
         private static void DealWithMsg<T>(JObject jObject,
             string errorMessage, [CanBeNull] Func<T, bool> checkData = null, [CanBeNull] Action<T> callback = null,
-            bool printOnSuccess = true)
+            bool printOnSuccess = false)
             where T : BackReceiveData
         {
             T? received = jObject.ToObject<T>();
@@ -403,16 +423,23 @@ namespace Network.Multiplayer.Managers
                         chatManager.AddMessage(receive.Author, receive.Message,
                             receive.Author == RepAPI.Username ? MessageType.Self : MessageType.Common);
                     }
+
                     break;
                 case ServerOperate.GameStart:
                     chatManager.AddMessage("Server", "游戏开始了，但我没做，只是愣着", MessageType.Server);
                     break;
                 case ServerOperate.RoomClosed:
-                    OnRoomClosed();
+                    roomId = "";
+                    chatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
+                    OnCloseRoomSucceeded.Invoke();
                     break;
                 case ServerOperate.UpdateSong:
-                    Debug.Log("试图更新歌曲信息：" + JsonConvert.SerializeObject(pack.ToObject<UpdaeSongActiveReceive>(), Formatting.None));
+                    Debug.Log("试图更新歌曲信息：" +
+                              JsonConvert.SerializeObject(pack.ToObject<UpdaeSongActiveReceive>(), Formatting.None));
                     OnUpdateSongReceived.Invoke(int.Parse(pack["songId"].ToString()));
+                    break;
+                case ServerOperate.ServerClosed:
+                    Util.QuitApp();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -429,11 +456,11 @@ namespace Network.Multiplayer.Managers
             return roomId;
         }
 
-        private static void OnRoomClosed()
+        private static void OnRoomQuited()
         {
             roomId = "";
-            chatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
-            OnCloseRoomSucceeded.Invoke();
+            chatManager.AddMessage("Server", "已退出房间", MessageType.Server);
+            OnQuitRoomSucceeded.Invoke();
         }
 
         private static void Close()

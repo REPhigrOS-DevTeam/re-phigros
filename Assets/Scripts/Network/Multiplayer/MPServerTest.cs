@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ public class MPServerTest : MonoBehaviour
     public InputField ifUrl;
 
     public Button bConnect, bDisconnect, bLogin;
-    public Button bCreateRoom, bCloseRoom, bStartGame, bUpdateSong;
+    public Button bCreateRoom, bCloseRoom, bExitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
     private int roomId = -1;
@@ -35,8 +36,7 @@ public class MPServerTest : MonoBehaviour
     public Text tLoginToken, tRoomId;
 
     public GameObject loginObj;
-
-    public GameObject[] buttonStateAffectedObjects;
+    
     private static int? unityThreadId = null;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
@@ -44,10 +44,21 @@ public class MPServerTest : MonoBehaviour
 
     private bool downloaded;
 
+    private Dictionary<Button, RoomState> buttonToState = new();
+
     private void Awake()
     {
         unityThreadId = Thread.CurrentThread.ManagedThreadId;
         ZipConstants.DefaultCodePage = 65001; // UTF-8
+        buttonToState = new()
+        {
+            { bCreateRoom, RoomState.NotInRoom },
+            { bCloseRoom, RoomState.RoomOwner },
+            { bExitRoom, RoomState.RoomMember },
+            { bDownloadSong, RoomState.RoomMember | RoomState.RoomOwner },
+            { bStartGame, RoomState.RoomOwner },
+            { bUpdateSong, RoomState.RoomOwner }
+        };
         try
         {
             InitAPI();
@@ -116,6 +127,10 @@ public class MPServerTest : MonoBehaviour
             {
                 
             }
+            else
+            {
+                
+            }
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong(1), generalErrorMessages));
@@ -124,6 +139,7 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnCreateRoomSucceeded += () => { SetButtonState(RoomState.RoomOwner); };
         SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnJoinRoomSucceeded += () => { SetButtonState(RoomState.RoomMember); };
+        SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom);};
         SocketManager.OnSendPrepared += clientOperate =>
         {
             if (clientOperate == ClientOperate.Room_SendMessage) return;
@@ -135,7 +151,7 @@ public class MPServerTest : MonoBehaviour
             sendMask.SetActive(false);
         };
         SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
-        SetButtonState(0);
+        SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
     }
@@ -217,6 +233,9 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.difficulty = debugChartInfo.difficulte + " Lv." + Mathf.FloorToInt(debugChartInfo.hard);
             }
         }
+
+        GlobalSetting.charter = debugChartInfo.charter;
+        GlobalSetting.composer = debugChartInfo.composer;
         // extra init
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath) && GlobalSetting.useShader)
@@ -294,11 +313,10 @@ public class MPServerTest : MonoBehaviour
 
     private void SetButtonState(RoomState state)
     {
-        if (!IsFromUnityThread) return;
-        int iState = (int)state;
-        for (var i = 0; i < buttonStateAffectedObjects.Length; i++)
+        if (!IsFromUnityThread || Convert.ToString((int) state, 2).Replace("0", "").Length > 1) return;
+        foreach (Button button in buttonToState.Keys)
         {
-            buttonStateAffectedObjects[i].SetActive(i == iState);
+            button.gameObject.SetActive((buttonToState[button] & state) == state);
         }
     }
 
@@ -323,9 +341,10 @@ public class DebugChartInfo
     public float hard;
 }
 
+[Flags]
 public enum RoomState
 {
-    NotInRoom = 0,
-    RoomOwner = 1,
-    RoomMember = 2
+    NotInRoom = 1 << 0,
+    RoomOwner = 1 << 1,
+    RoomMember = 1 << 2
 }

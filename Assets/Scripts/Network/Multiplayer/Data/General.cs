@@ -168,6 +168,11 @@ namespace Network.Multiplayer.Data
         User_CreateNewRoom,
         User_CloseRoom,
         User_JoinRoom,
+        User_QuitRoom,
+        User_Ready,
+        User_UnReady,
+        Room_UserGameEnd,
+        Room_UserQuitGame,
         Room_UpdateSong,
         Room_GameStart,
         Room_SendMessage,
@@ -180,6 +185,7 @@ namespace Network.Multiplayer.Data
         Message = 0,
         GameStart = 1,
         RoomClosed = 2,
-        UpdateSong = 3
+        UpdateSong = 3,
+        ServerClosed
     }
 }

@@ -71,14 +71,13 @@ namespace Network.Verify.API
 
         private static async Task<bool> GetManifest()
         {
-            byte[] data = await APIBase.SendGetRequestAsync();
+            byte[] data = await APIBase.UrlCombine(ManifestDirectory).SendGetRequestAsync();
             if (data == null)
             {
                 Debug.Log("Error while get server manifest");
                 return false;
             }
             string result = Encoding.UTF8.GetString(data);
-            Debug.Log(result);
             manifest = JsonConvert.DeserializeObject<Manifest>(result);
             if (manifest == null)
             {
@@ -104,7 +103,7 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for login: " + uri);
 #endif
-            byte[] data = await APIBase.SendGetRequestAsync();
+            byte[] data = await uri.SendGetRequestAsync();
             if (data == null)
             {
                 Debug.Log("RePhigros API: Unable to connect to server when logging");
@@ -143,7 +142,7 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for verify: " + uri);
 #endif
-            byte[] data = await APIBase.SendGetRequestAsync();
+            byte[] data = await uri.SendGetRequestAsync();
             if (data == null)
             {
                 Debug.LogError($"RePhigros API: Unable to connect to server when verifying");

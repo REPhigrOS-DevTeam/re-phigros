@@ -70,7 +70,13 @@ namespace Network.Multiplayer.Components
 
         public void RevertChatHistory()
         {
-            
+            lock (threadLock)
+            {
+                foreach (Message message in messages)
+                {
+                    AddMessage(message.from, message.message, message.messageType);
+                }
+            }
         }
 
         private void OnInitOrRoomClosed()
