@@ -52,12 +52,13 @@ namespace Network.Verify.API
                 Username = "";
             }
 
-            string result = await APIBase.SendGetRequestAsync();
-            if (result == null)
+            byte[] data = await APIBase.SendGetRequestAsync();
+            if (data == null)
             {
                 Debug.Log("Error while connect to server root page");
                 return false;
             }
+            string result = Encoding.UTF8.GetString(data);
 
             var res = JsonConvert.DeserializeObject<Base>(result);
             if (res is not { status: "OK" })
@@ -70,12 +71,14 @@ namespace Network.Verify.API
 
         private static async Task<bool> GetManifest()
         {
-            var result = await APIBase.UrlCombine(ManifestDirectory).SendGetRequestAsync();
-            if (result == null)
+            byte[] data = await APIBase.SendGetRequestAsync();
+            if (data == null)
             {
                 Debug.Log("Error while get server manifest");
                 return false;
             }
+            string result = Encoding.UTF8.GetString(data);
+            Debug.Log(result);
             manifest = JsonConvert.DeserializeObject<Manifest>(result);
             if (manifest == null)
             {
@@ -101,12 +104,13 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for login: " + uri);
 #endif
-            string? result = await uri.SendGetRequestAsync();
-            if (result == null)
+            byte[] data = await APIBase.SendGetRequestAsync();
+            if (data == null)
             {
-                Debug.LogError($"RePhigros API: Unable to connect to server when logging");
+                Debug.Log("RePhigros API: Unable to connect to server when logging");
                 return StatusCode.Unknown;
             }
+            string result = Encoding.UTF8.GetString(data);
             var res = JsonConvert.DeserializeObject<VerifyRequest>(result) ;
             if (res == null || res.status == false)
             {
@@ -139,12 +143,14 @@ namespace Network.Verify.API
 #if UNITY_EDITOR
             Debug.Log("Try send for verify: " + uri);
 #endif
-            string? result = await uri.SendGetRequestAsync();
-            if (result == null)
+            byte[] data = await APIBase.SendGetRequestAsync();
+            if (data == null)
             {
                 Debug.LogError($"RePhigros API: Unable to connect to server when verifying");
                 return StatusCode.Unknown;
             }
+
+            string result = Encoding.UTF8.GetString(data);
             var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
             if (res == null || res.status == false)
             {

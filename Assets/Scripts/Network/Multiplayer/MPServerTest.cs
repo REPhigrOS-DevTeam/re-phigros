@@ -1,18 +1,22 @@
 using System;
-using System.Net.Sockets;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Baracuda.Threading;
+using ICSharpCode.SharpZipLib.Zip;
+using MainCore;
+using MainCore.Common;
+using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using Network.Verify.API;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.UI;
+using YamlDotNet.Serialization;
 using MessageType = Network.Multiplayer.Data.MessageType;
 
 public class MPServerTest : MonoBehaviour
@@ -21,8 +25,8 @@ public class MPServerTest : MonoBehaviour
     public InputField ifUrl;
 
     public Button bConnect, bDisconnect, bLogin;
-    public Button bCreateRoom, bCloseRoom;
-    public Button bStartGame;
+    public Button bCreateRoom, bCloseRoom, bStartGame, bUpdateSong;
+    public Toggle_Button bReady;
 
     private int roomId = -1;
 
@@ -32,17 +36,18 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject loginObj;
 
-    public GameObject goCreateRoomButtons, goRoomOwnerButtons, goRoomMemberButtons;
-
-    private static int unityThreadId;
-    private Func<bool> IsFromUnityThread = () => true;
+    public GameObject[] buttonStateAffectedObjects;
+    private static int? unityThreadId = null;
+    private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
     public GameObject sendMask;
+
+    private bool downloaded;
 
     private void Awake()
     {
         unityThreadId = Thread.CurrentThread.ManagedThreadId;
-        IsFromUnityThread = () => unityThreadId == Thread.CurrentThread.ManagedThreadId;
+        ZipConstants.DefaultCodePage = 65001; // UTF-8
         try
         {
             InitAPI();
@@ -92,25 +97,7 @@ public class MPServerTest : MonoBehaviour
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown Exception")
             }, () => { }, "确定");
         });
-        bDisconnect.onClick.AddListener(() =>
-        {
-            tConnectState.text = "服务器状态：断开连接中";
-            try
-            {
-                SocketManager.LeaveServer();
-#if UNITY_EDITOR
-                EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
-            }
-            catch (SocketException e)
-            {
-                tConnectState.text = "服务器状态：断开连接失败";
-                InGameUIManager.ShowModalWindowWithClose("错误", "无法断开连接：" + e.Message + "\n" + e.StackTrace, () => { },
-                    "确定");
-            }
-        });
+        bDisconnect.onClick.AddListener(Util.QuitApp);
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
         bLogin.onClick.AddListener(() =>
@@ -122,7 +109,16 @@ public class MPServerTest : MonoBehaviour
             if (str.Trim() == ifUrl.text) return;
             ifUrl.text = str.Trim();
         });
+        bReady.OnValueChanged += (button, text, isOn) =>
+        {
+            text.text = isOn ? "取消准备" : "准备";
+            if (isOn)
+            {
+                
+            }
+        };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
+        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong(1), generalErrorMessages));
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
         SocketManager.OnCreateRoomSucceeded += () => { SetButtonState(RoomState.RoomOwner); };
@@ -138,7 +134,23 @@ public class MPServerTest : MonoBehaviour
             if (clientOperate == ClientOperate.Room_SendMessage) return;
             sendMask.SetActive(false);
         };
+        SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
         SetButtonState(0);
+        sendMask.SetActive(false);
+        bReady.IsOn = false;
+    }
+
+    private async void OnUpdateSongReceived(int id)
+    {
+        sendMask.SetActive(true);
+        if (await DownloadSong(id))
+        {
+            chatManager.AddMessage("downloadSucceeded", "成功下载谱面" + id, MessageType.Server);
+        }
+        else
+        {
+            chatManager.AddMessage("downloadFailed", "错误：无法下载谱面" + id, MessageType.Error);
+        }
         sendMask.SetActive(false);
     }
 
@@ -149,21 +161,166 @@ public class MPServerTest : MonoBehaviour
         chatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
     }
 
+    private async Task<bool> DownloadSong(int id) // TODO: 接入PhiZone
+    {
+#if true
+        string directory = Application.dataPath + "/../Debug/Songs/" + id;
+        if (!Directory.Exists(Application.dataPath + "/../Debug/Songs/" + id))
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + id, () => { }, "确定");
+            return false;
+        }
+
+        string debugInfoFile = directory + "/debug.json";
+        if (!File.Exists(debugInfoFile))
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "歌曲信息不存在", () => { }, "确定");
+            return false;
+        }
+
+        DebugChartInfo debugChartInfo =
+            JsonConvert.DeserializeObject<DebugChartInfo>(await File.ReadAllTextAsync(debugInfoFile));
+        if (debugChartInfo == null)
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "歌曲信格式有误", () => { }, "确定");
+            return false;
+        }
+        // path init
+        GlobalSetting.chartPath = directory + "/" + debugChartInfo.chartFileName;
+        GlobalSetting.musicPath = directory + "/" + debugChartInfo.musicFileName;
+        GlobalSetting.illustrationPath = directory + "/" + debugChartInfo.illustraionFileName;
+        PlayerPrefs.SetString("chartFolderPath", directory);
+        PlayerPrefs.Save();
+        // phira info
+        string phiraInfoPath = directory + "/info.yml";
+        PhiraInfoData phiraInfoData = null;
+        if (File.Exists(phiraInfoPath))
+        {
+            IDeserializer deserializer = new DeserializerBuilder().Build();
+            phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+            GlobalSetting.difficulty = phiraInfoData.level;
+        }
+        // info init
+        if (phiraInfoData == null)
+        {
+            var infoPath = directory + "/info.txt";
+            if (File.Exists(infoPath))
+            {
+                GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
+                GlobalSetting.chartName = GlobalSetting.infoTxt.GetName();
+                GlobalSetting.difficulty = GlobalSetting.infoTxt.GetDifficulty();
+            }
+            else
+            {
+                GlobalSetting.infoTxt = null;
+                GlobalSetting.chartName = debugChartInfo.name;
+                GlobalSetting.difficulty = debugChartInfo.difficulte + " Lv." + Mathf.FloorToInt(debugChartInfo.hard);
+            }
+        }
+        // extra init
+        string extraJsonPath = directory + "/extra.json";
+        if (File.Exists(extraJsonPath) && GlobalSetting.useShader)
+        {
+            GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
+        }
+        // chart init
+        GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
+        GlobalSetting.chartFolderPath = directory;
+        await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
+        Main.OverloadInfoWithPhiraYaml(phiraInfoData);
+        // convert illustration & music
+        GlobalSetting.backgroundImage = Util.ConvertFileToSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath));
+        Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
+#else
+        ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
+        if (chartInfo.Chart == null)
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "没有谱面", () => { }, "确定");
+            return;
+        }
+
+        if (chartInfo.Song.Song == null)
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "没有歌曲", () => { }, "确定");
+            return;
+        }
+
+        byte[] chartData = await chartInfo.Chart.SendGetRequestAsync();
+        byte[] musicData = await chartInfo.Song.Song.SongSong.SendGetRequestAsync();
+        byte[] illustrationData = await chartInfo.Song.Song.Illustration.SendGetRequestAsync();
+#endif
+        return true;
+    }
+    
+    private void EnterGame() {
+        // other
+        GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
+        GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
+        GlobalSetting.usingApi = false;
+        SelectUIControl.ReadUserSettings();
+        HitSoundManager.Init();
+        PopupMessageManager.Instance.Clear();
+        SceneTransit.Instance.TransitTo("LoadInto");
+    }
+
+    // private int counter = 0;
+
     private void Update()
     {
         string token = SocketManager.GetToken();
         string roomId = SocketManager.GetRoomId();
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
+        // if (!Input.GetMouseButtonDown(2)) return;
+        // switch (counter % 2)
+        // {
+        //     case 0:
+        //         Debug.Log("开始压缩");
+        //         DateTime dateTime = DateTime.Now;
+        //         ZipUtils.ZipDirectory("G:/RPGR-Data/でんでん心電図", "G:/RPGR-Data", "test");
+        //         DateTime dateTime1 = DateTime.Now;
+        //         Debug.Log("压缩完了,用时：" + (dateTime1 - dateTime).TotalMilliseconds + "ms");
+        //         break;
+        //     case 1:
+        //         Debug.Log("开始解压");
+        //         dateTime = DateTime.Now;
+        //         ZipUtils.UnZip("G:/RPGR-Data/test.zip", "G:/RPGR-Data/test");
+        //         dateTime1 = DateTime.Now;
+        //         Debug.Log("解压完了,用时：" + (dateTime1 - dateTime).TotalMilliseconds + "ms");
+        //         break;
+        // }
+        // counter++;
     }
 
     private void SetButtonState(RoomState state)
     {
-        if (!IsFromUnityThread.Invoke()) return;
-        goCreateRoomButtons.SetActive(state == RoomState.NotInRoom);
-        goRoomOwnerButtons.SetActive(state == RoomState.RoomOwner);
-        goRoomMemberButtons.SetActive(state == RoomState.RoomMember);
+        if (!IsFromUnityThread) return;
+        int iState = (int)state;
+        for (var i = 0; i < buttonStateAffectedObjects.Length; i++)
+        {
+            buttonStateAffectedObjects[i].SetActive(i == iState);
+        }
     }
+
+    private void SetDownloaded(bool value)
+    {
+        downloaded = value;
+        bReady.gameObject.SetActive(value);
+        bStartGame.gameObject.SetActive(value);
+    }
+}
+
+public class DebugChartInfo
+{
+    public string chartFileName;
+    public string musicFileName;
+    public string illustraionFileName;
+    public string name;
+    public string composer;
+    public string charter;
+    public string illustrator;
+    public string difficulte; // 难度标识
+    public float hard;
 }
 
 public enum RoomState

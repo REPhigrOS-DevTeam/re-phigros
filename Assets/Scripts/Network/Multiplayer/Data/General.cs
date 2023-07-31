@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
+#if UNITY_EDITOR
+#endif
 
 namespace Network.Multiplayer.Data
 {
@@ -69,27 +70,81 @@ namespace Network.Multiplayer.Data
                 packs.Add(JObject.Parse(s1));
                 stringBuilder.Clear();
             }
+
             return packs.ToArray();
+        }
+
+        public static bool TryParseHost(string url, out IPEndPoint endPoint)
+        {
+            int maoHaoWeiZhi = url.LastIndexOf(":", StringComparison.Ordinal);
+            if (maoHaoWeiZhi < 0)
+            {
+                endPoint = null;
+                return false;
+            }
+
+            string host = url.Substring(0, maoHaoWeiZhi);
+            string portStr = url.Substring(maoHaoWeiZhi + 1);
+            if (!int.TryParse(portStr, out int port) || port < 0 || port > 65535)
+            {
+                endPoint = null;
+                return false;
+            }
+
+            if (host.StartsWith("[") && host.EndsWith("]"))
+            {
+                host = host.Substring(1);
+                host = host.Substring(0, host.Length - 1);
+                if (!IPAddress.TryParse(host, out IPAddress ipAddress) ||
+                    ipAddress.AddressFamily != AddressFamily.InterNetworkV6)
+                {
+                    endPoint = null;
+                    return false;
+                }
+
+                endPoint = new IPEndPoint(ipAddress, port);
+                return true;
+            }
+
+            List<IPAddress> hostAddresses;
+            try
+            {
+                hostAddresses = Dns.GetHostAddresses(host).ToList();
+            }
+            catch (Exception e) when (e is SocketException or ArgumentException)
+            {
+                endPoint = null;
+                return false;
+            }
+
+            hostAddresses.Sort((a, b) =>
+            {
+                int c = (int)a.AddressFamily;
+                int d = (int)b.AddressFamily;
+                return c - d;
+            });
+            endPoint = new IPEndPoint(hostAddresses[0], port);
+            return true;
         }
     }
 
-    public class GeneralSendData<T>
+    public class GeneralSendData
     {
         [JsonProperty("operate")] public string Operate;
         [JsonProperty("username")] public string Username;
-        [JsonProperty("addition")] public Dictionary<string, T> Addition = new();
+        [JsonProperty("addition")] public Dictionary<string, string> Addition = new();
     }
 
-    public class LoginSendData<T> : GeneralSendData<T>
+    public class LoginSendData : GeneralSendData
     {
         [JsonProperty("verifyToken")] public string VerifyToken;
     }
 
-    public class SendDataWithToken<T> : GeneralSendData<T>
+    public class SendDataWithToken : GeneralSendData
     {
         [JsonProperty("loginToken")] public string LoginToken;
     }
-    
+
     public class GeneralReceiveData
     {
         [JsonProperty("Type")] public string Type;
@@ -122,7 +177,7 @@ namespace Network.Multiplayer.Data
 
     public enum ServerOperate
     {
-        NewMessage = 0,
+        Message = 0,
         GameStart = 1,
         RoomClosed = 2,
         UpdateSong = 3

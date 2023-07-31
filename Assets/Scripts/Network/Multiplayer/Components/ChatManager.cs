@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
@@ -11,11 +12,12 @@ namespace Network.Multiplayer.Components
     {
         private static readonly string[] GeneralErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
         private readonly object threadLock = new();
-        public RectTransform contentPanel;
-        public GameObject chatMessagePrefab;
-        public InputField ifMessage;
-        public Button bSend;
+        [SerializeField] private RectTransform contentPanel;
+        [SerializeField] private GameObject chatMessagePrefab;
+        [SerializeField] private InputField ifMessage;
+        [SerializeField] private Button bSend;
         private Text tSendButton;
+        private List<Message> messages = new List<Message>();
 
         private void Awake()
         {
@@ -44,6 +46,7 @@ namespace Network.Multiplayer.Components
         {
             lock (threadLock)
             {
+                messages.Add(new Message(from, message, type));
                 GameObject obj = Instantiate(chatMessagePrefab, contentPanel);
                 obj.GetComponent<ChatMessage>().Init(from, message, type);
                 // LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
@@ -55,6 +58,7 @@ namespace Network.Multiplayer.Components
         {
             lock (threadLock)
             {
+                messages.Clear();
                 Transform t;
                 for (int i = 0; i < contentPanel.childCount; i++)
                 {
@@ -62,6 +66,11 @@ namespace Network.Multiplayer.Components
                     Destroy(t.gameObject);
                 }
             }
+        }
+
+        public void RevertChatHistory()
+        {
+            
         }
 
         private void OnInitOrRoomClosed()
@@ -112,6 +121,20 @@ namespace Network.Multiplayer.Components
             int state = getState.Invoke();
             if (state == 0) return;
             AddMessage("Server",  "客户端错误：" + errorMessages[-state - 1], MessageType.Error);
+        }
+
+        public class Message
+        {
+            public string from;
+            public string message;
+            public MessageType messageType;
+
+            public Message(string from, string message, MessageType messageType)
+            {
+                this.from = from;
+                this.message = message;
+                this.messageType = messageType;
+            }
         }
     }
 }

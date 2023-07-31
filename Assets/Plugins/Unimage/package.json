@@ -1,0 +1,21 @@
+{
+  "name": "dev.klrohias.unimage",
+  "version": "0.1.2",
+  "displayName": "Unimage",
+  "description": "A simple library that can load and process images (in asynchronous) in Unity",
+  "unity": "2019.1",
+  "unityRelease": "0b5",
+  "dependencies": {},
+  "keywords": [
+    "image",
+    "texture",
+    "load",
+    "process",
+    "asynchronous"
+  ],
+  "author": {
+    "name": "Klrohias",
+    "email": "klrohias@lightwing.eu.org",
+    "url": "https://github.com/Klrohias"
+  }
+}

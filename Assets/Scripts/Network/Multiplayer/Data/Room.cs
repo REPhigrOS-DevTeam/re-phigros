@@ -12,11 +12,16 @@ namespace Network.Multiplayer.Data
         [JsonProperty("songId")] public RoomInfo SongId;
     }
 
-    public class NewMessageActiveReceive : ActiveReceiveData
+    public class MessageActiveReceive : ActiveReceiveData
     {
         [JsonProperty("from")] public string Author;
         [JsonProperty("isServer")] public bool IsServer;
         [JsonProperty("message")] public string Message;
+    }
+
+    public class UpdaeSongActiveReceive : ActiveReceiveData
+    {
+        [JsonProperty("songId")] public string songId;
     }
 
     public class RoomInfoReceive : BackReceiveData

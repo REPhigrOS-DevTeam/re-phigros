@@ -17,14 +17,14 @@ namespace Network.Verify.Utils
         }
 
         [ItemCanBeNull]
-        public static async Task<string> SendGetRequestAsync(this string url)
+        public static async Task<byte[]> SendGetRequestAsync(this string url)
         {
             HttpClient httpClient = new HttpClient();
             HttpResponseMessage message = await httpClient.GetAsync(url);
             try
             {
                 message.EnsureSuccessStatusCode();
-                return await message.Content.ReadAsStringAsync();
+                return await message.Content.ReadAsByteArrayAsync();
             }
             catch (HttpRequestException)
             {

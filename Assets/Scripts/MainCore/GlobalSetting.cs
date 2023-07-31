@@ -20,7 +20,7 @@ namespace MainCore
             Poyoroid_utsu,
             Yande
         }
-
+        
         public static string chartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
         public static string chartFolderPath = "";
         public static string chartName = "Apollo";

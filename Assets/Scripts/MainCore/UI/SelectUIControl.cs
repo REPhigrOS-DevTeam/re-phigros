@@ -244,7 +244,7 @@ namespace MainCore.UI
                 phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
                 GameObject.Find("DiffInput").GetComponent<InputField>().text = phiraInfoData.level;
             }
-
+            
             GlobalSetting.chartName = chartNameUI.GetComponent<InputField>().text.Trim();
 //#if UNITY_EDITOR || UNITY_STANDALONE_WIN
 //            GlobalSetting.chartpath = tempPath + "\\" + chartPathDropdown.captionText.text;
@@ -252,6 +252,7 @@ namespace MainCore.UI
 //            GlobalSetting.illustrationPath = tempPath + "\\" + illustrationPathDropdown.captionText.text;
 //#else
             //tempPath = Path.Combine(internalPath, tempPath.Substring(tempPath.IndexOf("/0") + 2, tempPath.Length));
+            // chart settings
             GlobalSetting.chartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text).Replace('\\', '/');
             GlobalSetting.musicPath = Path.Combine(tempPath, musicPathDropdown.captionText.text).Replace('\\', '/');
             GlobalSetting.illustrationPath =
@@ -259,26 +260,8 @@ namespace MainCore.UI
 //#endif
             PlayerPrefs.SetString("chartFolderPath", tempPath);
             PlayerPrefs.Save();
-            GlobalSetting.highLight = PlayerPrefs.GetInt("high_light", 0) == 1; //highlightToggle.isOn;
             GlobalSetting.difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
-            GlobalSetting.userOffset =
-                PlayerPrefs.GetFloat("chart_offset", 0) /
-                1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
-            GlobalSetting.autoPlay =
-                PlayerPrefs.GetInt("auto_play", 0) == 1; //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.isMirror =
-                PlayerPrefs.GetInt("mirror", 0) == 1; //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.disableBlur = PlayerPrefs.GetInt("blur", 0) == 1;
-            GlobalSetting.is3D =
-                false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.postProcessing =
-                PlayerPrefs.GetInt("post_processing", 0) ==
-                1; //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
-            GlobalSetting.recordMode = PlayerPrefs.GetInt("record_mode", 0) == 1;
-            GlobalSetting.hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
-            GlobalSetting.maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
-            GlobalSetting.fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
+            ReadUserSettings();
 
             HitSoundManager.Init();
 
@@ -358,7 +341,7 @@ namespace MainCore.UI
         public static List<Dropdown.OptionData> GetFileName(string path, params string[] typeE)
         {
             DirectoryInfo root = new DirectoryInfo(path);
-            List<string> types = typeE.ToList();
+            List<string> types = typeE.Select(type => type.ToLower().Trim()).ToList();
 
             return (from f in root.GetFiles()
                 where types.Contains(Path.GetExtension(f.FullName).ToLower().Trim())
@@ -451,77 +434,17 @@ namespace MainCore.UI
 
             void Unzip()
             {
-                UnZip(zipFile, destFolderPath);
+                ZipUtils.UnZip(zipFile, destFolderPath);
                 string externalTextureZip = destFolderPath + "/" + "texture.zip";
                 if (File.Exists(externalTextureZip))
                 {
-                    UnZip(externalTextureZip, destFolderPath);
+                    ZipUtils.UnZip(externalTextureZip, destFolderPath);
                     File.Delete(externalTextureZip);
                 }
 
                 InGameUIManager.ShowModalWindowWithClose("提示", "解压成功", () => { }, "确定");
                 RefreshGameFolder();
             }
-        }
-
-        /// <summary>
-        /// ZIP:解压一个zip文件
-        /// add yuangang by 2016-06-13
-        /// </summary>
-        /// <param name="ZipFile">需要解压的Zip文件（绝对路径）</param>
-        /// <param name="TargetDirectory">解压到的目录</param>
-        /// <param name="OverWrite">是否覆盖已存在的文件</param>
-        public static void UnZip(string ZipFile, string TargetDirectory, bool OverWrite = true)
-        {
-            TargetDirectory = TargetDirectory.Replace("\\", "/");
-            //如果解压到的目录不存在，则报错
-            if (!Directory.Exists(TargetDirectory))
-            {
-                Directory.CreateDirectory(TargetDirectory);
-            }
-
-            //目录结尾
-            if (!TargetDirectory.EndsWith("/"))
-            {
-                TargetDirectory = String.Concat(TargetDirectory, "/");
-            }
-
-            using ZipInputStream zipfiles = new ZipInputStream(File.OpenRead(ZipFile));
-            ZipEntry theEntry;
-
-            while ((theEntry = zipfiles.GetNextEntry()) != null)
-            {
-                string directoryName = "";
-                string pathToZip = "";
-                pathToZip = theEntry.Name;
-
-                if (pathToZip != "")
-                    directoryName = Path.GetDirectoryName(pathToZip) + "/";
-
-                string fileName = Path.GetFileName(pathToZip);
-
-                Directory.CreateDirectory(TargetDirectory + directoryName);
-
-                if (fileName == "") continue;
-                if ((!File.Exists(TargetDirectory + directoryName + fileName) || !OverWrite) &&
-                    (File.Exists(TargetDirectory + directoryName + fileName))) continue;
-                using FileStream streamWriter = File.Create(TargetDirectory + directoryName + fileName);
-                int size = 2048;
-                byte[] data = new byte[2048];
-                while (true)
-                {
-                    size = zipfiles.Read(data, 0, data.Length);
-
-                    if (size > 0)
-                        streamWriter.Write(data, 0, size);
-                    else
-                        break;
-                }
-
-                streamWriter.Close();
-            }
-
-            zipfiles.Close();
         }
 
 #if !UNITY_EDITOR
@@ -541,5 +464,27 @@ namespace MainCore.UI
             }
         }
 #endif
+        public static void ReadUserSettings()
+        {
+            GlobalSetting.highLight = PlayerPrefs.GetInt("high_light", 0) == 1; //highlightToggle.isOn;
+            GlobalSetting.userOffset =
+                PlayerPrefs.GetFloat("chart_offset", 0) /
+                1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
+            GlobalSetting.autoPlay =
+                PlayerPrefs.GetInt("auto_play", 0) == 1; //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
+            GlobalSetting.isMirror =
+                PlayerPrefs.GetInt("mirror", 0) == 1; //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
+            GlobalSetting.disableBlur = PlayerPrefs.GetInt("blur", 0) == 1;
+            GlobalSetting.is3D =
+                false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
+            GlobalSetting.postProcessing =
+                PlayerPrefs.GetInt("post_processing", 0) ==
+                1; //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
+            GlobalSetting.globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
+            GlobalSetting.recordMode = PlayerPrefs.GetInt("record_mode", 0) == 1;
+            GlobalSetting.hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
+            GlobalSetting.maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
+            GlobalSetting.fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
+        }
     }
 }
