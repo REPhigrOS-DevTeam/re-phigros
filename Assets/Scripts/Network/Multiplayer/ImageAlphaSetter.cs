@@ -14,6 +14,6 @@ public class ImageAlphaSetter : MonoBehaviour
     public void Set(float value)
     {
         value = Mathf.Clamp01(value);
-        image.color.SetAlpha(value);
+        image.color = image.color.SetAlpha(value);
     }
 }

@@ -16,6 +16,7 @@ namespace Network.Multiplayer.Components
         [SerializeField] private GameObject chatMessagePrefab;
         [SerializeField] private InputField ifMessage;
         [SerializeField] private Button bSend;
+        private RectTransform scrollViewTransform;
         private Text tSendButton;
         private List<Message> messages = new List<Message>();
 
@@ -23,6 +24,7 @@ namespace Network.Multiplayer.Components
         {
             tSendButton = bSend.transform.GetChild(0).gameObject.GetComponent<Text>();
             ifMessage.onEndEdit.AddListener(input => ifMessage.text = input.TrimEnd());
+            scrollViewTransform = (RectTransform)contentPanel.parent.parent;
             OnInitOrRoomClosed();
             SocketManager.OnCloseRoomSucceeded += OnInitOrRoomClosed;
             SocketManager.OnQuitRoomSucceeded += OnInitOrRoomClosed;
@@ -51,6 +53,8 @@ namespace Network.Multiplayer.Components
                 GameObject obj = Instantiate(chatMessagePrefab, contentPanel);
                 obj.GetComponent<ChatMessage>().Init(from, message, type);
                 // LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
+                float sizeDeltaY = contentPanel.sizeDelta.y - scrollViewTransform.sizeDelta.y;
+                if (sizeDeltaY > 0) contentPanel.position = new Vector3(contentPanel.position.x,sizeDeltaY, contentPanel.position.z);
                 LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
             }
         }
@@ -95,7 +99,7 @@ namespace Network.Multiplayer.Components
             bSend.onClick.RemoveAllListeners();
             bSend.onClick.AddListener(SendMessage);
         }
-        
+
         private void SendMessage()
         {
             if (string.IsNullOrEmpty(ifMessage.text))
@@ -103,11 +107,13 @@ namespace Network.Multiplayer.Components
                 InGameUIManager.ShowModalWindowWithClose("错误", "信息为空", () => { }, "确定");
                 return;
             }
+
             if (new StringInfo(ifMessage.text).LengthInTextElements > 233)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "信息长度过长", () => { }, "确定");
                 return;
             }
+
             GeneralListener(() => SocketManager.SendRoomMessage(ifMessage.text), GeneralErrorMessages);
         }
 
@@ -127,7 +133,7 @@ namespace Network.Multiplayer.Components
         {
             int state = getState.Invoke();
             if (state == 0) return;
-            AddMessage("Server",  "客户端错误：" + errorMessages[-state - 1], MessageType.Error);
+            AddMessage("Server", "客户端错误：" + errorMessages[-state - 1], MessageType.Error);
         }
 
         public class Message
