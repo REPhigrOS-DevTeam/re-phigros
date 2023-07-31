@@ -138,7 +138,7 @@ namespace Network.Multiplayer.Managers
             return GeneralSend(ClientOperate.User_CloseRoom,
                 GetSendDataWithToken());
         }
-        
+
         public static int JoinRoom(string roomId)
         {
             if (!socket.Connected) return -1; // 未连接
@@ -320,7 +320,8 @@ namespace Network.Multiplayer.Managers
                     DealWithMsg<RoomInfoReceive>(pack, "错误：无法获取房间信息", callback: _ => OnGetRoomInfoSucceeded.Invoke());
                     break;
                 case ClientOperate.User_QuitRoom:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法退出房间", callback: _ => OnQuitRoomSucceeded.Invoke(), printOnSuccess: true);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法退出房间", callback: _ => OnQuitRoomSucceeded.Invoke(),
+                        printOnSuccess: true);
                     break;
                 case ClientOperate.User_Ready:
                     break;
@@ -375,7 +376,7 @@ namespace Network.Multiplayer.Managers
             string serializeObject = JsonConvert.SerializeObject(received);
             if (!received.Status)
             {
-                chatManager.AddMessage("Server", errorMessage + "\n" + received.Message, MessageType.Error);
+                chatManager.AddMessage("Server", errorMessage + "——" + received.Message, MessageType.Error);
                 Debug.Log("错误：无法完成操作\n" + serializeObject);
             }
             else
@@ -388,9 +389,8 @@ namespace Network.Multiplayer.Managers
                 }
 
                 callback?.Invoke(received);
+                if (printOnSuccess) chatManager.AddMessage("Server", received.Message, MessageType.Server);
             }
-
-            if (printOnSuccess) chatManager.AddMessage("Server", received.Message, MessageType.Server);
         }
 
         private static void ExecuteActivePack(JObject pack)
