@@ -26,7 +26,7 @@ public class MPServerTest : MonoBehaviour
     public InputField ifUrl;
 
     public Button bConnect, bDisconnect, bLogin;
-    public Button bCreateRoom, bCloseRoom, bExitRoom, bDownloadSong, bStartGame, bUpdateSong;
+    public Button bCreateRoom, bCloseRoom,bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
     private int roomId = -1;
@@ -54,7 +54,7 @@ public class MPServerTest : MonoBehaviour
         {
             { bCreateRoom, RoomState.NotInRoom },
             { bCloseRoom, RoomState.RoomOwner },
-            { bExitRoom, RoomState.RoomMember },
+            { bQuitRoom, RoomState.RoomMember },
             { bDownloadSong, RoomState.RoomMember | RoomState.RoomOwner },
             { bStartGame, RoomState.RoomOwner },
             { bUpdateSong, RoomState.RoomOwner }
@@ -115,6 +115,7 @@ public class MPServerTest : MonoBehaviour
             GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录"));
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
+        bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
         ifUrl.onEndEdit.AddListener(str =>
         {
             if (str.Trim() == ifUrl.text) return;

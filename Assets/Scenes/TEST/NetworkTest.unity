@@ -2399,7 +2399,7 @@ GameObject:
   - component: {fileID: 890287592}
   - component: {fileID: 890287591}
   m_Layer: 5
-  m_Name: ExitRoom
+  m_Name: QuitRoom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5646,7 +5646,7 @@ MonoBehaviour:
   bLogin: {fileID: 1995669528}
   bCreateRoom: {fileID: 1412161356}
   bCloseRoom: {fileID: 765210854}
-  bExitRoom: {fileID: 890287591}
+  bQuitRoom: {fileID: 890287591}
   bDownloadSong: {fileID: 411780973}
   bStartGame: {fileID: 1615796316}
   bUpdateSong: {fileID: 71738483}
