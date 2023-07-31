@@ -161,7 +161,7 @@ namespace Network.Multiplayer.Managers
             if (!socket.Connected) return -1; // 未连接
             if (token == "") return -3; // 未登录
             SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("NewMessage", msg);
+            pack.Addition.Add("Message", msg);
             return GeneralSend(ClientOperate.Room_SendMessage, pack);
         }
 
