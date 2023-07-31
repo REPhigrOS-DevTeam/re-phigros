@@ -25,6 +25,7 @@ namespace Network.Multiplayer.Components
             ifMessage.onEndEdit.AddListener(input => ifMessage.text = input.TrimEnd());
             OnInitOrRoomClosed();
             SocketManager.OnCloseRoomSucceeded += OnInitOrRoomClosed;
+            SocketManager.OnQuitRoomSucceeded += OnInitOrRoomClosed;
             SocketManager.OnCreateRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnJoinRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
