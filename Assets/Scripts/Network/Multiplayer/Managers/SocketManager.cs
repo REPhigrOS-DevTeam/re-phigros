@@ -294,7 +294,7 @@ namespace Network.Multiplayer.Managers
                         }, printOnSuccess: true);
                     break;
                 case ClientOperate.User_CloseRoom:
-                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间", printOnSuccess: true);
+                    DealWithMsg<BackReceiveData>(pack, "错误：无法关闭房间");
                     break;
                 case ClientOperate.User_JoinRoom:
                     DealWithMsg<BackReceiveData>(pack, "错误：无法加入房间", callback: _ =>
