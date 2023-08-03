@@ -59,7 +59,8 @@ namespace MainCore
         public static Resolution OriginResolution;
         public static string charter;
         public static string composer;
-
+        public static string illustrator;
+        public static bool multiplayer;
 
         public static YayaMode YayaKawaii = YayaMode.冲;
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;
@@ -102,6 +103,8 @@ namespace MainCore
         }
         
         public static HitFxType HitFxType = HitFxType.Official;
+
+        public static bool IsPhira = false;
 
         public static void PlayNoteSound(int notetype)
         {
@@ -146,8 +149,10 @@ namespace MainCore
             HitEffectManager.GetInstance().Reset();
             NotePool.GetInstance().Reset();
             lineImage = null;
+            IsPhira = false;
             composer = "Unknown";
             charter = "Unknown";
+            illustrator = "Unknown";
         }
     }
 }

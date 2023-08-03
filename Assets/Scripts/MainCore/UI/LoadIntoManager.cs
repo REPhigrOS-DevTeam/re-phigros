@@ -20,7 +20,7 @@ namespace MainCore.UI
         [SerializeField] private Animator slideInto;
         [SerializeField] private Animator cutOut;
         [SerializeField] private AudioClip enter;
-
+        
         public static string Charter { get; set; } = "Unknown";
         public static string Composer { get; set; } = "Unknown";
         public static string Illustrator { get; set; } = "Unknown";
@@ -45,19 +45,22 @@ namespace MainCore.UI
                 difficultyNumber.text = GlobalSetting.difficulty;
             }
 
-            if (GlobalSetting.infoTxt != null)
+            if (!GlobalSetting.IsPhira)
             {
-                Charter = GlobalSetting.infoTxt.GetCharter();
-                Composer = GlobalSetting.infoTxt.GetComposer();
-                Illustrator = GlobalSetting.infoTxt.GetIllustrator();
+                if (GlobalSetting.formatVersion == 1919810)
+                {
+                    Charter = GlobalSetting.charter;
+                    Composer = GlobalSetting.composer;
+                    Illustrator = GlobalSetting.illustrator;
+                }else
+                if (GlobalSetting.infoTxt != null)
+                {
+                    Charter = GlobalSetting.infoTxt.GetCharter();
+                    Composer = GlobalSetting.infoTxt.GetComposer();
+                    Illustrator = GlobalSetting.infoTxt.GetIllustrator();
+                }
             }
 
-
-            if (GlobalSetting.formatVersion == 1919810)
-            {
-                Charter = GlobalSetting.charter;
-                Composer = GlobalSetting.composer;
-            }
 
             charter.text = Charter;
             composer.text = Composer;

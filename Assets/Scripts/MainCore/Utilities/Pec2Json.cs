@@ -17,6 +17,7 @@ namespace MainCore.Utilities
             string[] rawChart = chart.Split(new string[] {"\r\n"}, StringSplitOptions.None);
             Chart retChart = new Chart();
             retChart.formatVersion = 114514;
+            GlobalSetting.composer = GlobalSetting.charter = GlobalSetting.illustrator = "Unkown";
             BpmEvent[] bpms = new BpmEvent[0];
             if (!double.IsNaN(Convert.ToDouble(rawChart[0].Trim())))
                 retChart.offset = ((float) Convert.ToDouble(rawChart[0]) / 1000f - .2f);
@@ -381,6 +382,7 @@ namespace MainCore.Utilities
                     Path.Combine(GlobalSetting.chartFolderPath, rpeChartData.META.background);
                 GlobalSetting.charter = rpeChartData.META.charter;
                 GlobalSetting.composer = rpeChartData.META.composer;
+                GlobalSetting.illustrator = "Unknown";
                 if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 && GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
                 {
                     GlobalSetting.chartName = rpeChartData.META.name;

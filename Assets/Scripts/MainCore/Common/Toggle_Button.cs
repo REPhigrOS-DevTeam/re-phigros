@@ -17,6 +17,12 @@ namespace MainCore.Common
             set => ChangeValue(value);
         }
 
+        public bool Interactable
+        {
+            get => button.interactable;
+            set => button.interactable = value;
+        }
+
         private void Awake()
         {
             if (button != null) return;

@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _PatternTex:
-        m_Texture: {fileID: 2800000, guid: 3fe1700e1579047438511f16d3701307, type: 3}
+        m_Texture: {fileID: 2800000, guid: 18c49c663f70fe24e8732ab47a00e94f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RuleTex:

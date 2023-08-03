@@ -655,7 +655,12 @@ namespace MainCore
 
         public static void OverloadInfoWithPhiraYaml(PhiraInfoData phiraInfoData)
         {
-            if (phiraInfoData == null) return;
+            if (phiraInfoData == null)
+            {
+                GlobalSetting.IsPhira = false;
+                return;
+            }
+
             json.offset += phiraInfoData.offset;
 
             if (!string.IsNullOrEmpty(phiraInfoData.music))
@@ -670,11 +675,10 @@ namespace MainCore
                     Path.Combine(GlobalSetting.chartFolderPath, phiraInfoData.illustration);
             }
 
-            GlobalSetting.charter = phiraInfoData.charter;
-            GlobalSetting.composer = phiraInfoData.composer;
-            LoadIntoManager.Charter = phiraInfoData.charter;
-            LoadIntoManager.Composer = phiraInfoData.composer;
-            LoadIntoManager.Illustrator = phiraInfoData.illustrator;
+            GlobalSetting.IsPhira = true;
+            GlobalSetting.charter = LoadIntoManager.Charter = phiraInfoData.charter;
+            GlobalSetting.composer = LoadIntoManager.Composer = phiraInfoData.composer;
+            GlobalSetting.illustrator = LoadIntoManager.Illustrator = phiraInfoData.illustrator;
             if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 &&
                 GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
             {

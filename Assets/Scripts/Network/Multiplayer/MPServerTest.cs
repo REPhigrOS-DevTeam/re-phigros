@@ -42,8 +42,6 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject sendMask;
 
-    private bool downloaded;
-
     private Dictionary<Button, RoomState> buttonToState = new();
 
     private void Awake()
@@ -59,6 +57,7 @@ public class MPServerTest : MonoBehaviour
             { bStartGame, RoomState.RoomOwner },
             { bUpdateSong, RoomState.RoomOwner }
         };
+        Debug.Log(JsonConvert.SerializeObject(new DebugChartInfo()));
         try
         {
             InitAPI();
@@ -124,14 +123,7 @@ public class MPServerTest : MonoBehaviour
         bReady.OnValueChanged += (button, text, isOn) =>
         {
             text.text = isOn ? "取消准备" : "准备";
-            if (isOn)
-            {
-                
-            }
-            else
-            {
-                
-            }
+            SetDownloaded(isOn);
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong(1), generalErrorMessages));
@@ -151,7 +143,10 @@ public class MPServerTest : MonoBehaviour
             if (clientOperate == ClientOperate.Room_SendMessage) return;
             sendMask.SetActive(false);
         };
-        SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
+        SocketManager.OnUpdateSongReceived += _ =>
+        {
+            SetDownloaded(false);
+        };
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
@@ -163,10 +158,12 @@ public class MPServerTest : MonoBehaviour
         if (await DownloadSong(id))
         {
             chatManager.AddMessage("downloadSucceeded", "成功下载谱面" + id, MessageType.Server);
+            SetDownloaded(true);
         }
         else
         {
             chatManager.AddMessage("downloadFailed", "错误：无法下载谱面" + id, MessageType.Error);
+            SetDownloaded(false);
         }
         sendMask.SetActive(false);
     }
@@ -237,6 +234,7 @@ public class MPServerTest : MonoBehaviour
 
         GlobalSetting.charter = debugChartInfo.charter;
         GlobalSetting.composer = debugChartInfo.composer;
+        GlobalSetting.illustrator = debugChartInfo.illustrator;
         // extra init
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath) && GlobalSetting.useShader)
@@ -319,27 +317,32 @@ public class MPServerTest : MonoBehaviour
         {
             button.gameObject.SetActive((buttonToState[button] & state) == state);
         }
+
+        if (state == RoomState.NotInRoom)
+        {
+            SetDownloaded(false);
+        }
     }
 
     private void SetDownloaded(bool value)
     {
-        downloaded = value;
-        bReady.gameObject.SetActive(value);
-        bStartGame.gameObject.SetActive(value);
+        bDownloadSong.interactable = !value;
+        bReady.Interactable = value;
+        bStartGame.interactable = value;
     }
 }
 
 public class DebugChartInfo
 {
-    public string chartFileName;
-    public string musicFileName;
-    public string illustraionFileName;
-    public string name;
-    public string composer;
-    public string charter;
-    public string illustrator;
-    public string difficulte; // 难度标识
-    public float hard;
+    public string chartFileName = "";
+    public string musicFileName = "";
+    public string illustraionFileName = "";
+    public string name = "";
+    public string composer = "";
+    public string charter = "";
+    public string illustrator = "";
+    public string difficulte = ""; // 难度标识
+    public float hard = 0.0f;
 }
 
 [Flags]

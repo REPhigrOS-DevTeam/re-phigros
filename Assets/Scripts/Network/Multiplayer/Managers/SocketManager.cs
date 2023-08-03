@@ -27,6 +27,7 @@ namespace Network.Multiplayer.Managers
         private static Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static string token = "";
         private static string roomId = "";
+        private static string songId = "";
         private static string tryJoinRoomId = "";
         private static Task taskReceive = null;
         private static JObject[] packs;

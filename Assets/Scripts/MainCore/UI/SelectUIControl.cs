@@ -279,6 +279,7 @@ namespace MainCore.UI
                     GlobalSetting.infoTxt = null;
                 }
             }
+            else GlobalSetting.infoTxt = null;
 
 
             var extraJsonPath = Path.Combine(tempPath, "extra.json");
