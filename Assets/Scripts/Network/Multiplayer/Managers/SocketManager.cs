@@ -195,10 +195,11 @@ namespace Network.Multiplayer.Managers
             }
         }
 
-        public static int UpdateSong(int songId)
+        public static int UpdateSong(int songId, SongType type = SongType.rep)
         {
             SendDataWithToken pack = GetSendDataWithToken();
             pack.Addition.Add("songId", songId + "");
+            pack.Addition.Add("songType", type.ToString());
             return GeneralSend(ClientOperate.Room_UpdateSong, pack);
         }
 

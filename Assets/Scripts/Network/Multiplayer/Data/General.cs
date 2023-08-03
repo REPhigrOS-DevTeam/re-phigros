@@ -188,4 +188,10 @@ namespace Network.Multiplayer.Data
         UpdateSong = 3,
         ServerClosed
     }
+
+    public enum SongType
+    {
+        rep = 0,
+        Phizone = 1
+    }
 }
