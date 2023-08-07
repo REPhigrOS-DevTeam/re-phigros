@@ -74,7 +74,7 @@ namespace MainCore.UI
         //     touchToStart.interactable = true;
         // }
 
-        private void LoadIn()
+        private async void LoadIn()
         {
             if (PlayerPrefs.GetInt("anomaly_mode", 0) == 1)
             {
@@ -82,29 +82,26 @@ namespace MainCore.UI
                 return;
             }
 
-            StartCoroutine(TimeBomb.IsInRange(new DateTime(2023, 9, 28, 0, 0, 0, DateTimeKind.Utc), true, b =>
+            bool isInRange = await TimeBomb.IsInRange(new DateTime(2023, 9, 28, 0, 0, 0, DateTimeKind.Utc), true);
+            if (!isInRange)
             {
-//#if !UNITY_EDITOR
-                if (!b)
-                {
-                    PlayerPrefs.SetInt("anomaly_mode", 1);
-                    PlayerPrefs.Save();
-                    NeedUpdate();
-                    return;
-                }
+                PlayerPrefs.SetInt("anomaly_mode", 1);
+                PlayerPrefs.Save();
+                NeedUpdate();
+                return;
+            }
 
-                Application.targetFrameRate = 120;
-                GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
-                if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
-                {
-                    var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
-                    t.Dispose();
-                    File.WriteAllText(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
-                }
+            Application.targetFrameRate = 120;
+            GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
+            if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
+            {
+                var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
+                await t.DisposeAsync();
+                await File.WriteAllTextAsync(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
+            }
 
 //#endif
-                SceneTransit.Instance.TransitTo("LoginScene");
-            }));
+            SceneTransit.Instance.TransitTo("LoginScene");
         }
 
         private void NeedUpdate()
