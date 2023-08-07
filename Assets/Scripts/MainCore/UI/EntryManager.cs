@@ -106,14 +106,7 @@ namespace MainCore.UI
 
         private void NeedUpdate()
         {
-            InGameUIManager.ShowModalWindowWithClose("错误", "请升级到最新版", () =>
-            {
-#if UNITY_EDITOR
-                EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
-            }, "退出");
+            InGameUIManager.ShowModalWindowWithClose("错误", "请升级到最新版", Util.QuitApp, "退出");
         }
     }
 }

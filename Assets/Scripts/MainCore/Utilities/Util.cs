@@ -25,17 +25,6 @@ namespace MainCore.Utilities
             Application.Quit();
 #endif
         }
-        
-
-        public static TaskAwaiter<object> GetAwaiter(this UnityWebRequestAsyncOperation op)
-        {
-            var tcs = new TaskCompletionSource<object>();
-            op.completed += (obj) =>
-            {
-                tcs.SetResult(null);
-            };
-            return tcs.Task.GetAwaiter();
-        }
 
         public static string GetMD5(byte[] data)
         {
