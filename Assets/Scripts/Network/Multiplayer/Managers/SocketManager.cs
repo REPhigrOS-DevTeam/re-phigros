@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using Baracuda.Threading;
@@ -26,6 +27,7 @@ namespace Network.Multiplayer.Managers
     {
         private static Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static string token = "";
+        private static string serverId = "";
         private static string roomId = "";
         private static string songId = "";
         private static string tryJoinRoomId = "";
@@ -362,6 +364,7 @@ namespace Network.Multiplayer.Managers
                 }
 
                 token = received.token;
+                serverId = received.serverId;
                 OnLoginSucceeded.Invoke();
                 InGameUIManager.ShowModalWindowWithClose("提示", received.Message, () => { }, "确认");
             }
@@ -492,7 +495,7 @@ namespace Network.Multiplayer.Managers
             socket.Close();
             OnDisconnect.Invoke();
             socket = null;
-            token = roomId = tryJoinRoomId = "";
+            token = serverId = roomId = tryJoinRoomId = "";
         }
     }
 }

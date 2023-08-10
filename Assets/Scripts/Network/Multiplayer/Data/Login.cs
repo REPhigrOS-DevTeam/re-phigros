@@ -6,5 +6,6 @@ namespace Network.Multiplayer.Data
     {
         [JsonProperty("token")]
         public string? token;
+        [JsonProperty("ServerID")] public string? serverId;
     }
 }

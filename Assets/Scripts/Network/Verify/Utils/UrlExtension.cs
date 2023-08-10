@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using MainCore.Utilities;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Network.Verify.Utils
 {
@@ -33,16 +31,11 @@ namespace Network.Verify.Utils
             }
         }
 
-        public static IEnumerator SendGetRequest(this string url, Action<string?> callback)
+        public static async Task<string> PostWithHttpClient(this string url, MultipartFormDataContent content = null)
         {
-            var uwr = UnityWebRequest.Get(url);
-            yield return uwr.SendWebRequest();
-
-            if (uwr.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError($"Error while requesting {url}, code: {uwr.responseCode}, message: {uwr.error}");
-                callback.Invoke(null);
-            } else callback.Invoke(uwr.downloadHandler.text);
+            using HttpClient httpClient = new HttpClient();
+            HttpResponseMessage response = await httpClient.PostAsync(url, content ?? new MultipartContent());
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }

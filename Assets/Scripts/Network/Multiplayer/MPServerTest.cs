@@ -10,6 +10,7 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
+using Network.Chart;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
@@ -57,7 +58,6 @@ public class MPServerTest : MonoBehaviour
             { bStartGame, RoomState.RoomOwner },
             { bUpdateSong, RoomState.RoomOwner }
         };
-        Debug.Log(JsonConvert.SerializeObject(new DebugChartInfo()));
         try
         {
             InitAPI();
@@ -143,13 +143,13 @@ public class MPServerTest : MonoBehaviour
             if (clientOperate == ClientOperate.Room_SendMessage) return;
             sendMask.SetActive(false);
         };
-        SocketManager.OnUpdateSongReceived += _ =>
-        {
-            SetDownloaded(false);
-        };
+        SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
+#if UNITY_EDITOR
+        Test.Qwq();
+#endif
     }
 
     private async void OnUpdateSongReceived(int id)
