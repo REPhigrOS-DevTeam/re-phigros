@@ -145,8 +145,6 @@ namespace MainCore
                 particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
             }
 
-            GlobalSetting.MusicLength = music.length;
-
             illustration.sprite = GlobalSetting.backgroundImage;
 
 #if UNITY_EDITOR
