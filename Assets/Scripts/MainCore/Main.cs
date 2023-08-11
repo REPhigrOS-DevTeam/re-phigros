@@ -176,12 +176,11 @@ namespace MainCore
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
-            audio = gameObject.AddComponent<AudioSource>();
-
             managers.AddComponent<JudgementManager>();
 
             GlobalSetting.Playing = false;
 
+            audio = gameObject.AddComponent<AudioSource>();
             audio.playOnAwake = false;
             audio.clip = music;
             GlobalSetting.formatVersion = json.formatVersion;

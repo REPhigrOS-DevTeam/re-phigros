@@ -30,6 +30,7 @@ namespace Network.Multiplayer.Data
             byte[] buffer = new byte[8];
             List<byte> dataList = new List<byte>();
             int length;
+            qwq:
             while ((length = socket.Receive(buffer)) > 0)
             {
                 for (int i = 0; i < length; i++)
@@ -41,6 +42,7 @@ namespace Network.Multiplayer.Data
             }
 
             if (dataList.Count == 0) throw new NullReferenceException("Received Nothing");
+            if (socket.Available > 0) goto qwq;
 
             string s = NoBomUtf8Encoding.GetString(dataList.ToArray());
             return SplitSocketPacks(s);

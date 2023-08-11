@@ -253,7 +253,7 @@ namespace Network.Multiplayer.Managers
                     ClientOperate clientOperate = currentClientOperate;
                     foreach (JObject pack in packs)
                     {
-                        Task.Run(() => { Dispatcher.Invoke(AnalyzePack(pack, clientOperate)); });
+                        Dispatcher.Invoke(AnalyzePack(pack, clientOperate));
                     }
                 }
             });

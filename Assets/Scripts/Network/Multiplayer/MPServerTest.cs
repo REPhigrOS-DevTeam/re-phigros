@@ -10,7 +10,9 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
+#if UNITY_EDITOR
 using Network.Chart;
+#endif
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
@@ -148,7 +150,7 @@ public class MPServerTest : MonoBehaviour
         sendMask.SetActive(false);
         bReady.IsOn = false;
 #if UNITY_EDITOR
-        Test.Qwq();
+        // Test.Qwq();
 #endif
     }
 

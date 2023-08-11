@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using MainCore.Utilities;
 using UnityEngine;
 
 namespace Network.Verify.Utils
