@@ -181,6 +181,8 @@ namespace MainCore
             audio = gameObject.AddComponent<AudioSource>();
             audio.playOnAwake = false;
             audio.clip = music;
+            
+            GlobalSetting.MusicLength = music.length;
             GlobalSetting.formatVersion = json.formatVersion;
             GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
 

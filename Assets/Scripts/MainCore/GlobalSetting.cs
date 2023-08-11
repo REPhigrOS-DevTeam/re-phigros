@@ -83,7 +83,7 @@ namespace MainCore
             get { return screenWidth / screenHeight; }
         }
 
-        public static float MusicLength => Main.music.length;
+        public static float MusicLength { get; set; }
 
         public static float OrthographicSize
         {
