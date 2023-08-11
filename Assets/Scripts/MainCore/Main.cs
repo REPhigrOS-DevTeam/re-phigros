@@ -145,7 +145,6 @@ namespace MainCore
                 particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
             }
 
-            illustration.sprite = GlobalSetting.backgroundImage;
 
 #if UNITY_EDITOR
             Mian = this;
@@ -183,6 +182,7 @@ namespace MainCore
             audio.clip = music;
             
             GlobalSetting.MusicLength = music.length;
+            illustration.sprite = GlobalSetting.backgroundImage;
             GlobalSetting.formatVersion = json.formatVersion;
             GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
 
