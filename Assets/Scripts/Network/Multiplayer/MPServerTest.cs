@@ -4,19 +4,21 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Baracuda.Threading;
+using Cysharp.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
+using Network.Account;
+using Network.API;
 #if UNITY_EDITOR
 using Network.Chart;
 #endif
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
-using Network.Verify.API;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.UI;
@@ -71,16 +73,17 @@ public class MPServerTest : MonoBehaviour
 
     private async void InitAPI()
     {
-        await Dispatcher.InvokeAsync(() => PopupMessageManager.Instance.Message("尝试连接api服务器……"));
+        await UniTask.SwitchToMainThread();
+        PopupMessageManager.Instance.Message("尝试连接api服务器……");
+        LoginManager.ReadAccountFromPlayerPrefs();
         bool succeeded = await RepAPI.Init();
         if (succeeded)
         {
-            await Dispatcher.InvokeAsync(() => PopupMessageManager.Instance.Message("连接成功"));
+            PopupMessageManager.Instance.Message("连接成功");
         }
         else
         {
-            await Dispatcher.InvokeAsync(() =>
-                InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定"));
+            InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
         }
     }
 

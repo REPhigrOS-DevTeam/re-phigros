@@ -1,0 +1,84 @@
+﻿using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Network.Account.Serialized;
+using Network.Account.Utils;
+using Newtonsoft.Json;
+using UnityEngine;
+
+namespace Network.API
+{
+    public static class RepAPI
+    {
+        public static readonly string APIBase = Encoding.ASCII.GetString(new byte[]
+        {
+            104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 104, 105, 103, 114, 111, 115, 46, 116,
+            111, 112
+        });
+
+        public static readonly string ManifestDirectory = Encoding.ASCII.GetString(new byte[]
+            { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 });
+
+        private static bool inited = false;
+
+        #region AboutManifest
+
+        private static Manifest manifest;
+        public static string loginUrl { get; private set; }
+        public static string verifyUrl { get; private set; }
+        public static string ChartUrlBase { get; private set; }
+
+        #endregion
+
+        public static async Task<bool> Init()
+        {
+            if (inited)
+            {
+                throw new ArgumentException("Has inited");
+            }
+
+            inited = true;
+
+            byte[] data = await APIBase.SendGetRequestAsync();
+            if (data == null)
+            {
+                Debug.Log("Error while connect to server root page");
+                return false;
+            }
+
+            string result = Encoding.UTF8.GetString(data);
+
+            var res = JsonConvert.DeserializeObject<Base>(result);
+            if (res is not { status: "OK" })
+            {
+                throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
+            }
+
+            return await GetManifest();
+        }
+
+        private static async Task<bool> GetManifest()
+        {
+            byte[] data = await APIBase.UrlCombine(ManifestDirectory).SendGetRequestAsync();
+            if (data == null)
+            {
+                Debug.Log("Error while get server manifest");
+                return false;
+            }
+
+            string result = Encoding.UTF8.GetString(data);
+            manifest = JsonConvert.DeserializeObject<Manifest>(result);
+            if (manifest == null)
+            {
+                throw new HttpRequestException($"RePhigros API: Service Error while getting manifest");
+            }
+
+            loginUrl = manifest.apiURL.userlogin;
+            verifyUrl = manifest.apiURL.userverify;
+            ChartUrlBase = $"http://{manifest.apiURL.chartIp}:45944/api";
+            Debug.Log("RePhigros API: Manifest got.");
+            return true;
+        }
+    }
+}

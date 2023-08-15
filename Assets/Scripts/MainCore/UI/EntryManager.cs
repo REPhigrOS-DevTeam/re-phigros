@@ -3,7 +3,8 @@ using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Utilities;
-using Network.Verify.API;
+using Network.Account;
+using Network.API;
 using UnityEditor;
 using UnityEngine;
 using Utilities;
@@ -26,6 +27,7 @@ namespace MainCore.UI
         private async void InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
+            LoginManager.ReadAccountFromPlayerPrefs();
             bool succeeded = await RepAPI.Init();
             if (!succeeded)
             {

@@ -1,0 +1,39 @@
+﻿using Newtonsoft.Json;
+
+namespace Network.Account.Serialized
+{
+    public class Manifest
+    {
+        public string name { get; set; }
+        public string english_name { get; set; }
+        public string space_english_name { get; set; }
+        public string domain { get; set; }
+        public string protocol { get; set; }
+        public string agreement { get; set; }
+        public string iconurl { get; set; }
+        public ApiURL apiURL { get; set; }
+    }
+
+    public class ApiURL
+    {
+        [JsonProperty("user-login")] public string userlogin { get; set; }
+
+        [JsonProperty("user-verify")] public string userverify { get; set; }
+        
+        [JsonProperty("chart-ip")] public string chartIp { get; set; }
+    }
+//     {
+//     "name": "REPhigrOS Team",
+//     "english_name": "REPhigrOSTeam",
+//     "space_english_name": "REPhigrOS Team",
+//     "domain": "rephigros.top",
+//     "protocol": "https",
+//     "agreement": "https",
+//     "iconurl": "cdn.rephigros.top/imgs/web.png",
+//     "apiURL": {
+//     "user-login": "/auth/login",
+//     "user-verify": "/auth/verify",
+//     "chart-ip": "114.514.191.98"
+// }
+// }
+}

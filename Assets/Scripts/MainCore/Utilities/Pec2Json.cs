@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Baracuda.Threading;
+using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
 using UnityEngine;
@@ -433,13 +434,11 @@ namespace MainCore.Utilities
                         byte[] bytes = new byte[fs.Length];
                         fs.Read(bytes, 0, (int) fs.Length);
                         await fs.DisposeAsync();
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            var t2d = new Texture2D(512, 270);
-                            t2d.LoadImage(bytes);
-                            Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), Vector2.one / 2f);
-                            retChart.judgeLineList[i].customImage = sprite;
-                        });
+                        await UniTask.SwitchToMainThread();
+                        var t2d = new Texture2D(512, 270);
+                        t2d.LoadImage(bytes);
+                        Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), Vector2.one / 2f);
+                        retChart.judgeLineList[i].customImage = sprite;
                     }
                 }
 

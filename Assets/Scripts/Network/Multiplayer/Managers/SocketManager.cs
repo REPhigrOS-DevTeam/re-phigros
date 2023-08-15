@@ -7,11 +7,13 @@ using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 using Baracuda.Threading;
+using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using MainCore.Utilities;
+using Network.Account;
+using Network.API;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
-using Network.Verify.API;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 #if UNITY_EDITOR
@@ -113,8 +115,8 @@ namespace Network.Multiplayer.Managers
                 LoginSendData pack = new LoginSendData
                 {
                     Operate = currentClientOperate.ToString(),
-                    Username = RepAPI.Username,
-                    VerifyToken = RepAPI.VerifyToken
+                    Username = LoginManager.Username,
+                    VerifyToken = LoginManager.VerifyToken
                 };
                 socket.Send(pack);
                 return 0;
@@ -233,7 +235,7 @@ namespace Network.Multiplayer.Managers
         {
             SendDataWithToken pack = new SendDataWithToken
             {
-                Username = RepAPI.Username,
+                Username = LoginManager.Username,
                 LoginToken = token
             };
             return pack;
@@ -253,23 +255,23 @@ namespace Network.Multiplayer.Managers
                     ClientOperate clientOperate = currentClientOperate;
                     foreach (JObject pack in packs)
                     {
-                        Dispatcher.Invoke(AnalyzePack(pack, clientOperate));
+                        AnalyzePack(pack, clientOperate);
                     }
                 }
             });
             return 0;
         }
 
-        private static IEnumerator AnalyzePack(JObject pack, ClientOperate clientOperate)
+        private static async void AnalyzePack(JObject pack, ClientOperate clientOperate)
         {
-            // yield return new WaitWhile(() => InGameUIManager.IsActive);
+            // await new WaitWhile(() => InGameUIManager.IsActive);
             if (!pack.ContainsKey("Type"))
             {
                 Debug.Log("错误：无法处理接收到的数据");
                 Debug.Log(pack);
-                yield break;
+                return;
             }
-
+            await UniTask.SwitchToMainThread();
             if (pack["Type"].ToString() == "Active")
             {
                 ExecuteActivePack(pack);
@@ -437,7 +439,7 @@ namespace Network.Multiplayer.Managers
                     else
                     {
                         chatManager.AddMessage(receive.Author, receive.Message,
-                            receive.Author == RepAPI.Username ? MessageType.Self : MessageType.Common);
+                            receive.Author == LoginManager.Username ? MessageType.Self : MessageType.Common);
                     }
 
                     break;
