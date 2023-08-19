@@ -13,6 +13,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using Utilities;
 using YamlDotNet.Serialization;
+using UniTask = Cysharp.Threading.Tasks.UniTask;
 
 namespace MainCore.UI
 {
@@ -28,9 +29,6 @@ namespace MainCore.UI
         private bool loaded;
         private bool loading;
         private PhiraInfoData phiraInfoData;
-        private UnityWebRequest request;
-        private UnityWebRequest request2;
-        private bool requested;
         private float speed;
         private string tempPath;
 
@@ -114,105 +112,36 @@ namespace MainCore.UI
         private void Update()
         {
             if (!loaded) return;
-            if (!requested)
+            if (!loading) return;
+
+            loading = false;
+            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.illustrationPath), out Exception exception);
+            if (exception != null)
             {
+                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace, () => { }, "确认");
+                return;
+            }
+            GlobalSetting.backgroundImage = sprite;
+
+            UniTask a = UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
                 try
                 {
-                    FileStream fileStream = new FileStream(GlobalSetting.musicPath, FileMode.Open, FileAccess.Read,
-                        FileShare.Read);
-                    byte[] fileHead = new byte[4];
-                    if (fileStream.Read(fileHead, 0, fileHead.Length) != fileHead.Length)
-                        throw new Exception("Illegal Music File");
-                    fileStream.Close();
-                    if (fileHead[0] == 0x66 && fileHead[1] == 0x4C && fileHead[2] == 0x61 && fileHead[3] == 0x43)
-                    {
-                        InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
-                            () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
-                        loaded = false;
-                        loading = false;
-                        return;
-                    }
-
-                    Uri.TryCreate(GlobalSetting.illustrationPath, UriKind.Absolute, out var uri);
-                    request = UnityWebRequestTexture.GetTexture(uri);
-                    request.SendWebRequest();
-                    var suffix = Path.GetExtension(GlobalSetting.musicPath).ToLower();
-                    Uri.TryCreate(GlobalSetting.musicPath, UriKind.Absolute, out uri);
-                    request2 = UnityWebRequestMultimedia.GetAudioClip(uri, suffix switch
-                    {
-                        ".wav" => AudioType.WAV,
-                        ".ogg" => AudioType.OGGVORBIS,
-                        ".mp3" => AudioType.MPEG,
-                        _ => AudioType.UNKNOWN
-                    });
-                    request2.SendWebRequest();
-                    requested = true;
+                    Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
+                }
+                catch (ArgumentException)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
+                        () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
                 }
                 catch (Exception e)
                 {
-                    PopupMessageManager.Instance.ChangeContent($"{e.Message}");
-                }
-            }
-
-            if (!loading) return;
-            if (!request.isDone)
-            {
-                PopupMessageManager.Instance.ChangeContent(
-                    $"Loading Illustration: {request.downloadProgress * 100:F2}%");
-                return;
-            }
-
-            if (!request2.isDone)
-            {
-                PopupMessageManager.Instance.ChangeContent($"Loading Music: {request2.downloadProgress * 100:F2}%");
-                return;
-            }
-
-            loading = false;
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                if (request.result == UnityWebRequest.Result.DataProcessingError)
-                {
-                    InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", request.downloadHandler.error, () => { },
+                    InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
                         "确认");
                 }
-                else
-                {
-                    InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", request.error, () => { }, "确认");
-                }
-
-                return;
-            }
-
-            var texture = (request.downloadHandler as DownloadHandlerTexture).texture;
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                new Vector2(0.5f, 0.5f));
-            GlobalSetting.backgroundImage = sprite;
-
-            if (request2.result != UnityWebRequest.Result.Success)
-            {
-                InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", request2.error, () => { }, "确认");
-                return;
-            }
-
-            bool error = false;
-            string errorMessage = "";
-            Application.logMessageReceived += (condition, stacktrace, type) =>
-            {
-                if (type == LogType.Error)
-                {
-                    error = true;
-                    errorMessage = condition + "\n" + "<size=20>StackTrace: \n" + stacktrace + "</size>";
-                }
-            };
-
-            Main.music = (request2.downloadHandler as DownloadHandlerAudioClip).audioClip;
-
-            if (error)
-            {
-                InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", errorMessage, () => { }, "确认");
-                return;
-            }
+            });
+            UniTask.WhenAll(a);
 
             GlobalSetting.usingApi = false;
 
@@ -321,6 +250,15 @@ namespace MainCore.UI
             }
 
             loaded = true;
+            await UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                PopupMessageManager.Instance.ChangeContent("loading...");
+            });
+            for (int i = 0; i < 41; i++)
+            {
+                await new WaitForEndOfFrame();
+            }
         }
 
         public void OnClickPath()

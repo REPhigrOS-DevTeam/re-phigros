@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,10 +43,11 @@ namespace MainCore.Utilities
             return type.IsSubclassOf(type1) || type == type1;
         }
 
-        public static Sprite ConvertFileToSprite(byte[] data)
+        public static Sprite ReadFileAsSprite(byte[] data, out Exception exception)
         {
             try
             {
+                exception = null;
                 using UnimageProcessor unimageProcessor = new UnimageProcessor();
                 unimageProcessor.Load(data);
                 Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
@@ -55,24 +56,33 @@ namespace MainCore.Utilities
             }
             catch (Exception e)
             {
-                Debug.LogError(e);
+                exception = e;
                 return null;
             }
         }
 
         public static async Task<AudioClip> ReadMusicAsAudioClip(string path)
         {
-            string suffix = Path.GetExtension(path).ToLowerInvariant();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, suffix switch
-            {
-                ".wav" => AudioType.WAV,
-                ".ogg" => AudioType.OGGVORBIS,
-                ".mp3" => AudioType.MPEG,
-                _ => AudioType.UNKNOWN
-            });
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, GetAudioTypeFromFile(path));
             await uwr.SendWebRequest();
-            return DownloadHandlerAudioClip.GetContent(uwr);
+            AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
+            return audioClip;
+        }
+
+        public static AudioType GetAudioTypeFromFile(string path)
+        {
+            byte[] data = File.ReadAllBytes(path);
+            if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
+            if (data.SplitByteArrayToString(4) == "OggS") return AudioType.OGGVORBIS;
+            if (data.SplitByteArrayToString(4) == "RIFF") return AudioType.WAV;
+            if (data.SplitByteArrayToString(4) == "fLaC") throw new ArgumentException();
+            return AudioType.UNKNOWN;
+        }
+
+        private static string SplitByteArrayToString(this byte[] arr, int length)
+        {
+            return Encoding.ASCII.GetString(arr.Take(length).ToArray());
         }
     }
 }

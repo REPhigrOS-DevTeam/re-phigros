@@ -251,7 +251,7 @@ public class MPServerTest : MonoBehaviour
         await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
         Main.OverloadInfoWithPhiraYaml(phiraInfoData);
         // convert illustration & music
-        GlobalSetting.backgroundImage = Util.ConvertFileToSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath));
+        GlobalSetting.backgroundImage = Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out _);
         Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));

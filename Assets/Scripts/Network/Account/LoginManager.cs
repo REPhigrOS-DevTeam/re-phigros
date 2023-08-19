@@ -51,7 +51,7 @@ namespace Network.Account
 
         private void OnInputFieldsClicked(bool a)
         {
-            if (!RememberMe) return;
+            if (!lastRememberMe) return;
             Username = VerifyToken = "";
             firstLogin = false;
             ifPassword.text = password = "";
