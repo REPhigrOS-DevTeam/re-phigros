@@ -138,7 +138,7 @@ namespace MainCore
 
             InitChart();
 
-            if (GlobalSetting.extraJson != "" && GlobalSetting.useShader)
+            if (GlobalSetting.extraJson != "")
             {
                 Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                 uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
@@ -406,7 +406,7 @@ namespace MainCore
                     }
                 }
             }, cts.Token);
-            var ch = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+            var ch = await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
             GlobalSetting.chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))

@@ -72,8 +72,6 @@ namespace MainCore
         public static List<JudgeLineMovement> lines = new List<JudgeLineMovement>();
 
         private static float orthographicSize = -1f;
-
-        public static bool useShader = false;
         public static bool Playing { get; set; }
         public static bool IsEnding { get; set; }
         public static bool Paused { get; set; }
@@ -102,7 +100,7 @@ namespace MainCore
             }
         }
         
-        public static HitFxType HitFxType = HitFxType.Official;
+        public static HitFxType HitFxType = HitFxType.StarPinkXz;
 
         public static bool IsPhira = false;
 

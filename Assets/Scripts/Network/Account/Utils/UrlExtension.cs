@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -14,18 +15,25 @@ namespace Network.Account.Utils
         }
 
         [ItemCanBeNull]
-        public static async Task<byte[]> SendGetRequestAsync(this string url)
+        public static async Task<byte[]> SendGetRequestAsync(this string url, int timeOut = -1)
         {
             HttpClient httpClient = new HttpClient();
-            HttpResponseMessage message = await httpClient.GetAsync(url);
+            httpClient.Timeout = timeOut < 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(timeOut);
+            HttpResponseMessage message = null;
             try
             {
+                message = await httpClient.GetAsync(url);
                 message.EnsureSuccessStatusCode();
                 return await message.Content.ReadAsByteArrayAsync();
             }
+            catch (TaskCanceledException)
+            {
+                Debug.LogError($"Occurred timeout while requesting {url}");
+                throw;
+            }
             catch (HttpRequestException)
             {
-                Debug.LogError($"Error while requesting {url}, http code: {message.StatusCode}");
+                if (message != null) Debug.LogError($"Error while requesting {url}, http code: {message.StatusCode}");
                 return null;
             }
         }

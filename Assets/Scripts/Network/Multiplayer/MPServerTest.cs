@@ -241,7 +241,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.illustrator = debugChartInfo.illustrator;
         // extra init
         string extraJsonPath = directory + "/extra.json";
-        if (File.Exists(extraJsonPath) && GlobalSetting.useShader)
+        if (File.Exists(extraJsonPath))
         {
             GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
         }

@@ -132,7 +132,8 @@ namespace MainCore
     public enum HitFxType
     {
         Official = 0,
-        Phira = 1,
-        Sacabam = 2
+        StarPinkXz,
+        Phira,
+        Sacabam
     }
 }

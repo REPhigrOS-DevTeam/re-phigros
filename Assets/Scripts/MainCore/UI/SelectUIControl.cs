@@ -20,6 +20,7 @@ namespace MainCore.UI
     public class SelectUIControl : MonoBehaviour
     {
         public GameObject chartNameUI;
+        public Dropdown infoDropdown;
         public Dropdown chartPathDropdown;
         public Dropdown musicPathDropdown;
         public Dropdown illustrationPathDropdown;
@@ -104,8 +105,8 @@ namespace MainCore.UI
 
         private void RefreshGameFolder()
         {
-            GameObject.Find("InfoDropdown").GetComponent<Dropdown>().options =
-                GetFolders(PlayerPrefs.GetString("file_path"));
+            infoDropdown.ClearOptions();
+            infoDropdown.AddOptions(GetFolders(PlayerPrefs.GetString("file_path")));
             OnChangeDropdown();
         }
 
@@ -162,7 +163,7 @@ namespace MainCore.UI
 
         public async void EnterGame()
         {
-            if (loading)
+            if (loading || infoDropdown.options.Count == 0)
                 return;
             loading = true;
             string phiraInfoPath = Path.Combine(tempPath, "info.yml");
@@ -212,7 +213,7 @@ namespace MainCore.UI
 
 
             var extraJsonPath = Path.Combine(tempPath, "extra.json");
-            if (File.Exists(extraJsonPath) && GlobalSetting.useShader)
+            if (File.Exists(extraJsonPath))
             {
                 InGameUIManager.ShowModalWindowWithClose("检测到extra.json",
                     "检测到extra.json, 暂时只支持内置shader的使用，不支持global属性，确认使用extra.json吗？",
@@ -263,9 +264,12 @@ namespace MainCore.UI
 
         public void OnClickPath()
         {
-            chartPathDropdown.options = GetFileName(tempPath, ".json", ".pec");
-            musicPathDropdown.options = GetFileName(tempPath, ".wav", ".ogg", ".mp3");
-            illustrationPathDropdown.options = GetFileName(tempPath, ".png", ".bmp", ".jpg", ".jpeg");
+            chartPathDropdown.ClearOptions();
+            musicPathDropdown.ClearOptions();
+            illustrationPathDropdown.ClearOptions();
+            chartPathDropdown.AddOptions(GetFileName(tempPath, ".json", ".pec"));
+            musicPathDropdown.AddOptions(GetFileName(tempPath, ".wav", ".ogg", ".mp3"));
+            illustrationPathDropdown.AddOptions(GetFileName(tempPath, ".png", ".bmp", ".jpg", ".jpeg"));
             try
             {
                 string t = GetFileName(tempPath, "line.csv").FirstOrDefault()?.text;
@@ -314,7 +318,8 @@ namespace MainCore.UI
 
         public void OnChangeDropdown()
         {
-            string t = GameObject.Find("InfoDropdown").GetComponent<Dropdown>().captionText.text;
+            if (infoDropdown.options.Count == 0) return;
+            string t = infoDropdown.captionText.text;
 
             tempPath = Path.Combine(PlayerPrefs.GetString("file_path") /*Application.persistentDataPath*/, t);
 

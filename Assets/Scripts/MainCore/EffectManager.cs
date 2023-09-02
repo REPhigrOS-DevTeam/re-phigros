@@ -60,6 +60,7 @@ public class EffectManager : MonoBehaviour
             HitFxType.Official => 0.16f,
             HitFxType.Phira => 0.32f,
             HitFxType.Sacabam => 0.25f,
+            HitFxType.StarPinkXz => 0.16f,
             _ => throw new ArgumentOutOfRangeException()
         };
     }

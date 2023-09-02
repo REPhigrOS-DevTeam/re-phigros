@@ -11,16 +11,29 @@ namespace Network.API
 {
     public static class RepAPI
     {
-        public static readonly string APIBase = Encoding.ASCII.GetString(new byte[]
+        private static readonly string APIBaseOriginal = Encoding.ASCII.GetString(new byte[]
         {
             104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 104, 105, 103, 114, 111, 115, 46, 116,
             111, 112
-        });
+        }); // https://api.rephigros.top
+
+        private static readonly string APIBaseMirror = Encoding.ASCII.GetString(new byte[]
+        {
+            104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 97, 99, 99, 46, 109, 105, 114, 114,
+            111, 114, 46, 97, 116, 111, 109, 117, 110, 105, 116, 101, 46, 99, 110
+        }); // https://api.repacc.mirror.atomunite.cn
+
+        private static bool useMirror = false;
 
         public static readonly string ManifestDirectory = Encoding.ASCII.GetString(new byte[]
-            { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 });
+            { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 }); // manifest.json
 
         private static bool inited = false;
+        
+        public static string GetAPIBase()
+        {
+            return useMirror ? APIBaseMirror : APIBaseOriginal;
+        }
 
         #region AboutManifest
 
@@ -33,6 +46,7 @@ namespace Network.API
 
         public static async Task<bool> Init()
         {
+            Debug.Log(ManifestDirectory);
             if (inited)
             {
                 throw new ArgumentException("Has inited");
@@ -40,7 +54,17 @@ namespace Network.API
 
             inited = true;
 
-            byte[] data = await APIBase.SendGetRequestAsync();
+            byte[] data;
+            try
+            {
+                data = await GetAPIBase().SendGetRequestAsync(3000);
+            }
+            catch (TaskCanceledException)
+            {
+                if (useMirror) return false;
+                useMirror = true;
+                return await Init();
+            }
             if (data == null)
             {
                 Debug.Log("Error while connect to server root page");
@@ -60,7 +84,7 @@ namespace Network.API
 
         private static async Task<bool> GetManifest()
         {
-            byte[] data = await APIBase.UrlCombine(ManifestDirectory).SendGetRequestAsync();
+            byte[] data = await GetAPIBase().UrlCombine(ManifestDirectory).SendGetRequestAsync();
             if (data == null)
             {
                 Debug.Log("Error while get server manifest");

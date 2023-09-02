@@ -218,7 +218,7 @@ namespace Network.Account
 #if !UNITY_EDITOR
             Debug.Log("Try login");
 #endif
-            var builder = new UriBuilder(RepAPI.APIBase.UrlCombine(RepAPI.loginUrl))
+            var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine(RepAPI.loginUrl))
             {
                 Query = $"username={username}&password={password}"
             };
@@ -258,7 +258,7 @@ namespace Network.Account
                 Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify without login.");
             }
 
-            var builder = new UriBuilder(RepAPI.APIBase.UrlCombine(RepAPI.verifyUrl))
+            var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine(RepAPI.verifyUrl))
             {
                 Query = $"username={Username}&verifytoken={VerifyToken}"
             };

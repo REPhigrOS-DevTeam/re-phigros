@@ -52,10 +52,10 @@ namespace MainCore.Settings
             SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 },
                 () =>
                 {
-                    Debug.Log("启用Shader");
-                    InGameUIManager.ShowModalWindowWithClose("<size=15>提示</size>", "Extra.json已启用", () => { },
-                        "确认");
-                    GlobalSetting.useShader = true;
+                    // Debug.Log("启用Shader");
+                    // InGameUIManager.ShowModalWindowWithClose("<size=15>提示</size>", "Extra.json已启用", () => { },
+                    //     "确认");
+                    // GlobalSetting.useShader = true;
                 });
         }
 

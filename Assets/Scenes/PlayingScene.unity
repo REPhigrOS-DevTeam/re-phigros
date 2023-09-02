@@ -1224,6 +1224,7 @@ MonoBehaviour:
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   materials:
   - {fileID: 2100000, guid: 9d5a54e1d4fb13742b9a1f99fa9598fc, type: 2}
+  - {fileID: 2100000, guid: 164e766e3bdb17148b8c6e0bbe4c029d, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   particleCount: 0
@@ -1922,7 +1923,7 @@ RectTransform:
   m_GameObject: {fileID: 802025088}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.05, y: 1.05, z: 1}
+  m_LocalScale: {x: 1.26127, y: 1.26127, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1668061104}
