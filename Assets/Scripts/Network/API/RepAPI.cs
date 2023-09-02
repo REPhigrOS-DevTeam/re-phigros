@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using MainCore.Utilities;
 using Network.Account.Serialized;
 using Network.Account.Utils;
 using Newtonsoft.Json;
@@ -76,6 +77,7 @@ namespace Network.API
             var res = JsonConvert.DeserializeObject<Base>(result);
             if (res is not { status: "OK" })
             {
+                InGameUIManager.ShowModalWindowWithClose("致命错误", "Re:Phigros服务器内部故障，请联系开发组", Util.QuitApp, "退出程序");
                 throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
             }
 
