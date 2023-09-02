@@ -47,7 +47,6 @@ namespace Network.API
 
         public static async Task<bool> Init()
         {
-            Debug.Log(ManifestDirectory);
             if (inited)
             {
                 throw new ArgumentException("Has inited");
