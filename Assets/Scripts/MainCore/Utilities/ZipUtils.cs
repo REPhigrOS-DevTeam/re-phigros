@@ -18,6 +18,23 @@ namespace MainCore.Utilities
         /// <param name="OverWrite">是否覆盖已存在的文件</param>
         public static void UnZip(string ZipFile, string TargetDirectory, bool OverWrite = true)
         {
+            Unzip(File.OpenRead(ZipFile), TargetDirectory, OverWrite);
+        }
+
+        /// <summary>
+        /// ZIP:解压一个zip文件
+        /// add yuangang by 2016-06-13
+        /// </summary>
+        /// <param name="data">需要解压的Zip文件</param>
+        /// <param name="TargetDirectory">解压到的目录</param>
+        /// <param name="OverWrite">是否覆盖已存在的文件</param>
+        public static void Unzip(byte[] data, string TargetDirectory, bool OverWrite = true)
+        {
+            Unzip(new MemoryStream(data), TargetDirectory, OverWrite);
+        }
+
+        private static void Unzip(Stream stream, string TargetDirectory, bool OverWrite)
+        {
             TargetDirectory = TargetDirectory.Replace("\\", "/");
             //如果解压到的目录不存在，则报错
             if (!Directory.Exists(TargetDirectory))
@@ -31,7 +48,7 @@ namespace MainCore.Utilities
                 TargetDirectory = String.Concat(TargetDirectory, "/");
             }
 
-            using ZipInputStream zipfiles = new ZipInputStream(File.OpenRead(ZipFile));
+            using ZipInputStream zipfiles = new ZipInputStream(stream);
             ZipEntry theEntry;
 
             while ((theEntry = zipfiles.GetNextEntry()) != null)

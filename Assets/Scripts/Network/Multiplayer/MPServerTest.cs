@@ -31,7 +31,7 @@ public class MPServerTest : MonoBehaviour
     public InputField ifUrl;
 
     public Button bConnect, bDisconnect, bLogin;
-    public Button bCreateRoom, bCloseRoom,bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
+    public Button bCreateRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
     private SongType selectedSongType = SongType.empty;
@@ -44,7 +44,7 @@ public class MPServerTest : MonoBehaviour
     public Text tLoginToken, tRoomId;
 
     public GameObject loginObj;
-    
+
     private static int? unityThreadId = null;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
@@ -139,21 +139,27 @@ public class MPServerTest : MonoBehaviour
             else SocketManager.Unready();
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
-        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f", SongType.rep), generalErrorMessages));
+        bUpdateSong.onClick.AddListener(() =>
+            GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f", SongType.rep), generalErrorMessages));
         bDownloadSong.onClick.AddListener(async () =>
         {
             if (selectedSongType == SongType.empty) return;
             sendMask.SetActive(true);
             if (await DownloadSong())
             {
-                ChatManager.AddMessage("downloadSucceeded", $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Server);
+                ChatManager.AddMessage("downloadSucceeded",
+                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
+                    MessageType.Server);
                 SetDownloaded(true);
             }
             else
             {
-                ChatManager.AddMessage("downloadFailed", $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Error);
+                ChatManager.AddMessage("downloadFailed",
+                    $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
+                    MessageType.Error);
                 SetDownloaded(false);
             }
+
             sendMask.SetActive(false);
         });
         SocketManager.Init(chatManager);
@@ -169,7 +175,7 @@ public class MPServerTest : MonoBehaviour
             SetButtonState(RoomState.RoomMember);
             SocketManager.SyncRoom();
         };
-        SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom);};
+        SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnSendPrepared += clientOperate =>
         {
             if (clientOperate == ClientOperate.Room_SendMessage) return;
@@ -211,6 +217,30 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
 #if true
+#if false // 官方服务器charts
+        string decompressedPath = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
+        if (Directory.Exists(decompressedPath)) Directory.Delete(decompressedPath);
+        Directory.CreateDirectory(decompressedPath);
+        string[] entries = Directory.GetFileSystemEntries(decompressedPath);
+        if (entries.Length == 1 && Directory.Exists(entries[0]))
+        {
+            string[] directories = Directory.GetDirectories(entries[0]);
+            foreach (var qwq in directories)
+            {
+                Directory.Move(qwq, decompressedPath);
+            }
+
+            string[] files = Directory.GetFiles(entries[0]);
+            foreach (var awa in files)
+            {
+                File.Move(awa, decompressedPath);
+            }
+
+            Directory.Delete(entries[0]);
+        }
+
+        ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), decompressedPath);
+#endif
         string directory = Application.dataPath + "/../Debug/Songs/" + selectedSongId;
         if (!Directory.Exists(Application.dataPath + "/../Debug/Songs/" + selectedSongId))
         {
@@ -232,6 +262,7 @@ public class MPServerTest : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "歌曲信格式有误", () => { }, "确定");
             return false;
         }
+
         // path init
         GlobalSetting.chartPath = directory + "/" + debugChartInfo.chartFileName;
         GlobalSetting.musicPath = directory + "/" + debugChartInfo.musicFileName;
@@ -247,6 +278,7 @@ public class MPServerTest : MonoBehaviour
             phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
             GlobalSetting.difficulty = phiraInfoData.level;
         }
+
         // info init
         if (phiraInfoData == null)
         {
@@ -274,19 +306,25 @@ public class MPServerTest : MonoBehaviour
         {
             GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
         }
+
         // chart init
         GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         GlobalSetting.chartFolderPath = directory;
-        await Main.InitChartAuto(phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart) ? GlobalSetting.chartFolderPath + "/" + phiraInfoData.chart : GlobalSetting.chartPath, false).ConfigureAwait(false);
+        await Main.InitChartAuto(
+            phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
+                ? GlobalSetting.chartFolderPath + "/" + phiraInfoData.chart
+                : GlobalSetting.chartPath, false).ConfigureAwait(false);
         Main.OverloadInfoWithPhiraYaml(phiraInfoData);
         // convert illustration & music
         await UniTask.SwitchToMainThread();
-        GlobalSetting.backgroundImage = Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out Exception e);
+        GlobalSetting.backgroundImage =
+            Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out Exception e);
         if (e != null)
         {
             Debug.LogError(e);
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
         }
+
         Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
@@ -309,7 +347,8 @@ public class MPServerTest : MonoBehaviour
         return true;
     }
 
-    private void EnterGame() {
+    private void EnterGame()
+    {
         // other
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
@@ -353,7 +392,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetButtonState(RoomState state)
     {
-        if (!IsFromUnityThread || Convert.ToString((int) state, 2).Replace("0", "").Length > 1) return;
+        if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return;
         foreach (Button button in buttonToState.Keys)
         {
             button.gameObject.SetActive((buttonToState[button] & state) == state);
