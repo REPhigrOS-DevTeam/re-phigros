@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace MainCore.Common
 {
     public class SceneTransit : MonoBehaviour
     {
+        public static Action OnSceneClosing = () => { };
         private static readonly int UseColor = Shader.PropertyToID("_UseColor");
         private static readonly int Cutoff = Shader.PropertyToID("_Cutoff");
         private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
@@ -42,6 +45,7 @@ namespace MainCore.Common
             transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
             transitMaterial.DOFloat(1f, Cutoff, .5f);
 
+            OnSceneClosing.Invoke();
             await Task.Delay(500);
             operation.allowSceneActivation = true;
 

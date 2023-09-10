@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,9 +27,9 @@ namespace Network.Account.Utils
                 message.EnsureSuccessStatusCode();
                 return await message.Content.ReadAsByteArrayAsync();
             }
-            catch (TaskCanceledException)
+            catch (Exception e) when (e is WebException or TaskCanceledException)
             {
-                Debug.LogError($"Occurred timeout while requesting {url}");
+                Debug.LogError($"Timeout occurred while requesting {url}");
                 throw;
             }
             catch (HttpRequestException)

@@ -9,13 +9,14 @@ namespace MainCore.UI
 {
     public class DelayCorrect : MonoBehaviour
     {
-        [SerializeField] private Image tap;
+        [SerializeField] private SpriteRenderer tap;
+        private Transform tapTransform;
         [SerializeField] private Slider sizeGetter;
         [SerializeField] private Slider hitSfxVolumeGetter;
         [SerializeField] private Slider offsetGetter;
         [SerializeField] private AudioClip tapSound;
 
-        private AudioSource audio;
+        private AudioSource sfx;
         private float beatTime = .96f * 2f;
         private float lastFrame = 0;
 
@@ -26,13 +27,14 @@ namespace MainCore.UI
 
         async void Start()
         {
+            tapTransform = tap.transform;
             EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect);
             effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
             effectManager.PlayParticle();
-            audio = GetComponent<AudioSource>();
+            sfx = GetComponent<AudioSource>();
             await Task.Delay(3000);
             speed = 1400 / beatTime;
-            audio.PlayScheduled(AudioSettings.dspTime);
+            sfx.PlayScheduled(AudioSettings.dspTime);
             await Task.Delay((int) (beatTime * 500));
             HeartBeat();
         }
@@ -40,23 +42,23 @@ namespace MainCore.UI
 
         void Update()
         {
-            tap.rectTransform.localScale = Vector2.one * sizeGetter.value;
+            tapTransform.localScale = Vector2.one * sizeGetter.value * new Vector2(98.9f, 100f);
 
             var percentage = ((val - offsetGetter.value / 1000f) % beatTime);
 
             posY = 1000 - speed * percentage;
 
-            tap.rectTransform.anchoredPosition = new Vector2(-250, posY);
+            tapTransform.localPosition = new Vector2(0, posY);
 
             if (lastFrame > percentage && !played)
             {
                 //AudioSource.PlayClipAtPoint(tapSound, Camera.main.transform.position);
                 HitSoundManager.Instance.Play(1, hitSfxVolumeGetter.value);
-                tap.rectTransform.anchoredPosition = new Vector2(-250, -400);
+                tapTransform.localPosition = new Vector2(0, -400);
                 EffectManager hitFxObj;
                 //hitFxObj = ObjectPool.GetInstance().GetObj($"HitFX/clickRaw_{HitEffectManager.HitFxType}_{HitFxJudgeType.Perfect}");
                 hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect);
-                hitFxObj.transform.position = tap.transform.position;
+                hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.PlayParticle();
                 played = true;
                 StartCoroutine(ReleaseCondition());
@@ -75,6 +77,12 @@ namespace MainCore.UI
         {
             yield return new WaitForSeconds(.05f);
             played = false;
+        }
+
+        public void OnSkinChanged()
+        {
+            tap.sprite = Resources.Load<GameObject>($"Notes/{GlobalSetting.Skin.ToString()}/Tap")
+                .GetComponent<NoteMovement>().NormalSprites[0];
         }
     }
 }

@@ -76,12 +76,13 @@ namespace Network.Multiplayer.Data
             return packs.ToArray();
         }
 
-        public static bool TryParseHost(string url, out IPEndPoint endPoint)
+        public static bool TryParseHost(string url, out IPEndPoint endPoint, out string displayUrl)
         {
             int maoHaoWeiZhi = url.LastIndexOf(":", StringComparison.Ordinal);
             if (maoHaoWeiZhi < 0)
             {
                 endPoint = null;
+                displayUrl = "";
                 return false;
             }
 
@@ -90,6 +91,7 @@ namespace Network.Multiplayer.Data
             if (!int.TryParse(portStr, out int port) || port < 0 || port > 65535)
             {
                 endPoint = null;
+                displayUrl = "";
                 return false;
             }
 
@@ -101,10 +103,12 @@ namespace Network.Multiplayer.Data
                     ipAddress.AddressFamily != AddressFamily.InterNetworkV6)
                 {
                     endPoint = null;
+                    displayUrl = "";
                     return false;
                 }
 
                 endPoint = new IPEndPoint(ipAddress, port);
+                displayUrl = host + ":" + port;
                 return true;
             }
 
@@ -116,6 +120,7 @@ namespace Network.Multiplayer.Data
             catch (Exception e) when (e is SocketException or ArgumentException)
             {
                 endPoint = null;
+                displayUrl = "";
                 return false;
             }
 
@@ -126,6 +131,7 @@ namespace Network.Multiplayer.Data
                 return c - d;
             });
             endPoint = new IPEndPoint(hostAddresses[0], port);
+            displayUrl = host + ":" + port;
             return true;
         }
     }
@@ -179,7 +185,7 @@ namespace Network.Multiplayer.Data
         Room_GameStart,
         Room_SendMessage,
         Room_GetRoomSongId,
-        Room_GetRoomInfo,
+        Room_Sync,
     }
 
     public enum ServerOperate

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MainCore.Utilities;
 using UnityEngine;
+using Utilities;
 
 namespace MainCore
 {
@@ -20,7 +21,7 @@ namespace MainCore
             Poyoroid_utsu,
             Yande
         }
-        
+
         public static string chartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
         public static string chartFolderPath = "";
         public static string chartName = "Apollo";
@@ -30,7 +31,7 @@ namespace MainCore
         public static Dictionary<float, int> highLightedNotes = new Dictionary<float, int>();
         public static float globalNoteScale = 0.25f;
         public static bool highLight;
-        public static bool autoPlay = false;
+        public static bool autoPlay;
         public static ScoreCounter scoreCounter = new ScoreCounter();
         public static float noteSpeedFactor = 1f;
         public static float userOffset;
@@ -43,15 +44,15 @@ namespace MainCore
         public static float widthOffset = 0f;
         public static string chart = "";
         public static string extraJson = "";
-        public static CSVReader lineImage = null;
-        public static InfoTxtReader infoTxt = null;
+        public static CSVReader lineImage;
+        public static InfoTxtReader infoTxt;
         public static bool usingApi = false;
-        public static bool isMirror = false;
-        public static bool is3D = false;
-        public static bool disableBlur = false;
-        public static bool postProcessing = false;
-        public static bool recordMode = false;
-        public static bool fxaaEnabled = false;
+        public static bool isMirror;
+        public static bool is3D;
+        public static bool disableBlur;
+        public static bool postProcessing;
+        public static bool recordMode;
+        public static bool fxaaEnabled;
         public static float hitVolume = 1f;
         public static float maskAlpha = .5f;
         public static int maximumZOrder = 0;
@@ -60,7 +61,7 @@ namespace MainCore
         public static string charter;
         public static string composer;
         public static string illustrator;
-        public static bool multiplayer;
+        public static bool isMultiplayer;
 
         public static YayaMode YayaKawaii = YayaMode.冲;
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;
@@ -99,10 +100,10 @@ namespace MainCore
                 return orthographicSize;
             }
         }
-        
-        public static HitFxType HitFxType = HitFxType.StarPinkXz;
 
-        public static bool IsPhira = false;
+        public static Skin Skin = Skin.StarPinkXz;
+
+        public static bool IsPhira;
 
         public static void PlayNoteSound(int notetype)
         {
@@ -151,6 +152,29 @@ namespace MainCore
             composer = "Unknown";
             charter = "Unknown";
             illustrator = "Unknown";
+        }
+
+        public static void ReadUserSettings()
+        {
+            highLight = PlayerPrefs.GetInt("high_light", 0) == 1; //highlightToggle.isOn;
+            userOffset =
+                PlayerPrefs.GetFloat("chart_offset", 0) /
+                1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
+            autoPlay = PlayerPrefs.GetInt("auto_play", 0) ==
+                       1; //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
+            isMirror = PlayerPrefs.GetInt("mirror", 0) ==
+                       1; //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
+            disableBlur = PlayerPrefs.GetInt("blur", 0) == 1;
+            is3D = false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
+            postProcessing =
+                PlayerPrefs.GetInt("post_processing", 0) ==
+                1; //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
+            globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
+            recordMode = PlayerPrefs.GetInt("record_mode", 0) == 1;
+            hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
+            maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
+            fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
+            Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
         }
     }
 }

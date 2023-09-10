@@ -22,7 +22,7 @@ namespace Network.Multiplayer.Components
                     break;
                 case MessageType.Self:
                     content.text = from + ": " + message;
-                    content.color = new Color(1, 1, 0, 1f);
+                    content.color = new Color(0.09f, 0.09f, 0.9f);
                     break;
                 case MessageType.Server:
                     content.text = message;
@@ -32,9 +32,20 @@ namespace Network.Multiplayer.Components
                     content.text = message;
                     content.color = Color.red;
                     break;
+                case MessageType.Debug:
+                    content.text = message;
+                    content.color = Color.grey;
+                    break;
+                case MessageType.Room:
+                    content.text = message;
+                    content.color = new Color(1, 1, 0, 1f);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
+#if UNITY_EDITOR
+            // if (type == MessageType.Error) content.text = string.Concat(content.text, $"\n<color=#f5f5dc>{new StackTrace()}</color>");
+#endif
         }
     }
 }

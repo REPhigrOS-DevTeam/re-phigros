@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Http;
 using Network.Account.Utils;
+using Network.API;
 using UnityEngine;
 
 namespace Network.Chart
@@ -11,6 +12,7 @@ namespace Network.Chart
         public const string ApiBase = "http://43.248.185.65:45944/api/";
         public static async void Qwq()
         {
+            await ChartHandler.Upload("E:/qqData/3120393927/FileRecv/暴力扳机 IN Lv.15.zip");
             string filePath = "E:/qqData/3120393927/FileRecv/暴力扳机 IN Lv.15.zip";
             filePath = Path.GetFullPath(filePath);
             using MultipartFormDataContent content = new MultipartFormDataContent();

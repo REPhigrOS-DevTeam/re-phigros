@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
+using MainCore.Common;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Network.Multiplayer.Components
@@ -11,14 +14,15 @@ namespace Network.Multiplayer.Components
     public class ChatManager : MonoBehaviour
     {
         private static readonly string[] GeneralErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        private readonly object threadLock = new();
+        private static readonly object threadLock = new();
         [SerializeField] private RectTransform contentPanel;
         [SerializeField] private GameObject chatMessagePrefab;
         [SerializeField] private InputField ifMessage;
         [SerializeField] private Button bSend;
         private RectTransform scrollViewTransform;
         private Text tSendButton;
-        private List<Message> messages = new List<Message>();
+        private static List<Message> messages = new List<Message>();
+        public static ChatManager Instance;
 
         private void Awake()
         {
@@ -31,6 +35,12 @@ namespace Network.Multiplayer.Components
             SocketManager.OnCreateRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnJoinRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
+            SceneTransit.OnSceneClosing += () => Instance = null;
+            GameObject o = GameObject.FindWithTag("ChatManager");
+            if (o)
+            {
+                Instance = o.GetComponent<ChatManager>();
+            }
         }
 
         private void Start()
@@ -40,23 +50,42 @@ namespace Network.Multiplayer.Components
 
         private void Update()
         {
-            if ((!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) || ifMessage.isFocused) return;
+            if ((!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) ||
+                ifMessage.isFocused) return;
             ifMessage.ActivateInputField();
             bSend.onClick.Invoke();
         }
 
-        public void AddMessage(string from, string message, MessageType type)
+        public static void AddMessage(string from, string message, MessageType type)
         {
             lock (threadLock)
             {
                 messages.Add(new Message(from, message, type));
-                GameObject obj = Instantiate(chatMessagePrefab, contentPanel);
-                obj.GetComponent<ChatMessage>().Init(from, message, type);
-                // LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
-                float sizeDeltaY = contentPanel.sizeDelta.y - scrollViewTransform.sizeDelta.y;
-                if (sizeDeltaY > 0) contentPanel.position = new Vector3(contentPanel.position.x,sizeDeltaY, contentPanel.position.z);
-                LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
+                if (Instance == null)
+                {
+                    GameObject o = GameObject.FindWithTag("ChatManager");
+                    if (o)
+                    {
+                        Instance = o.GetComponent<ChatManager>();
+                        Instance.AddMessageInternal(from, message, type);
+                    }
+                }
+                else
+                {
+                    Instance.AddMessageInternal(from, message, type);
+                }
             }
+        }
+
+        private void AddMessageInternal(string from, string message, MessageType type)
+        {
+            GameObject obj = Instantiate(chatMessagePrefab, contentPanel);
+            obj.GetComponent<ChatMessage>().Init(from, message, type);
+            // LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
+            float sizeDeltaY = contentPanel.sizeDelta.y - scrollViewTransform.sizeDelta.y;
+            if (sizeDeltaY > 0)
+                contentPanel.position = new Vector3(contentPanel.position.x, sizeDeltaY, contentPanel.position.z);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
         }
 
         public void CleanChatHistory()
@@ -73,15 +102,19 @@ namespace Network.Multiplayer.Components
             }
         }
 
-        public void RevertChatHistory()
+        public async void RevertChatHistory()
         {
-            lock (threadLock)
+            await Task.Run(async () =>
             {
-                foreach (Message message in messages)
+                await new WaitUntil(() => Instance != null);
+                lock (threadLock)
                 {
-                    AddMessage(message.from, message.message, message.messageType);
+                    foreach (Message message in messages)
+                    {
+                        AddMessageInternal(message.from, message.message, message.messageType);
+                    }
                 }
-            }
+            });
         }
 
         private void OnInitOrRoomClosed()

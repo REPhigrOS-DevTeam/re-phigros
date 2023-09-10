@@ -56,11 +56,11 @@ public class EffectManager : MonoBehaviour
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float GetFactor()
     {
-        return GlobalSetting.HitFxType switch {
-            HitFxType.Official => 0.16f,
-            HitFxType.Phira => 0.32f,
-            HitFxType.Sacabam => 0.25f,
-            HitFxType.StarPinkXz => 0.16f,
+        return GlobalSetting.Skin switch {
+            Skin.Official => 0.16f,
+            Skin.Phira => 0.32f,
+            Skin.Sacabam => 0.25f,
+            Skin.StarPinkXz => 0.16f,
             _ => throw new ArgumentOutOfRangeException()
         };
     }

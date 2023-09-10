@@ -30,7 +30,7 @@ namespace MainCore.ECS_ver
         private void Awake()
         {
             Instance = this;
-            Material = materials[(int)GlobalSetting.HitFxType];
+            Material = materials[(int)GlobalSetting.Skin];
             //settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
             manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             //button.onClick.AddListener(() => CreateParticle(particleCount, colorToDraw, 0, 1));

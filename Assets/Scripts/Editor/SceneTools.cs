@@ -30,7 +30,7 @@ namespace Editor
         {
             IntoScene("LevelOver 1");
         }
-        
+
         [MenuItem("Scene Tools/Into DSP")]
         private static void IntoDSP()
         {
@@ -48,37 +48,37 @@ namespace Editor
         {
             IntoScene("LoadInto");
         }
-        
+
         [MenuItem("Scene Tools/Into WahtThe")]
         private static void IntoWahtThe()
         {
             IntoScene("WahtThe");
         }
-        
-                
+
+
         [MenuItem("Scene Tools/Unbuild/Into Loading")]
         private static void IntoLoading()
         {
             IntoScene("LoadingScene");
         }
-        
+
         [MenuItem("Scene Tools/Unbuild/Into Result")]
         private static void IntoResult()
         {
             IntoScene("ResultScene");
         }
+        
+        [MenuItem("Scene Tools/Into Login")]
+        private static void IntoLogin()
+        {
+            IntoScene("LoginScene");
+        }
 
-        [MenuItem("Scene Tools/Unbuild/Into Network")]
+        [MenuItem("Scene Tools/Into Network")]
         private static void IntoNetwork()
         {
             IntoScene("TEST/NetworkTest");
         }
-        
-                [MenuItem("Scene Tools/Into Login")]
-                private static void IntoLogin()
-                {
-                    IntoScene("LoginScene");
-                }
 
         private static void IntoScene(string name)
         {
@@ -87,6 +87,7 @@ namespace Editor
                 SceneManager.LoadSceneAsync($"Scenes/{name}");
                 return;
             }
+
             EditorSceneManager.OpenScene($"Assets/Scenes/{name}.unity");
         }
     }

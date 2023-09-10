@@ -115,6 +115,8 @@ namespace MainCore.UI
             if (!loaded) return;
             if (!loading) return;
 
+            GlobalSetting.isMultiplayer = false;
+
             loading = false;
             Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.illustrationPath), out Exception exception);
             if (exception != null)
@@ -191,7 +193,7 @@ namespace MainCore.UI
             PlayerPrefs.SetString("chartFolderPath", tempPath);
             PlayerPrefs.Save();
             GlobalSetting.difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
-            ReadUserSettings();
+            GlobalSetting.ReadUserSettings();
 
             HitSoundManager.Init();
 
@@ -408,27 +410,5 @@ namespace MainCore.UI
             }
         }
 #endif
-        public static void ReadUserSettings()
-        {
-            GlobalSetting.highLight = PlayerPrefs.GetInt("high_light", 0) == 1; //highlightToggle.isOn;
-            GlobalSetting.userOffset =
-                PlayerPrefs.GetFloat("chart_offset", 0) /
-                1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
-            GlobalSetting.autoPlay =
-                PlayerPrefs.GetInt("auto_play", 0) == 1; //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.isMirror =
-                PlayerPrefs.GetInt("mirror", 0) == 1; //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.disableBlur = PlayerPrefs.GetInt("blur", 0) == 1;
-            GlobalSetting.is3D =
-                false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.postProcessing =
-                PlayerPrefs.GetInt("post_processing", 0) ==
-                1; //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
-            GlobalSetting.globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
-            GlobalSetting.recordMode = PlayerPrefs.GetInt("record_mode", 0) == 1;
-            GlobalSetting.hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
-            GlobalSetting.maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
-            GlobalSetting.fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
-        }
     }
 }

@@ -63,7 +63,7 @@ namespace MainCore.Utilities
             else //如果没有加载过该预设体
             {
                 //加载预设体
-                prefab = Resources.Load<NoteMovement>("Notes/" + GlobalSetting.HitFxType + "/" + objName);
+                prefab = Resources.Load<NoteMovement>("Notes/" + GlobalSetting.Skin + "/" + objName);
                 //更新字典
                 prefabs.Add(objName, prefab);
             }

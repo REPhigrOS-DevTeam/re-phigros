@@ -360,7 +360,7 @@ namespace MainCore.Utilities
 
     public static class Rpe2Json
     {
-        public static async Task<Chart> Chart123(string chart)
+        public static async Task<Chart> Chart123(string chart, bool showMessage)
         {
             RpeChartData rpeChartData = JsonUtility.FromJson<RpeChartData>(chart);
             Chart retChart = new Chart();
@@ -427,7 +427,7 @@ namespace MainCore.Utilities
                     if (File.Exists(path))
                     {
                         retChart.judgeLineList[i].useImage = true;
-                        PopupMessageManager.Instance.ChangeContent(
+                        if (showMessage) PopupMessageManager.Instance.ChangeContent(
                             $"Loading custom judge line image:\n{rpeChartData.judgeLineList[i].Texture}");
                         FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
                         byte[] bytes = new byte[fs.Length];

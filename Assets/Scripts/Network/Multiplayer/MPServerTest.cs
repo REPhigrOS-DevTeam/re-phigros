@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -33,6 +34,8 @@ public class MPServerTest : MonoBehaviour
     public Button bCreateRoom, bCloseRoom,bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
+    private string selectedSongId = "";
+
     private int roomId = -1;
 
     public Text tConnectState;
@@ -51,7 +54,7 @@ public class MPServerTest : MonoBehaviour
     private void Awake()
     {
         unityThreadId = Thread.CurrentThread.ManagedThreadId;
-        ZipConstants.DefaultCodePage = 65001; // UTF-8
+        // ZipConstants.DefaultCodePage = 65001; // UTF-8
         buttonToState = new()
         {
             { bCreateRoom, RoomState.NotInRoom },
@@ -61,30 +64,34 @@ public class MPServerTest : MonoBehaviour
             { bStartGame, RoomState.RoomOwner },
             { bUpdateSong, RoomState.RoomOwner }
         };
-        try
-        {
-            InitAPI();
-        }
-        catch (ArgumentException)
-        {
-        }
+        SocketManager.OnCloseRoomSucceeded += ChartHandler.OnRoomClosed;
+        SocketManager.OnQuitRoomSucceeded += ChartHandler.OnRoomQuited;
+        GlobalSetting.ReadUserSettings();
+        chatManager.RevertChatHistory();
+        // try
+        // {
+        //     InitAPI();
+        // }
+        // catch (ArgumentException)
+        // {
+        // }
     }
 
-    private async void InitAPI()
-    {
-        await UniTask.SwitchToMainThread();
-        PopupMessageManager.Instance.Message("尝试连接api服务器……");
-        LoginManager.ReadAccountFromPlayerPrefs();
-        bool succeeded = await RepAPI.Init();
-        if (succeeded)
-        {
-            PopupMessageManager.Instance.Message("连接成功");
-        }
-        else
-        {
-            InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
-        }
-    }
+    // private async void InitAPI()
+    // {
+    //     await UniTask.SwitchToMainThread();
+    //     PopupMessageManager.Instance.Message("尝试连接api服务器……");
+    //     LoginManager.ReadAccountFromPlayerPrefs();
+    //     bool succeeded = await RepAPI.Init();
+    //     if (succeeded)
+    //     {
+    //         PopupMessageManager.Instance.Message("连接成功");
+    //     }
+    //     else
+    //     {
+    //         InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
+    //     }
+    // }
 
     // Start is called before the first frame update
     void Start()
@@ -127,13 +134,22 @@ public class MPServerTest : MonoBehaviour
         bReady.OnValueChanged += (button, text, isOn) =>
         {
             text.text = isOn ? "取消准备" : "准备";
-            SetDownloaded(isOn);
+            if (isOn) SocketManager.Ready();
+            else SocketManager.Unready();
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
-        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong(1), generalErrorMessages));
+        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f"), generalErrorMessages));
+        bDownloadSong.onClick.AddListener(() =>
+        {
+            OnUpdateSongReceived("63ae61e1272f");
+        });
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
-        SocketManager.OnCreateRoomSucceeded += () => { SetButtonState(RoomState.RoomOwner); };
+        SocketManager.OnCreateRoomSucceeded += () =>
+        {
+            SetButtonState(RoomState.RoomOwner);
+            bDownloadSong.interactable = false;
+        };
         SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnJoinRoomSucceeded += () => { SetButtonState(RoomState.RoomMember); };
         SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom);};
@@ -148,6 +164,8 @@ public class MPServerTest : MonoBehaviour
             sendMask.SetActive(false);
         };
         SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
+        SocketManager.OnGameStarted += EnterGame;
+        SocketManager.OnJoinRoomSucceeded += () => SocketManager.SyncRoom();
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
@@ -156,17 +174,20 @@ public class MPServerTest : MonoBehaviour
 #endif
     }
 
-    private async void OnUpdateSongReceived(int id)
+    private async void OnUpdateSongReceived(string id)
     {
         sendMask.SetActive(true);
+        SetDownloaded(false);
+        bReady.IsOn = false;
         if (await DownloadSong(id))
         {
-            chatManager.AddMessage("downloadSucceeded", "成功下载谱面" + id, MessageType.Server);
+            selectedSongId = id;
+            ChatManager.AddMessage("downloadSucceeded", "成功下载谱面" + id, MessageType.Server);
             SetDownloaded(true);
         }
         else
         {
-            chatManager.AddMessage("downloadFailed", "错误：无法下载谱面" + id, MessageType.Error);
+            ChatManager.AddMessage("downloadFailed", "错误：无法下载谱面" + id, MessageType.Error);
             SetDownloaded(false);
         }
         sendMask.SetActive(false);
@@ -176,10 +197,12 @@ public class MPServerTest : MonoBehaviour
     {
         int state = getState.Invoke();
         if (state == 0) return;
-        chatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
+        ChatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
     }
 
-    private async Task<bool> DownloadSong(int id) // TODO: 接入PhiZone
+    private PhiraInfoData phiraInfoData = null;
+
+    private async Task<bool> DownloadSong(string id) // TODO: 接入PhiZone
     {
 #if true
         string directory = Application.dataPath + "/../Debug/Songs/" + id;
@@ -211,7 +234,7 @@ public class MPServerTest : MonoBehaviour
         PlayerPrefs.Save();
         // phira info
         string phiraInfoPath = directory + "/info.yml";
-        PhiraInfoData phiraInfoData = null;
+        phiraInfoData = null;
         if (File.Exists(phiraInfoPath))
         {
             IDeserializer deserializer = new DeserializerBuilder().Build();
@@ -248,10 +271,16 @@ public class MPServerTest : MonoBehaviour
         // chart init
         GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         GlobalSetting.chartFolderPath = directory;
-        await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
+        await Main.InitChartAuto(phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart) ? GlobalSetting.chartFolderPath + "/" + phiraInfoData.chart : GlobalSetting.chartPath, false).ConfigureAwait(false);
         Main.OverloadInfoWithPhiraYaml(phiraInfoData);
         // convert illustration & music
-        GlobalSetting.backgroundImage = Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out _);
+        await UniTask.SwitchToMainThread();
+        GlobalSetting.backgroundImage = Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out Exception e);
+        if (e != null)
+        {
+            Debug.LogError(e);
+            InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
+        }
         Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
@@ -273,13 +302,15 @@ public class MPServerTest : MonoBehaviour
 #endif
         return true;
     }
-    
+
     private void EnterGame() {
         // other
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
         GlobalSetting.usingApi = false;
-        SelectUIControl.ReadUserSettings();
+        GlobalSetting.ReadUserSettings();
+        GlobalSetting.recordMode = false;
+        GlobalSetting.autoPlay = false;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();
         SceneTransit.Instance.TransitTo("LoadInto");
@@ -330,7 +361,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetDownloaded(bool value)
     {
-        bDownloadSong.interactable = !value;
+        bDownloadSong.interactable = !value && selectedSongId != "";
         bReady.Interactable = value;
         bStartGame.interactable = value;
     }

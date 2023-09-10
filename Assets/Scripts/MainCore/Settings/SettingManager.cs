@@ -1,7 +1,9 @@
 using System.IO;
 using Lean.Gui;
 using MainCore.Common;
+using MainCore.UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MainCore.Settings
 {
@@ -12,6 +14,8 @@ namespace MainCore.Settings
         [SerializeField] private InputField_String_Setting dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
+        [SerializeField] private Dropdown skinDropdown;
+        [SerializeField] private DelayCorrect delayCorrect;
 
         void Start()
         {
@@ -57,6 +61,7 @@ namespace MainCore.Settings
                     //     "确认");
                     // GlobalSetting.useShader = true;
                 });
+            skinDropdown.value = PlayerPrefs.GetInt("skin", 0);
         }
 
         private void SaveNExit()
@@ -74,6 +79,13 @@ namespace MainCore.Settings
             }
 
             SceneTransit.Instance.TransitTo("ChartSelectorScene");
+        }
+
+        public void OnSkinChanged(int id)
+        {
+            GlobalSetting.Skin = (Skin) id;
+            PlayerPrefs.SetInt("skin", id);
+            delayCorrect.OnSkinChanged();
         }
     }
 

@@ -39,7 +39,7 @@ namespace MainCore
         /// <returns></returns>
         public EffectManager GetObj(HitFxJudgeType judgeType)
         {
-            string objName = $"clickRaw_{GlobalSetting.HitFxType}_{judgeType}";
+            string objName = $"clickRaw_{GlobalSetting.Skin}_{judgeType}";
             //结果对象
             EffectManager result = null;
             //判断是否有该名字的对象池
@@ -129,7 +129,7 @@ namespace MainCore
         Good = 1
     }
 
-    public enum HitFxType
+    public enum Skin
     {
         Official = 0,
         StarPinkXz,

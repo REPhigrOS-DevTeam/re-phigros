@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,15 +60,16 @@ namespace Network.API
             {
                 data = await GetAPIBase().SendGetRequestAsync(3000);
             }
-            catch (TaskCanceledException)
+            catch (WebException)
             {
                 if (useMirror) return false;
                 useMirror = true;
+                Debug.Log("访问主站超时，切换到镜像站点");
                 return await Init();
             }
             if (data == null)
             {
-                Debug.Log("Error while connect to server root page");
+                Debug.LogError("Error while connect to server root page");
                 return false;
             }
 

@@ -7,6 +7,7 @@ TagManager:
   - Lines
   - UI
   - 3DLines
+  - ChatManager
   layers:
   - Default
   - TransparentFX

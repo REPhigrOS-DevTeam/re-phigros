@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Unimage;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -63,6 +64,7 @@ namespace MainCore.Utilities
 
         public static async Task<AudioClip> ReadMusicAsAudioClip(string path)
         {
+            await UniTask.SwitchToMainThread();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
             UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, GetAudioTypeFromFile(path));
             await uwr.SendWebRequest();

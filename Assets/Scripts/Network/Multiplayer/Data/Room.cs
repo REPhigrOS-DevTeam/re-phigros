@@ -26,7 +26,7 @@ namespace Network.Multiplayer.Data
 
     public class RoomInfoReceive : BackReceiveData
     {
-        [JsonProperty("RoomInfo")] public RoomInfo RoomInfo;
+        [JsonProperty("SyncReturn")] public RoomInfo RoomInfo;
     }
 
     public class RoomInfo
@@ -39,6 +39,8 @@ namespace Network.Multiplayer.Data
         Common = 0,
         Self = 1,
         Server = 2,
-        Error = 3
+        Error = 3,
+        Debug = 4,
+        Room = 5
     }
 }

@@ -12,6 +12,7 @@ using MainCore.Data;
 using MainCore.PostProcessing;
 using MainCore.UI;
 using MainCore.Utilities;
+using Network.Multiplayer.Managers;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -19,79 +20,6 @@ using UnityEngine.UI;
 
 namespace MainCore
 {
-    public enum NoteStat
-    {
-        Perfect,
-        Good,
-        Bad,
-        Miss,
-        None,
-        Early,
-        Late
-    }
-
-    public enum JudgeLineStat
-    {
-        AP,
-        FC,
-        None
-    }
-
-    public class ScoreCounter
-    {
-        public int badCnt;
-        public int combo;
-        public int early;
-        public int goodCnt;
-        public int late;
-        public int maxcombo;
-        public int missCnt;
-        public int numOfNotes;
-        public int perfectCnt;
-        public float Score => 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes;
-        public float Accuracy => (perfectCnt + goodCnt * 0.65f) / numOfNotes;
-
-        public void Add(NoteStat status)
-        {
-            switch (status)
-            {
-                case NoteStat.Perfect:
-                    perfectCnt++;
-                    combo++;
-                    break;
-                case NoteStat.Good:
-                    goodCnt++;
-                    combo++;
-                    break;
-                case NoteStat.Bad:
-                    badCnt++;
-                    combo = 0;
-                    break;
-                case NoteStat.Miss:
-                    missCnt++;
-                    combo = 0;
-                    break;
-                case NoteStat.Early:
-                    goodCnt++;
-                    early++;
-                    combo++;
-                    break;
-                case NoteStat.Late:
-                    goodCnt++;
-                    late++;
-                    combo++;
-                    break;
-            }
-
-            if (combo > maxcombo)
-                maxcombo = combo;
-            if (GlobalSetting.lineStat == JudgeLineStat.AP && goodCnt != 0)
-                GlobalSetting.lineStat = JudgeLineStat.FC;
-            if (GlobalSetting.lineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
-                GlobalSetting.lineStat = JudgeLineStat.None;
-        }
-    }
-
     public class Main : MonoSingleton<Main>
     {
         private static Chart json = new Chart();
@@ -371,6 +299,11 @@ namespace MainCore
                 playedFlag = true;
                 audio.time = 0;
             });
+            if (GlobalSetting.isMultiplayer)
+            {
+                backButton.OnClick.AddListener(() => SocketManager.QuitGame());
+                terminateButton.OnClick.AddListener(() => SocketManager.QuitGame());
+            }
         }
 
         private void Quit()
@@ -389,7 +322,7 @@ namespace MainCore
             //SceneTransit.Instance.TransitTo("LevelOver 1");
         }
 
-        public static async Task InitChartAuto(string path)
+        public static async Task InitChartAuto(string path, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
             Task.Run(delegate
@@ -397,7 +330,7 @@ namespace MainCore
                 var sec = 0;
                 while (true)
                 {
-                    PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
+                    if (showMessage) PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
                     Thread.Sleep(1000);
                     sec++;
                     if (cts.IsCancellationRequested)
@@ -419,7 +352,7 @@ namespace MainCore
             }
             else if (ch.Contains("}") && ch.Contains("numOfNotes"))
             {
-                await InitRpeChart(ch);
+                await InitRpeChart(ch, showMessage);
             }
         }
 
@@ -436,9 +369,9 @@ namespace MainCore
             ConvertEventsToLayer();
         }
 
-        private static async Task InitRpeChart(string ch)
+        private static async Task InitRpeChart(string ch, bool showMessage)
         {
-            json = await Rpe2Json.Chart123(ch).ConfigureAwait(false);
+            json = await Rpe2Json.Chart123(ch, showMessage).ConfigureAwait(false);
         }
 
         private void InitChart()
@@ -662,6 +595,7 @@ namespace MainCore
 
             json.offset += phiraInfoData.offset;
 
+
             if (!string.IsNullOrEmpty(phiraInfoData.music))
             {
                 GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
@@ -690,5 +624,78 @@ namespace MainCore
         public static Main Mian;
         public int TEST_COUNT { get; set; }
 #endif
+    }
+    
+    public enum NoteStat
+    {
+        Perfect,
+        Good,
+        Bad,
+        Miss,
+        None,
+        Early,
+        Late
+    }
+
+    public enum JudgeLineStat
+    {
+        AP,
+        FC,
+        None
+    }
+
+    public class ScoreCounter
+    {
+        public int badCnt;
+        public int combo;
+        public int early;
+        public int goodCnt;
+        public int late;
+        public int maxcombo;
+        public int missCnt;
+        public int numOfNotes;
+        public int perfectCnt;
+        public float Score => 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes;
+        public float Accuracy => (perfectCnt + goodCnt * 0.65f) / numOfNotes;
+
+        public void Add(NoteStat status)
+        {
+            switch (status)
+            {
+                case NoteStat.Perfect:
+                    perfectCnt++;
+                    combo++;
+                    break;
+                case NoteStat.Good:
+                    goodCnt++;
+                    combo++;
+                    break;
+                case NoteStat.Bad:
+                    badCnt++;
+                    combo = 0;
+                    break;
+                case NoteStat.Miss:
+                    missCnt++;
+                    combo = 0;
+                    break;
+                case NoteStat.Early:
+                    goodCnt++;
+                    early++;
+                    combo++;
+                    break;
+                case NoteStat.Late:
+                    goodCnt++;
+                    late++;
+                    combo++;
+                    break;
+            }
+
+            if (combo > maxcombo)
+                maxcombo = combo;
+            if (GlobalSetting.lineStat == JudgeLineStat.AP && goodCnt != 0)
+                GlobalSetting.lineStat = JudgeLineStat.FC;
+            if (GlobalSetting.lineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
+                GlobalSetting.lineStat = JudgeLineStat.None;
+        }
     }
 }
