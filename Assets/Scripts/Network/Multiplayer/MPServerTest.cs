@@ -34,6 +34,7 @@ public class MPServerTest : MonoBehaviour
     public Button bCreateRoom, bCloseRoom,bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
+    private SongType selectedSongType = SongType.empty;
     private string selectedSongId = "";
 
     private int roomId = -1;
@@ -138,20 +139,36 @@ public class MPServerTest : MonoBehaviour
             else SocketManager.Unready();
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
-        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f"), generalErrorMessages));
-        bDownloadSong.onClick.AddListener(() =>
+        bUpdateSong.onClick.AddListener(() => GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f", SongType.rep), generalErrorMessages));
+        bDownloadSong.onClick.AddListener(async () =>
         {
-            OnUpdateSongReceived("63ae61e1272f");
+            if (selectedSongType == SongType.empty) return;
+            sendMask.SetActive(true);
+            if (await DownloadSong())
+            {
+                ChatManager.AddMessage("downloadSucceeded", $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Server);
+                SetDownloaded(true);
+            }
+            else
+            {
+                ChatManager.AddMessage("downloadFailed", $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Error);
+                SetDownloaded(false);
+            }
+            sendMask.SetActive(false);
         });
         SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
         SocketManager.OnCreateRoomSucceeded += () =>
         {
             SetButtonState(RoomState.RoomOwner);
-            bDownloadSong.interactable = false;
+            SetDownloaded(false);
         };
         SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
-        SocketManager.OnJoinRoomSucceeded += () => { SetButtonState(RoomState.RoomMember); };
+        SocketManager.OnJoinRoomSucceeded += () =>
+        {
+            SetButtonState(RoomState.RoomMember);
+            SocketManager.SyncRoom();
+        };
         SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom);};
         SocketManager.OnSendPrepared += clientOperate =>
         {
@@ -165,7 +182,6 @@ public class MPServerTest : MonoBehaviour
         };
         SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
         SocketManager.OnGameStarted += EnterGame;
-        SocketManager.OnJoinRoomSucceeded += () => SocketManager.SyncRoom();
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
@@ -174,23 +190,13 @@ public class MPServerTest : MonoBehaviour
 #endif
     }
 
-    private async void OnUpdateSongReceived(string id)
+    private void OnUpdateSongReceived(string id, SongType type)
     {
-        sendMask.SetActive(true);
+        selectedSongId = id;
+        selectedSongType = type;
         SetDownloaded(false);
         bReady.IsOn = false;
-        if (await DownloadSong(id))
-        {
-            selectedSongId = id;
-            ChatManager.AddMessage("downloadSucceeded", "成功下载谱面" + id, MessageType.Server);
-            SetDownloaded(true);
-        }
-        else
-        {
-            ChatManager.AddMessage("downloadFailed", "错误：无法下载谱面" + id, MessageType.Error);
-            SetDownloaded(false);
-        }
-        sendMask.SetActive(false);
+        Debug.Log($"调试: {id} 我是type {type}");
     }
 
     private void GeneralListener(Func<int> getState, params string[] errorMessages)
@@ -202,13 +208,13 @@ public class MPServerTest : MonoBehaviour
 
     private PhiraInfoData phiraInfoData = null;
 
-    private async Task<bool> DownloadSong(string id) // TODO: 接入PhiZone
+    private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
 #if true
-        string directory = Application.dataPath + "/../Debug/Songs/" + id;
-        if (!Directory.Exists(Application.dataPath + "/../Debug/Songs/" + id))
+        string directory = Application.dataPath + "/../Debug/Songs/" + selectedSongId;
+        if (!Directory.Exists(Application.dataPath + "/../Debug/Songs/" + selectedSongId))
         {
-            InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + id, () => { }, "确定");
+            InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + selectedSongId, () => { }, "确定");
             return false;
         }
 
@@ -361,7 +367,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetDownloaded(bool value)
     {
-        bDownloadSong.interactable = !value && selectedSongId != "";
+        bDownloadSong.interactable = !value && selectedSongType != SongType.empty;
         bReady.Interactable = value;
         bStartGame.interactable = value;
     }

@@ -353,6 +353,11 @@ namespace MainCore.UI
             SceneTransit.Instance.TransitTo("SettingsScene");
         }
 
+        public void EnterMultiplay()
+        {
+            SceneTransit.Instance.TransitTo("NetworkTest");
+        }
+
         public void UnzipPez()
         {
             FileBrowser.SetFilters(false, ".pez");

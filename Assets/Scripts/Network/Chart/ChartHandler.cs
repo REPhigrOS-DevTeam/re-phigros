@@ -63,6 +63,11 @@ namespace Network.Chart
             return bytes;
         }
 
+        public static async Task<byte[]> DownloadFromPhiZone(string id)
+        {
+            return Array.Empty<byte>();
+        }
+
         public static void OnRoomClosed()
         {
             foreach (string id in chartMap.Values)

@@ -200,6 +200,7 @@ namespace Network.Multiplayer.Data
     public enum SongType
     {
         rep = 0,
-        Phizone = 1
+        Phizone = 1,
+        empty = 2
     }
 }

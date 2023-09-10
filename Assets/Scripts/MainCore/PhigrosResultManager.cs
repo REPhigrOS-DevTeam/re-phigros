@@ -26,6 +26,7 @@ public class PhigrosResultManager : MonoBehaviour
         }
         catch
         {
+            // ignored
         }
 
         int deltaScore = Mathf.RoundToInt(GlobalSetting.scoreCounter.Score) - lastScore;

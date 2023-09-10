@@ -31,7 +31,9 @@ namespace Network.Multiplayer.Data
 
     public class RoomInfo
     {
-        [JsonProperty("playerList")] public string[] PlayerList;
+        [JsonProperty("Room_PlayerList")] public string[] PlayerList;
+        [JsonProperty("Room_SongType")] public string SelectedSongType;
+        [JsonProperty("Room_SongId")] public string SelectedSongID;
     }
 
     public enum MessageType
