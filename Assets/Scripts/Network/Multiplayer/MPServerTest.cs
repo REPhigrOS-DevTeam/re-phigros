@@ -50,7 +50,7 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject sendMask;
 
-    private Dictionary<Button, RoomState> buttonToState = new();
+    private Dictionary<GameObject, RoomState> buttonToState = new();
 
     private void Awake()
     {
@@ -58,12 +58,13 @@ public class MPServerTest : MonoBehaviour
         // ZipConstants.DefaultCodePage = 65001; // UTF-8
         buttonToState = new()
         {
-            { bCreateRoom, RoomState.NotInRoom },
-            { bCloseRoom, RoomState.RoomOwner },
-            { bQuitRoom, RoomState.RoomMember },
-            { bDownloadSong, RoomState.RoomMember | RoomState.RoomOwner },
-            { bStartGame, RoomState.RoomOwner },
-            { bUpdateSong, RoomState.RoomOwner }
+            { bCreateRoom.gameObject, RoomState.NotInRoom },
+            { bCloseRoom.gameObject, RoomState.RoomOwner },
+            { bQuitRoom.gameObject, RoomState.RoomMember },
+            { bDownloadSong.gameObject, RoomState.RoomMember | RoomState.RoomOwner },
+            { bStartGame.gameObject, RoomState.RoomOwner },
+            { bUpdateSong.gameObject, RoomState.RoomOwner },
+            { bReady.gameObject, RoomState.RoomMember }
         };
         SocketManager.OnCloseRoomSucceeded += ChartHandler.OnRoomClosed;
         SocketManager.OnQuitRoomSucceeded += ChartHandler.OnRoomQuited;
@@ -202,7 +203,6 @@ public class MPServerTest : MonoBehaviour
         selectedSongType = type;
         SetDownloaded(false);
         bReady.IsOn = false;
-        Debug.Log($"调试: {id} 我是type {type}");
     }
 
     private void GeneralListener(Func<int> getState, params string[] errorMessages)
@@ -369,6 +369,9 @@ public class MPServerTest : MonoBehaviour
         string roomId = SocketManager.GetRoomId();
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
+        if (Input.GetKeyDown(KeyCode.G)) SetButtonState(RoomState.NotInRoom);
+        else if (Input.GetKeyDown(KeyCode.H)) SetButtonState(RoomState.RoomOwner);
+        else if (Input.GetKeyDown(KeyCode.J)) SetButtonState(RoomState.RoomMember);
         // if (!Input.GetMouseButtonDown(2)) return;
         // switch (counter % 2)
         // {
@@ -393,9 +396,9 @@ public class MPServerTest : MonoBehaviour
     private void SetButtonState(RoomState state)
     {
         if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return;
-        foreach (Button button in buttonToState.Keys)
+        foreach (GameObject button in buttonToState.Keys)
         {
-            button.gameObject.SetActive((buttonToState[button] & state) == state);
+            button.SetActive((buttonToState[button] & state) == state);
         }
 
         if (state == RoomState.NotInRoom)
