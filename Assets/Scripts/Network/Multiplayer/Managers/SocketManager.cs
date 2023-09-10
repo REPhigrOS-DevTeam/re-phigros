@@ -277,33 +277,33 @@ namespace Network.Multiplayer.Managers
             pack.Addition.Add("score", Mathf.RoundToInt(score).ToString());
             pack.Addition.Add("acc", acc.ToString("N2") + "%");
             // 因为sky脑抽所以要改动
-            ClientOperate clientOperate = ClientOperate.Room_UserGameEnd;
-            GeneralSendData value = pack;
-            lock (threadLock)
-            {
-                if (!socket.Connected) return -1; // 未连接
-                if (string.IsNullOrEmpty(token)) return -3; // 未登录
-                try
-                {
-                    currentClientOperate = clientOperate;
-                    OnSendPrepared.Invoke(currentClientOperate);
-                    value.Operate = clientOperate.ToString();
-                    string messageToSend = JsonConvert.SerializeObject(value);
-                    JObject fuckSky = JObject.Parse(messageToSend);
-                    fuckSky.Add("score", pack.Addition["score"]); // 写到外层
-                    fuckSky.Add("acc", pack.Addition["acc"]); // 写到外层
-                    messageToSend = fuckSky.ToString();
-                    Debug.Log("尝试发送" + messageToSend);
-                    socket.Send(new UTF8Encoding(false).GetBytes(messageToSend));
-                    return 0;
-                }
-                catch (SocketException e)
-                {
-                    e.Print();
-                    return -2; // 无法发送
-                }
-            }
-            // return GeneralSend(ClientOperate.Room_UserGameEnd, pack);
+            // ClientOperate clientOperate = ClientOperate.Room_UserGameEnd;
+            // GeneralSendData value = pack;
+            // lock (threadLock)
+            // {
+            //     if (!socket.Connected) return -1; // 未连接
+            //     if (string.IsNullOrEmpty(token)) return -3; // 未登录
+            //     try
+            //     {
+            //         currentClientOperate = clientOperate;
+            //         OnSendPrepared.Invoke(currentClientOperate);
+            //         value.Operate = clientOperate.ToString();
+            //         string messageToSend = JsonConvert.SerializeObject(value);
+            //         JObject fuckSky = JObject.Parse(messageToSend);
+            //         fuckSky.Add("score", pack.Addition["score"]); // 写到外层
+            //         fuckSky.Add("acc", pack.Addition["acc"]); // 写到外层
+            //         messageToSend = fuckSky.ToString();
+            //         Debug.Log("尝试发送" + messageToSend);
+            //         socket.Send(new UTF8Encoding(false).GetBytes(messageToSend));
+            //         return 0;
+            //     }
+            //     catch (SocketException e)
+            //     {
+            //         e.Print();
+            //         return -2; // 无法发送
+            //     }
+            // }
+            return GeneralSend(ClientOperate.Room_UserGameEnd, pack);
         }
 
         public static int QuitGame()
