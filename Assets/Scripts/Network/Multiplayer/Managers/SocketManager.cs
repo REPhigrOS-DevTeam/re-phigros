@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
+using MainCore.Common;
 using MainCore.Utilities;
 using Network.Account;
 using Network.Multiplayer.Components;
@@ -24,10 +25,6 @@ namespace Network.Multiplayer.Managers
 {
     public static class SocketManager
     {
-        public const string SongTypeNone = "",
-            SongTypeRep = "rep",
-            SongTypePhiZone = "phizone";
-
         private static Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static string serverUrl = "";
         private static string token = "";
@@ -35,15 +32,16 @@ namespace Network.Multiplayer.Managers
         private static string roomId = "";
         private static bool isOwner = false;
         private static string songId = "";
+        private static SongType songType = SongType.empty;
         private static string tryJoinRoomId = "";
         private static Task taskReceive = null;
         private static JObject[] packs;
         private static bool stopReceive = false;
         private static ClientOperate currentClientOperate = ClientOperate.User_LoginToServer;
         private static bool isInited = false;
-        private static ChatManager chatManager;
         private static object threadLock = new();
         private static bool isReady = false;
+        private static bool allGameEnded = true;
 
         public static Action<string, SongType> OnUpdateSongReceived = (_, _) => { };
 
@@ -71,10 +69,9 @@ namespace Network.Multiplayer.Managers
 
         public static Action OnGetRoomInfoFailed = () => { };
 
-        public static void Init(ChatManager chatManager)
+        public static void Init()
         {
             if (isInited) return;
-            SocketManager.chatManager = chatManager;
             isInited = true;
 #if UNITY_EDITOR
             EditorApplication.playModeStateChanged += playModeState =>
@@ -86,6 +83,27 @@ namespace Network.Multiplayer.Managers
             Application.quitting += LeaveServer;
             Application.wantsToQuit += () => true;
 #endif
+            SceneTransit.OnSceneClosing += () =>
+            {
+                OnUpdateSongReceived = (_, _) => { };
+                OnSendPrepared = _ => { };
+                OnBackReceived = _ => { };
+                OnGetRoomInfoSucceeded = _ => { };
+                OnConnecting = () => { };
+                OnConnectSucceeded = () => { };
+                OnConnectFailed = () => { };
+                OnDisconnect = () => { };
+                OnLoginSucceeded = () => { };
+                OnCreateRoomSucceeded = () => { };
+                OnCloseRoomSucceeded = () => { };
+                OnJoinRoomSucceeded = () => { };
+                OnQuitRoomSucceeded = () => { };
+                OnUpdateSongSucceeded = () => { };
+                OnStartGameSucceeded = () => { };
+                OnGameStarted = () => { };
+                OnSendMessageSucceeded = () => { };
+                OnGetRoomSongIdSucceeded = () => { };
+            };
         }
 
         public static int CreateSocket(string serverUrl)
@@ -271,11 +289,11 @@ namespace Network.Multiplayer.Managers
             return GeneralSend(ClientOperate.User_UnReady, GetSendDataWithToken());
         }
 
-        public static int EndGame(float score, float acc)
+        public static int EndGame(string score, string acc)
         {
             SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("score", Mathf.RoundToInt(score).ToString());
-            pack.Addition.Add("acc", acc.ToString("N2") + "%");
+            pack.Addition.Add("score", score);
+            pack.Addition.Add("acc", acc);
             // 因为sky脑抽所以要改动
             // ClientOperate clientOperate = ClientOperate.Room_UserGameEnd;
             // GeneralSendData value = pack;
@@ -303,7 +321,7 @@ namespace Network.Multiplayer.Managers
             //         return -2; // 无法发送
             //     }
             // }
-            return GeneralSend(ClientOperate.Room_UserGameEnd, pack);
+            return GeneralSend(ClientOperate.User_GameEnd, pack);
         }
 
         public static int QuitGame()
@@ -312,6 +330,11 @@ namespace Network.Multiplayer.Managers
         }
 
         #endregion
+
+        public static void GetSong()
+        {
+            OnUpdateSongReceived.Invoke(songId, songType);
+        }
 
         private static int GeneralSend(ClientOperate clientOperate, GeneralSendData value)
         {
@@ -422,7 +445,11 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ClientOperate.Room_GameStart:
                     DealWithMsg<BackReceiveData>(pack, "错误：无法开始游戏",
-                        succeededCallback: _ => OnStartGameSucceeded.Invoke());
+                        succeededCallback: _ =>
+                        {
+                            allGameEnded = false;
+                            OnStartGameSucceeded.Invoke();
+                        });
                     break;
                 case ClientOperate.Room_SendMessage:
                     DealWithMsg<BackReceiveData>(pack, "错误：无法发送信息",
@@ -434,7 +461,12 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ClientOperate.Room_Sync:
                     DealWithMsg<RoomInfoReceive>(pack, "错误：无法获取房间信息",
-                        succeededCallback: receive => OnGetRoomInfoSucceeded.Invoke(receive.RoomInfo),
+                        succeededCallback: receive =>
+                        {
+                            songId = receive.RoomInfo.SelectedSongID;
+                            songType = Enum.Parse<SongType>(receive.RoomInfo.SelectedSongType, true);
+                            OnGetRoomInfoSucceeded.Invoke(receive.RoomInfo);
+                        },
                         failedCallback: LocalQuitRoom);
                     break;
                 case ClientOperate.User_QuitRoom:
@@ -447,7 +479,7 @@ namespace Network.Multiplayer.Managers
                 case ClientOperate.User_UnReady:
                     isReady = false;
                     break;
-                case ClientOperate.Room_UserGameEnd:
+                case ClientOperate.User_GameEnd:
                     break;
                 case ClientOperate.Room_UserQuitGame:
                     break;
@@ -563,6 +595,13 @@ namespace Network.Multiplayer.Managers
                             case "User_UnReady":
                                 ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Room);
                                 break;
+                            case "User_GameEnd":
+                                ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Room);
+                                break;
+                            case "Room_AllGameEnd":
+                                allGameEnded = true;
+                                ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Room);
+                                break;
                             default:
                                 ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Server);
                                 Debug.Log("错误：暂且未知的Server NewMessage operate种类：" + receive.Author);
@@ -590,8 +629,9 @@ namespace Network.Multiplayer.Managers
                 case ServerOperate.UpdateSong:
                     Debug.Log("试图更新歌曲信息：" +
                               JsonConvert.SerializeObject(pack.ToObject<UpdaeSongActiveReceive>(), Formatting.None));
-                    Enum.TryParse(pack["songType"].ToString(), true, out SongType type);
-                    OnUpdateSongReceived.Invoke(pack["songId"].ToString(), type);
+                    songId = pack["songId"].ToString();
+                    songType = Enum.Parse<SongType>(pack["songType"].ToString(), true);
+                    OnUpdateSongReceived.Invoke(songId, songType);
                     break;
                 case ServerOperate.ServerClosed:
                     Util.QuitApp();
@@ -615,6 +655,8 @@ namespace Network.Multiplayer.Managers
         {
             return serverId;
         }
+        
+        public static bool CanStartGame => isOwner && allGameEnded;
 
         public static bool IsOwner => isOwner;
 

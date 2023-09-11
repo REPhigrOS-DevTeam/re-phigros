@@ -179,7 +179,7 @@ namespace Network.Multiplayer.Data
         User_QuitRoom,
         User_Ready,
         User_UnReady,
-        Room_UserGameEnd,
+        User_GameEnd,
         Room_UserQuitGame,
         Room_UpdateSong,
         Room_GameStart,

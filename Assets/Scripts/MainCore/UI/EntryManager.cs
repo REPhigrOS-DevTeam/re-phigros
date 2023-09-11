@@ -5,6 +5,7 @@ using MainCore.Common;
 using MainCore.Utilities;
 using Network.Account;
 using Network.API;
+using Network.Multiplayer.Managers;
 using UnityEditor;
 using UnityEngine;
 using Utilities;
@@ -23,6 +24,7 @@ namespace MainCore.UI
         {
             ZipConstants.DefaultCodePage = 65001; // UTF-8
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
+            SocketManager.Init();
         }
 
         private async void InitAPI()

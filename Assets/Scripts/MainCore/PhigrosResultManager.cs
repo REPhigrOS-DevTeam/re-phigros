@@ -2,6 +2,7 @@ using LeTai.Asset.TranslucentImage;
 using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
+using Network.Multiplayer.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,15 +31,15 @@ public class PhigrosResultManager : MonoBehaviour
         }
 
         int deltaScore = Mathf.RoundToInt(GlobalSetting.scoreCounter.Score) - lastScore;
+        acc = (GlobalSetting.scoreCounter.Accuracy * 100f).ToString("0.00") + "%";
+        score = Mathf.RoundToInt(GlobalSetting.scoreCounter.Score).ToString().PadLeft(7, '0');
         GameObject.Find("SongsName").GetComponent<Text>().text = GlobalSetting.chartName;
         GameObject.Find("Perfect").GetComponent<Text>().text = GlobalSetting.scoreCounter.perfectCnt.ToString();
         GameObject.Find("Good").GetComponent<Text>().text = GlobalSetting.scoreCounter.goodCnt.ToString();
         GameObject.Find("Bad").GetComponent<Text>().text = GlobalSetting.scoreCounter.badCnt.ToString();
         GameObject.Find("Miss").GetComponent<Text>().text = GlobalSetting.scoreCounter.missCnt.ToString();
-        GameObject.Find("Accuracy").GetComponent<Text>().text =
-            (GlobalSetting.scoreCounter.Accuracy * 100f).ToString("0.00") + "%";
-        GameObject.Find("ScoreText").GetComponent<Text>().text =
-            Mathf.RoundToInt(GlobalSetting.scoreCounter.Score).ToString().PadLeft(7, '0');
+        GameObject.Find("Accuracy").GetComponent<Text>().text = acc;
+        GameObject.Find("ScoreText").GetComponent<Text>().text = score;
 
         if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             GameObject.Find("History").GetComponent<Text>().text = "枇杷油单推！ --音楽ゲームちゃん";
@@ -81,6 +82,9 @@ public class PhigrosResultManager : MonoBehaviour
         versionText.text = $"RE:Phigros {Application.version} by kagari939\n";
     }
 
+    private string score;
+    private string acc;
+
     private void getRank(float scoreNum)
     {
         if (GlobalSetting.lineStat == JudgeLineStat.FC)
@@ -104,7 +108,15 @@ public class PhigrosResultManager : MonoBehaviour
         //SceneManager.LoadSceneAsync("ChartSelectorScene");
         GameObject.Find("MaskImage").GetComponent<Animation>().Play("LevelOverCutOut");
         //StartCoroutine(Utils.SwitchSceneAfterSeconds(2f, "ChartSelectorScene"));
-        SceneTransit.Instance.TransitTo("ChartSelectorScene");
+        if (GlobalSetting.isMultiplayer)
+        {
+            SocketManager.EndGame(score, acc);
+            SceneTransit.Instance.TransitTo("NetWorkTest");
+        }
+        else
+        {
+            SceneTransit.Instance.TransitTo("ChartSelectorScene");
+        }
     }
 
     public void RetryButtonClicked()

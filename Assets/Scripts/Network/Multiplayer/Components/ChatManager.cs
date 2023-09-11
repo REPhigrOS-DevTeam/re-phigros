@@ -6,7 +6,6 @@ using MainCore.Common;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Network.Multiplayer.Components
@@ -23,6 +22,7 @@ namespace Network.Multiplayer.Components
         private Text tSendButton;
         private static List<Message> messages = new List<Message>();
         public static ChatManager Instance;
+        private static bool inited;
 
         private void Awake()
         {
@@ -35,12 +35,12 @@ namespace Network.Multiplayer.Components
             SocketManager.OnCreateRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnJoinRoomSucceeded += OnRoomJoinedOrCreated;
             SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
-            SceneTransit.OnSceneClosing += () => Instance = null;
-            GameObject o = GameObject.FindWithTag("ChatManager");
-            if (o)
+            if (!inited)
             {
-                Instance = o.GetComponent<ChatManager>();
+                inited = true;
+                SceneTransit.OnSceneClosing += () => Instance = null;
             }
+            Instance = this;
         }
 
         private void Start()
@@ -50,7 +50,7 @@ namespace Network.Multiplayer.Components
 
         private void Update()
         {
-            if ((!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) ||
+            if (SocketManager.GetToken() == "" || (!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) ||
                 ifMessage.isFocused) return;
             ifMessage.ActivateInputField();
             bSend.onClick.Invoke();
@@ -61,17 +61,15 @@ namespace Network.Multiplayer.Components
             lock (threadLock)
             {
                 messages.Add(new Message(from, message, type));
-                if (Instance == null)
+                if (Instance)
                 {
-                    GameObject o = GameObject.FindWithTag("ChatManager");
-                    if (o)
-                    {
-                        Instance = o.GetComponent<ChatManager>();
-                        Instance.AddMessageInternal(from, message, type);
-                    }
+                    Instance.AddMessageInternal(from, message, type);
                 }
                 else
                 {
+                    GameObject o = GameObject.FindWithTag("ChatManager");
+                    if (!o) return;
+                    Instance = o.GetComponent<ChatManager>();
                     Instance.AddMessageInternal(from, message, type);
                 }
             }

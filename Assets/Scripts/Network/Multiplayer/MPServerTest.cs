@@ -163,7 +163,6 @@ public class MPServerTest : MonoBehaviour
 
             sendMask.SetActive(false);
         });
-        SocketManager.Init(chatManager);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
         SocketManager.OnCreateRoomSucceeded += () =>
         {
@@ -192,6 +191,13 @@ public class MPServerTest : MonoBehaviour
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         bReady.IsOn = false;
+        if (SocketManager.GetToken() != "")
+        {
+            tConnectState.text = "服务器状态：连接成功";
+            loginObj.SetActive(false);
+            SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom : SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
+            SocketManager.GetSong();
+        }
 #if UNITY_EDITOR
         // Test.Qwq();
 #endif
@@ -411,7 +417,7 @@ public class MPServerTest : MonoBehaviour
     {
         bDownloadSong.interactable = !value && selectedSongType != SongType.empty;
         bReady.Interactable = value;
-        bStartGame.interactable = value;
+        bStartGame.interactable = value && SocketManager.CanStartGame;
     }
 }
 
