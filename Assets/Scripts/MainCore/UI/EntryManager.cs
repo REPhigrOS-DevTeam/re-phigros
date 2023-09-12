@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Utilities;
@@ -18,7 +19,6 @@ namespace MainCore.UI
         // [SerializeField] private Text touchToStartText;
 
         private bool clicked = false;
-        private bool apiPrepared = false;
 
         private void Awake()
         {
@@ -27,7 +27,7 @@ namespace MainCore.UI
             SocketManager.Init();
         }
 
-        private async void InitAPI()
+        private async Task InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
             LoginManager.ReadAccountFromPlayerPrefs();
@@ -38,20 +38,18 @@ namespace MainCore.UI
             }
             else
             {
-                apiPrepared = true;
                 PopupMessageManager.Instance.Message("连接成功");
             }
         }
 
         private void Start()
         {
-            InitAPI();
             Update();
         }
 
         private void Update()
         {
-            if (clicked || Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0) || !apiPrepared) return;
+            if (clicked || Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0)) return;
             GlobalSetting.OriginResolution = Screen.currentResolution;
             LoadIn();
             // StartCoroutine(CountDown());
@@ -106,6 +104,7 @@ namespace MainCore.UI
             }
 
 //#endif
+            await InitAPI();
             SceneTransit.Instance.TransitTo("LoginScene");
         }
 

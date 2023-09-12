@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
 using MainCore;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
-using Network.Account;
-using Network.API;
-#if UNITY_EDITOR
 using Network.Chart;
-#endif
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
@@ -195,11 +189,16 @@ public class MPServerTest : MonoBehaviour
         {
             tConnectState.text = "服务器状态：连接成功";
             loginObj.SetActive(false);
-            SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom : SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
+            SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom :
+                SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
             SocketManager.GetSong();
         }
-#if UNITY_EDITOR
-        // Test.Qwq();
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+        debugSongFolderPath = Application.dataPath + "/../Debug/Songs/";
+#elif UNITY_IPHONE
+        debugSongFolderPath = Application.persistentDataPath + "/Debug/Songs/";
+#elif UNITY_ANDROID
+        debugSongFolderPath = GlobalSetting.chartFolderPath + "/Debug/Songs/";
 #endif
     }
 
@@ -219,6 +218,7 @@ public class MPServerTest : MonoBehaviour
     }
 
     private PhiraInfoData phiraInfoData = null;
+    private static string debugSongFolderPath;
 
     private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
@@ -247,8 +247,8 @@ public class MPServerTest : MonoBehaviour
 
         ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), decompressedPath);
 #endif
-        string directory = Application.dataPath + "/../Debug/Songs/" + selectedSongId;
-        if (!Directory.Exists(Application.dataPath + "/../Debug/Songs/" + selectedSongId))
+        string directory = debugSongFolderPath + selectedSongId;
+        if (!Directory.Exists(directory))
         {
             InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + selectedSongId, () => { }, "确定");
             return false;
