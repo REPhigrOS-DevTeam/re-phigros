@@ -69,7 +69,7 @@ namespace Network.API
             }
             if (data == null)
             {
-                Debug.LogError("Error while connect to server root page");
+                Debug.LogError("Error occured while connect to server root page");
                 return false;
             }
 

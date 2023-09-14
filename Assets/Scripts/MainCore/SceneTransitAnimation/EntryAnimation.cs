@@ -1,0 +1,24 @@
+using DG.Tweening;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace MainCore.SceneTransitAnimation
+{
+    public class EntryAnimation : Common.SceneTransitAnimation
+    {
+        [SerializeField] private Image banner, bg;
+        [SerializeField] private Text text;
+        public override int Enter()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override int Quit()
+        {
+            banner.DOFade(0, 0.3f).SetEase(Ease.OutSine);
+            bg.DOColor(Color.white, 0.3f).SetEase(Ease.OutSine);
+            text.DOFade(0, 0.3f).SetEase(Ease.OutSine);
+            return 400;
+        }
+    }
+}

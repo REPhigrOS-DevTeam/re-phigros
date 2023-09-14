@@ -12,6 +12,12 @@ namespace Editor
         {
             IntoScene("EntryScene");
         }
+        
+        [MenuItem("Scene Tools/Into Main")]
+        private static void IntoMian()
+        {
+            IntoScene("MainScene");
+        }
 
         [MenuItem("Scene Tools/Into ChartSelector")]
         private static void IntoChartSelector()

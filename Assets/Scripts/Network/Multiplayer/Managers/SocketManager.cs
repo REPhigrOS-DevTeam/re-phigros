@@ -395,7 +395,7 @@ namespace Network.Multiplayer.Managers
             if (!pack.ContainsKey("Type"))
             {
                 Debug.Log("错误：无法处理接收到的数据");
-                Debug.Log(pack);
+                Debug.Log(pack); 
                 return;
             }
 
@@ -624,7 +624,7 @@ namespace Network.Multiplayer.Managers
                     isReady = false;
                     isOwner = false;
                     ChatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
-                    OnCloseRoomSucceeded.Invoke();
+                    (isOwner ? OnCloseRoomSucceeded : OnQuitRoomSucceeded).Invoke();
                     break;
                 case ServerOperate.UpdateSong:
                     Debug.Log("试图更新歌曲信息：" +
@@ -660,6 +660,8 @@ namespace Network.Multiplayer.Managers
 
         public static bool IsOwner => isOwner;
 
+        public static void Disconnect() => Close();
+
         private static void Close()
         {
             if (socket == null) return;
@@ -678,6 +680,10 @@ namespace Network.Multiplayer.Managers
             OnDisconnect.Invoke();
             socket = null;
             token = serverId = roomId = tryJoinRoomId = "";
+            isOwner = isReady = false;
+            allGameEnded = true;
+            songId = "";
+            songType = SongType.empty;
         }
     }
 }

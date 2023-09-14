@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -42,17 +43,28 @@ namespace MainCore.Common
             var operation = SceneManager.LoadSceneAsync(sceneName);
             operation.allowSceneActivation = false;
 
+            GameObject transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
+            if (transitAnimation)
+            {
+                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
+            }
+
             transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
             transitMaterial.DOFloat(1f, Cutoff, .5f);
 
             OnSceneClosing.Invoke();
-            await Task.Delay(500);
+            await UniTask.Delay(500);
             operation.allowSceneActivation = true;
 
             transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
             transitMaterial.DOFloat(0f, Cutoff, .5f).OnComplete(() => { transitMaterial.SetFloat(Cutoff, 0f); })
                 .OnKill(() => { transitMaterial.SetFloat(Cutoff, 0f); });
-            await Task.Delay(500);
+            await UniTask.Delay(500);
+            transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
+            if (transitAnimation)
+            {
+                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
+            }
             transitionImage.raycastTarget = false;
         }
 

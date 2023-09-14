@@ -114,7 +114,12 @@ public class MPServerTest : MonoBehaviour
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown Exception")
             }, () => { }, "确定");
         });
-        bDisconnect.onClick.AddListener(Util.QuitApp);
+        bDisconnect.onClick.AddListener(() =>
+        {
+            selectedSongId = "";
+            selectedSongType = SongType.empty;
+            SocketManager.Disconnect();
+        });
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
         bLogin.onClick.AddListener(() =>
@@ -184,14 +189,17 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnGameStarted += EnterGame;
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
-        bReady.IsOn = false;
         if (SocketManager.GetToken() != "")
         {
             tConnectState.text = "服务器状态：连接成功";
             loginObj.SetActive(false);
             SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom :
                 SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
-            SocketManager.GetSong();
+            if (SocketManager.GetRoomId() != "") SocketManager.GetSong();
+        }
+        else
+        {
+            bReady.IsOn = false;
         }
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
         debugSongFolderPath = Application.dataPath + "/../Debug/Songs/";
@@ -204,6 +212,7 @@ public class MPServerTest : MonoBehaviour
 
     private void OnUpdateSongReceived(string id, SongType type)
     {
+        ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
         selectedSongId = id;
         selectedSongType = type;
         SetDownloaded(false);
@@ -356,6 +365,7 @@ public class MPServerTest : MonoBehaviour
     private void EnterGame()
     {
         // other
+        GlobalSetting.isMultiplayer = true;
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
         GlobalSetting.usingApi = false;
@@ -375,9 +385,6 @@ public class MPServerTest : MonoBehaviour
         string roomId = SocketManager.GetRoomId();
         tLoginToken.text = "Login Token: " + (string.IsNullOrEmpty(token) ? "未登录" : token);
         tRoomId.text = "Room Id: " + (string.IsNullOrEmpty(roomId) ? "无" : roomId);
-        if (Input.GetKeyDown(KeyCode.G)) SetButtonState(RoomState.NotInRoom);
-        else if (Input.GetKeyDown(KeyCode.H)) SetButtonState(RoomState.RoomOwner);
-        else if (Input.GetKeyDown(KeyCode.J)) SetButtonState(RoomState.RoomMember);
         // if (!Input.GetMouseButtonDown(2)) return;
         // switch (counter % 2)
         // {
