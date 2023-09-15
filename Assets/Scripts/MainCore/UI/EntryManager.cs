@@ -9,6 +9,7 @@ using Network.API;
 using Network.Multiplayer.Managers;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using Utilities;
 
 namespace MainCore.UI
@@ -79,21 +80,6 @@ namespace MainCore.UI
 
         private async void LoadIn()
         {
-            if (PlayerPrefs.GetInt("anomaly_mode", 0) == 1)
-            {
-                NeedUpdate();
-                return;
-            }
-
-            bool isInRange = await TimeBomb.IsInRange(new DateTime(2023, 9, 28, 0, 0, 0, DateTimeKind.Utc), true);
-            if (!isInRange)
-            {
-                PlayerPrefs.SetInt("anomaly_mode", 1);
-                PlayerPrefs.Save();
-                NeedUpdate();
-                return;
-            }
-
             Application.targetFrameRate = 120;
             GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
             if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
