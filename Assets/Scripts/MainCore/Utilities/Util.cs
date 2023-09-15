@@ -86,5 +86,40 @@ namespace MainCore.Utilities
         {
             return Encoding.ASCII.GetString(arr.Take(length).ToArray());
         }
+
+        public static Color GetAvgColor(Sprite sprite)
+        {
+            if (!sprite.texture.isReadable) return Color.white;
+            Color[] pixels = sprite.texture.GetPixels(
+                (int)sprite.textureRect.x,
+                (int)sprite.textureRect.y,
+                (int)sprite.textureRect.width,
+                (int)sprite.textureRect.height);
+            float r = 0, g = 0, b = 0;
+            foreach (var p in pixels)
+            {
+                if (p == new Color(0, 0, 0)) continue;
+                r += p.r;
+                g += p.g;
+                b += p.b;
+            }
+
+            // Debug.Log($"{r}, {g}, {b}, {pixelCount}");
+            r /= pixels.Length;
+            g /= pixels.Length;
+            b /= pixels.Length;
+            // Debug.Log($"result: {r}, {g}, {b}");
+            return new Color(r, g, b);
+        }
+
+        public static Color GetPossibleBGColor(Sprite sprite)
+        {
+            Color avgColor = GetAvgColor(sprite);
+            Color.RGBToHSV(avgColor, out float h, out float s, out float v);
+            h = (h + 0.5f) % 1f;
+            s = 1 - s;
+            Color color = Color.HSVToRGB(h, s, v);
+            return new Color(color.r, color.g, color.b, avgColor.a);
+        }
     }
 }

@@ -38,22 +38,6 @@ namespace MainCore.UI
         // Start is called before the first frame update
         void Start()
         {
-            if (PlayerPrefs.GetInt("half_res", 0) == 1)
-            {
-                Debug.Log("Half Resolution Mode Enabled");
-                var currentRes = GlobalSetting.OriginResolution;
-                currentRes.height /= 2;
-                currentRes.width /= 2;
-                Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
-            }
-            else
-            {
-                Debug.Log("Half Resolution Mode Disabled");
-                var currentRes = GlobalSetting.OriginResolution;
-                Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
-            }
-
-
 #if UNITY_IPHONE && !UNITY_EDITOR
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
             PlayerPrefs.Save();
@@ -64,9 +48,7 @@ namespace MainCore.UI
                 PlayerPrefs.GetString("difficultyName", "SP Lv.?");
             chartNameUI.GetComponent<InputField>().text = PlayerPrefs.GetString("chartName", "Untitled");
             RefreshGameFolder();
-
-            Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
-
+            
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_sou)
             {
                 titleButton.onClick.AddListener(() =>
@@ -99,8 +81,6 @@ namespace MainCore.UI
                     SceneTransit.Instance.TransitTo("WahtThe");
                 });
             }
-
-            GlobalSetting.Reset();
         }
 
         private void RefreshGameFolder()
