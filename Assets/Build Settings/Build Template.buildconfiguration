@@ -72,6 +72,10 @@
                 {
                     "Scene": "GlobalObjectId_V1-1-bd44713326932b443935dbae5a16d819-102900000-0",
                     "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-3b29ec2a34427a441975579c31731f86-102900000-0",
+                    "AutoLoad": false
                 }
             ]
         },
