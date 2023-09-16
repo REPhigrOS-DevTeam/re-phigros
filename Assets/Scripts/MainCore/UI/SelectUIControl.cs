@@ -328,14 +328,9 @@ namespace MainCore.UI
             OnClickPath();
         }
 
-        public void EnterSettings()
+        public void EnterMain()
         {
-            SceneTransit.Instance.TransitTo("SettingsScene");
-        }
-
-        public void EnterMultiplay()
-        {
-            SceneTransit.Instance.TransitTo("NetworkTest");
+            SceneTransit.Instance.TransitTo("MainScene");
         }
 
         public void UnzipPez()

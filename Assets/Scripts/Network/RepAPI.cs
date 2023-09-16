@@ -9,7 +9,7 @@ using Network.Account.Utils;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Network.API
+namespace Network
 {
     public static class RepAPI
     {
@@ -103,7 +103,7 @@ namespace Network.API
 
             loginUrl = manifest.apiURL.userlogin;
             verifyUrl = manifest.apiURL.userverify;
-            ChartUrlBase = $"http://{manifest.apiURL.chartIp}:45944/api";
+            ChartUrlBase = $"http://{manifest.apiURL.chartIp}:{manifest.apiURL.chartPort}/api";
             Debug.Log("RePhigros API: Manifest got.");
             return true;
         }

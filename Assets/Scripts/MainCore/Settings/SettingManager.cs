@@ -78,7 +78,7 @@ namespace MainCore.Settings
                 return;
             }
 
-            SceneTransit.Instance.TransitTo("ChartSelectorScene");
+            SceneTransit.Instance.TransitTo("MainScene");
         }
 
         public void OnSkinChanged(int id)

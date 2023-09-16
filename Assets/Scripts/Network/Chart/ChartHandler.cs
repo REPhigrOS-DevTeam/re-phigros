@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
+using MainCore.Utilities;
 using Network.Account.Utils;
-using Network.API;
 using Network.Multiplayer.Managers;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -14,16 +15,19 @@ namespace Network.Chart
 {
     public class ChartHandler
     {
-        private static Dictionary<string, string> chartMap = new Dictionary<string, string>();
+        private static Dictionary<string, string> chartMap = new Dictionary<string, string>(); // 给房主用的, key是path，value是id
 
-        private static List<string> downloadedCharts = new List<string>();
+        private static List<string> downloadedCharts = new List<string>(); // 给房员用的，下载好的文件我存在程序的tmp文件夹乐
 
-        public static async Task<string> Upload(string filePath)
+        public static async Task<string> Upload(string folderPath)
         {
-            filePath = Path.GetFullPath(filePath);
+            if (!Directory.Exists(Application.temporaryCachePath + "/zip_charts")) Directory.CreateDirectory(Application.temporaryCachePath + "/zip_charts");
+            string filePath = Path.GetFullPath(Application.temporaryCachePath + "/zip_charts/" + Path.GetFileName(folderPath) + ".zip");
             if (chartMap.ContainsKey(filePath)) return chartMap[filePath];
+            ZipUtils.ZipDirectory(folderPath, filePath);
+            byte[] zipResult = await File.ReadAllBytesAsync(filePath);
             using MultipartFormDataContent content = new MultipartFormDataContent();
-            content.Add(new ByteArrayContent(await File.ReadAllBytesAsync(filePath)), "file", Path.GetFileName(filePath));
+            content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
             JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("upload").PostWithHttpClient(content));

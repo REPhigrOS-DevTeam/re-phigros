@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Utilities;
+using Network;
 using Network.Account;
-using Network.API;
 using Network.Multiplayer.Managers;
 using UnityEditor;
 using UnityEngine;
@@ -92,11 +92,6 @@ namespace MainCore.UI
 //#endif
             await InitAPI();
             SceneTransit.Instance.TransitTo("LoginScene");
-        }
-
-        private void NeedUpdate()
-        {
-            InGameUIManager.ShowModalWindowWithClose("错误", "请升级到最新版", Util.QuitApp, "退出");
         }
     }
 }

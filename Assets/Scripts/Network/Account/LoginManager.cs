@@ -8,7 +8,6 @@ using MainCore.Common;
 using MainCore.Utilities;
 using Network.Account.Serialized;
 using Network.Account.Utils;
-using Network.API;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -209,7 +208,7 @@ namespace Network.Account
             }
             else
             {
-                SceneTransit.Instance.TransitTo("ChartSelectorScene");
+                SceneTransit.Instance.TransitTo("MainScene");
             }
         }
 

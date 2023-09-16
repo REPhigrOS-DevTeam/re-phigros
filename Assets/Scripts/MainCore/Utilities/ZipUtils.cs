@@ -91,10 +91,8 @@ namespace MainCore.Utilities
         /// add yuangang by 2016-06-13
         /// </summary>
         /// <param name="DirectoryToZip">需要压缩的文件夹（绝对路径）</param>
-        /// <param name="ZipedPath">压缩后的文件所在目录路径（绝对路径）</param>
-        /// <param name="ZipedFileName">压缩后的文件名称（文件名，默认 同源文件夹同名）</param>
-        public static void ZipDirectory(string DirectoryToZip, string ZipedPath, string ZipedFileName = "",
-            bool overwrite = true)
+        /// <param name="ZipedPath">压缩后的文件路径（绝对路径）</param>
+        public static void ZipDirectory(string DirectoryToZip, string ZipedPath, bool overwrite = true)
         {
             DirectoryToZip = DirectoryToZip.Replace("\\", "/");
             //如果目录不存在，则报错
@@ -104,27 +102,25 @@ namespace MainCore.Utilities
             }
 
             //文件名称（默认同源文件名称相同）
-            string ZipFileName = ZipedPath + "/" + (string.IsNullOrEmpty(ZipedFileName)
-                ? new DirectoryInfo(DirectoryToZip).Name + ".zip"
-                : ZipedFileName + ".zip");
 
-            if (File.Exists(ZipFileName))
+            if (File.Exists(ZipedPath))
             {
-                if (overwrite) File.Delete(ZipFileName);
+                if (overwrite) File.Delete(ZipedPath);
                 else return;
             }
 
-            string temporaryCachePath = Application.temporaryCachePath + "/zip." + Util.GetMD5(Encoding.UTF8.GetBytes(ZipedFileName)) + ".tmp";
+            string temporaryCachePath = Application.temporaryCachePath + "/zip." + Util.GetMD5(Encoding.UTF8.GetBytes(ZipedPath)) + ".tmp";
             if (File.Exists(temporaryCachePath)) File.Delete(temporaryCachePath);
             using (FileStream ZipFile = File.Create(temporaryCachePath))
             {
                 using ZipOutputStream s = new ZipOutputStream(ZipFile);
+                s.SetLevel(6);
                 Crc32 crc = new Crc32();
                 DirectoryToZip = DirectoryToZip.Replace("\\", "/");
                 ZipSetp(crc, DirectoryToZip, s, "");
             }
 
-            File.Move(temporaryCachePath, ZipFileName);
+            File.Move(temporaryCachePath, ZipedPath);
             File.Delete(temporaryCachePath);
         }
 

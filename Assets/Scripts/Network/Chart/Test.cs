@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net.Http;
 using Network.Account.Utils;
-using Network.API;
 using UnityEngine;
 
 namespace Network.Chart

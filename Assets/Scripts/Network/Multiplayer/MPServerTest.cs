@@ -206,7 +206,7 @@ public class MPServerTest : MonoBehaviour
 #elif UNITY_IPHONE
         debugSongFolderPath = Application.persistentDataPath + "/Debug/Songs/";
 #elif UNITY_ANDROID
-        debugSongFolderPath = GlobalSetting.chartFolderPath + "/Debug/Songs/";
+        debugSongFolderPath = PlayerPrefs.GetString("file_path", Application.persistentDataPath) + "/Debug/Songs/";
 #endif
     }
 
@@ -425,6 +425,11 @@ public class MPServerTest : MonoBehaviour
         bDownloadSong.interactable = !value && selectedSongType != SongType.empty;
         bReady.Interactable = value;
         bStartGame.interactable = value && SocketManager.CanStartGame;
+    }
+
+    public void Back()
+    {
+        SceneTransit.Instance.TransitTo("MainScene");
     }
 }
 
