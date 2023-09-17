@@ -414,7 +414,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   iBackground: {fileID: 853998574382023740}
   iIcon: {fileID: 853998573858669134}
-  iBorder: {fileID: 0}
+  iBorder: {fileID: 1499111202829812942}
   serverName: {fileID: 853998573782146308}
   tServerId: {fileID: 853998574376906620}
   tServerPing: {fileID: 853998574902673455}
