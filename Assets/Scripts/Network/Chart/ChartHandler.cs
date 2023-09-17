@@ -62,6 +62,7 @@ namespace Network.Chart
         {
             if (downloadedCharts.Contains(id)) return await File.ReadAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}");
             byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?scoreid={id}").SendGetRequestAsync();
+            if (!Directory.Exists($"{Application.temporaryCachePath}/online_charts/{id}")) Directory.CreateDirectory($"{Application.temporaryCachePath}/online_charts/{id}");
             await File.WriteAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;

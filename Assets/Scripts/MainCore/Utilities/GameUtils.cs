@@ -54,7 +54,7 @@ namespace Utilities
         
         public static void Print(this Exception exception)
         {
-            Debug.Log(exception.Message + "\n" + exception.StackTrace);
+            Debug.LogException(exception);
         }
 
         #region TEMPPPP

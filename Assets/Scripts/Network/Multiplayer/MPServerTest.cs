@@ -16,6 +16,7 @@ using Network.Multiplayer.Managers;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
+using Utilities;
 using YamlDotNet.Serialization;
 
 public class MPServerTest : MonoBehaviour
@@ -485,8 +486,7 @@ public class MPServerTest : MonoBehaviour
         }
         catch (Exception e)
         {
-            throw;
-            Debug.LogError(e.Message + "\n" + e.StackTrace);
+            e.Print();
             return false;
         }
     }
