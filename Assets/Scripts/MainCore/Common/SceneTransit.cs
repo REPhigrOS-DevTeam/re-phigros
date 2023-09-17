@@ -21,6 +21,7 @@ namespace MainCore.Common
 
 
         private Stack<string> _sceneTraceStack = new Stack<string>();
+        [SerializeField] private Material transitionMaterial;
         private Material transitMaterial = null;
 
         public static SceneTransit Instance { get; private set; }
@@ -33,7 +34,7 @@ namespace MainCore.Common
                 DestroyImmediate(Instance);
             Instance = this;
             // DontDestroyOnLoad(gameObject);
-            transitMaterial = transitionImage.material;
+            transitMaterial = transitionImage.material = Instantiate(transitionMaterial);
             _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
         }
 

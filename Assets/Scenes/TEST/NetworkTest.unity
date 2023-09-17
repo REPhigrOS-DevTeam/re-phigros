@@ -2362,6 +2362,7 @@ MonoBehaviour:
   - {fileID: 1466808715}
   - {fileID: 508696091}
   - {fileID: 793515278}
+  selectedBorder: {fileID: 0}
   ifName: {fileID: 1095237066}
   ifUrl: {fileID: 1855348778}
   ifName1: {fileID: 1285227701}
@@ -8520,7 +8521,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -275, y: 0}
-  m_SizeDelta: {x: 1000, y: 900}
+  m_SizeDelta: {x: 1010, y: 900}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1957052062
 MonoBehaviour:

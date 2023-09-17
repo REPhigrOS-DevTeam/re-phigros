@@ -18,7 +18,7 @@ namespace Network.Multiplayer.Components
         private static readonly DateTime TimeStampStart = new(1970, 1, 1, 0, 0, 0, 0);
         private ServerManager serverManager;
         private int id;
-        [SerializeField] private Image iBackground, iIcon; // TODO: Sky暂时没写图标
+        [SerializeField] private Image iBackground, iIcon, iBorder; // TODO: Sky暂时没写图标
         [SerializeField] private Text serverName, tServerId, tServerPing, tServerMotd;
         private string serverUrl;
         private bool online, chart;
@@ -104,7 +104,7 @@ namespace Network.Multiplayer.Components
 
         public void SetSelectState(bool state)
         {
-            iBackground.color = state ? Color.gray : Color.white;
+            iBorder.color = state ? new Color(0.4f, 0.4f, 0.4f) : new Color(1, 1, 1, 0);
         }
     }
     

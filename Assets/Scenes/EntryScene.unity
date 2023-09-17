@@ -670,6 +670,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 1412f91807e082d489ab3529724c858f, type: 3}
   - {fileID: 2800000, guid: fd7c0b7cbd389fd4aab1f3016d1b9f42, type: 3}
   - {fileID: 2800000, guid: 3fe1700e1579047438511f16d3701307, type: 3}
+  transitionMaterial: {fileID: 2100000, guid: f324eb1c70196834bb708d94c58d4bee, type: 2}
 --- !u!114 &495913186
 MonoBehaviour:
   m_ObjectHideFlags: 0

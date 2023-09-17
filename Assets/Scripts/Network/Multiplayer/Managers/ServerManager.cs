@@ -54,6 +54,7 @@ namespace Network.Multiplayer.Managers
                 ServerItem serverItem = item.GetComponent<ServerItem>();
                 items.Add(serverItem);
                 serverItem.Init(i, this, server.url, server.customName);
+                serverItem.SetSelectState(selectedServerId == i);
             }
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
         }
