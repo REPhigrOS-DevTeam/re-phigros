@@ -25,11 +25,11 @@ namespace Network.Multiplayer.Managers
             {
                 item.Init(this);
             }
-            serverList = JsonConvert.DeserializeObject<ServerList>(PlayerPrefs.GetString("server_list", "{\"Servers\": []}"));
         }
 
         private void Start()
         {
+            serverList = JsonConvert.DeserializeObject<ServerList>(PlayerPrefs.GetString("server_list", "{\"Servers\": []}"));
             RefreshServerList();
         }
 
