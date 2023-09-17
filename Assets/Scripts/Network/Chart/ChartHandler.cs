@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Utilities;
 using Network.Account.Utils;
 using Network.Multiplayer.Managers;
@@ -30,7 +29,8 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("upload").PostWithHttpClient(content));
+            Debug.Log(RepAPI.ChartUrlBase.UrlCombine("/upload"));
+            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
             if (response["status"].ToObject<bool>())
             {
                 string id = response["scoreid"].ToString();
@@ -46,7 +46,7 @@ namespace Network.Chart
         {
             using MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(id), "scoreid");
-            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("upload").PostWithHttpClient(content));
+            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/delete").PostWithHttpClient(content));
             if (response.Properties().ToArray().Length == 0)
             {
                 chartMap.Remove(chartMap.Where(kvp => kvp.Value == id).ToArray()[0].Key);
@@ -61,7 +61,7 @@ namespace Network.Chart
         public static async Task<byte[]> Download(string id)
         {
             if (downloadedCharts.Contains(id)) return await File.ReadAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}");
-            byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("download") + $"?scoreid={id}").SendGetRequestAsync();
+            byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?scoreid={id}").SendGetRequestAsync();
             await File.WriteAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;
@@ -86,6 +86,7 @@ namespace Network.Chart
         {
             chartMap.Clear();
             downloadedCharts.Clear();
+            if (!Directory.Exists($"{Application.temporaryCachePath}/online_charts")) return;
             string[] strings = Directory.GetFiles($"{Application.temporaryCachePath}/online_charts");
             foreach (string s in strings)
             {

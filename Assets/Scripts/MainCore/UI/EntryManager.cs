@@ -28,7 +28,7 @@ namespace MainCore.UI
             SocketManager.Init();
         }
 
-        private async Task InitAPI()
+        private async Task<bool> InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
             LoginManager.ReadAccountFromPlayerPrefs();
@@ -41,6 +41,8 @@ namespace MainCore.UI
             {
                 PopupMessageManager.Instance.Message("连接成功");
             }
+
+            return succeeded;
         }
 
         private void Start()
@@ -90,8 +92,7 @@ namespace MainCore.UI
             }
 
 //#endif
-            await InitAPI();
-            SceneTransit.Instance.TransitTo("LoginScene");
+            if (await InitAPI()) SceneTransit.Instance.TransitTo("LoginScene");
         }
     }
 }

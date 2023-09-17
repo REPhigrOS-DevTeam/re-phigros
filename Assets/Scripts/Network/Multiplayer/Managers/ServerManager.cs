@@ -55,6 +55,7 @@ namespace Network.Multiplayer.Managers
             {
                 Destroy(contentPanel.GetChild(i).gameObject);
             }
+            items.Clear();
 
             for (var i = 0; i < serverList.servers.Count; i++)
             {
@@ -127,6 +128,7 @@ namespace Network.Multiplayer.Managers
                 await UniTask.SwitchToMainThread();
                 if (state1 == 0)
                 {
+                    mpServerTest.UpdateConnectState("登录成功");
                     gameObject.SetActive(false);
                     return;
                 }

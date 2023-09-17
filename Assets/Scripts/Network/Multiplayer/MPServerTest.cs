@@ -11,14 +11,12 @@ using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
 using Network.Chart;
-using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
-using Newtonsoft.Json;
+using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
 using YamlDotNet.Serialization;
-using MessageType = Network.Multiplayer.Data.MessageType;
 
 public class MPServerTest : MonoBehaviour
 {
@@ -39,12 +37,14 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject loginObj;
 
-    private static int? unityThreadId = null;
+    private static int? unityThreadId;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
     public GameObject sendMask;
 
     private Dictionary<GameObject, RoomState> buttonToState = new();
+
+    private string ownerLocalPath = "";
 
     private void Awake()
     {
@@ -114,8 +114,14 @@ public class MPServerTest : MonoBehaviour
             else SocketManager.Unready();
         };
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
-        bUpdateSong.onClick.AddListener(() =>
-            GeneralListener(() => SocketManager.UpdateSong("63ae61e1272f", SongType.rep), generalErrorMessages));
+        bUpdateSong.onClick.AddListener(() => FileBrowser.ShowLoadDialog(async (paths) =>
+            {
+                selectedSongId = await ChartHandler.Upload(ownerLocalPath = paths[0]);
+                int state = SocketManager.UpdateSong(selectedSongId, SongType.rep);
+                if (state == 0) return;
+                ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
+            }, () => { }, FileBrowser.PickMode.Folders, false,
+            PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传"));
         bDownloadSong.onClick.AddListener(async () =>
         {
             if (selectedSongType == SongType.empty) return;
@@ -123,7 +129,7 @@ public class MPServerTest : MonoBehaviour
             if (await DownloadSong())
             {
                 ChatManager.AddMessage("downloadSucceeded",
-                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范",
+                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
                     MessageType.Server);
                 SetDownloaded(true);
             }
@@ -176,23 +182,11 @@ public class MPServerTest : MonoBehaviour
         {
             bReady.IsOn = false;
         }
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-        debugSongFolderPath = Application.dataPath + "/../Debug/Songs/";
-#elif UNITY_IPHONE
-        debugSongFolderPath = Application.persistentDataPath + "/Debug/Songs/";
-#elif UNITY_ANDROID
-        debugSongFolderPath = PlayerPrefs.GetString("file_path", Application.persistentDataPath) + "/Debug/Songs/";
-#endif
     }
 
     public void UpdateConnectState(string str)
     {
         tConnectState.text = $"服务器状态：{str}";
-    }
-
-    public void Connect()
-    {
-
     }
 
     private void OnUpdateSongReceived(string id, SongType type)
@@ -211,22 +205,24 @@ public class MPServerTest : MonoBehaviour
         ChatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
     }
 
-    private PhiraInfoData phiraInfoData = null;
-    private static string debugSongFolderPath;
+    private PhiraInfoData phiraInfoData;
 
     private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
 #if true
-        string directory;
+        string directory = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
+        if (Directory.Exists(directory)) Directory.Delete(directory);
+        Directory.CreateDirectory(directory);
+
         if (SocketManager.IsOwner)
         {
-            directory = $"{PlayerPrefs.GetString("file_path", Application.persistentDataPath)}/{selectedSongId}";
+            CopyFolder(ownerLocalPath, directory);
         }
         else
         {
-            directory = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
-            if (Directory.Exists(directory)) Directory.Delete(directory);
-            Directory.CreateDirectory(directory);
+            ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
+
+            // 如果出现了zip里是单个根文件夹的情况就把文件夹里的东西移出来
             string[] entries = Directory.GetFileSystemEntries(directory);
             if (entries.Length == 1 && Directory.Exists(entries[0]))
             {
@@ -244,14 +240,6 @@ public class MPServerTest : MonoBehaviour
 
                 Directory.Delete(entries[0]);
             }
-
-            ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
-        }
-
-        if (!Directory.Exists(directory))
-        {
-            InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + selectedSongId, () => { }, "确定");
-            return false;
         }
 
         // phira info
@@ -449,6 +437,51 @@ public class MPServerTest : MonoBehaviour
     public void Back()
     {
         SceneTransit.Instance.TransitTo("MainScene");
+    }
+
+    /// <summary>
+    /// 复制文件夹及文件
+    /// </summary>
+    /// <param name="sourceFolder">原文件路径</param>
+    /// <param name="destFolder">目标文件路径</param>
+    /// <returns></returns>
+    public bool CopyFolder(string sourceFolder, string destFolder)
+    {
+        try
+        {
+            if (!Directory.Exists(sourceFolder)) return false;
+            //如果目标路径不存在,则创建目标路径
+            if (!Directory.Exists(destFolder))
+            {
+                Directory.CreateDirectory(destFolder);
+            }
+
+            //得到原文件根目录下的所有文件
+            string[] files = Directory.GetFiles(sourceFolder);
+            foreach (string file in files)
+            {
+                string name = Path.GetFileName(file);
+                string dest = Path.Combine(destFolder, name);
+                File.Copy(file, dest); //复制文件
+            }
+
+            //得到原文件根目录下的所有文件夹
+            string[] folders = Directory.GetDirectories(sourceFolder);
+            foreach (string folder in folders)
+            {
+                string name = Path.GetFileName(folder);
+                string dest = Path.Combine(destFolder, name);
+                CopyFolder(folder, dest); //构建目标路径,递归复制文件
+            }
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            throw;
+            Debug.LogError(e.Message + "\n" + e.StackTrace);
+            return false;
+        }
     }
 }
 
