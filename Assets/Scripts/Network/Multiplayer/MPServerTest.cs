@@ -23,9 +23,8 @@ using MessageType = Network.Multiplayer.Data.MessageType;
 public class MPServerTest : MonoBehaviour
 {
     public ChatManager chatManager;
-    public InputField ifUrl;
 
-    public Button bConnect, bDisconnect, bLogin;
+    public Button bDisconnect;
     public Button bCreateRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
@@ -96,25 +95,6 @@ public class MPServerTest : MonoBehaviour
         // Username = RepAPI.Username;
         loginObj.SetActive(true);
         tConnectState.text = "服务器状态：未连接";
-        bConnect.onClick.AddListener(() =>
-        {
-            tConnectState.text = "服务器状态：连接中";
-            int state = SocketManager.CreateSocket(ifUrl.text);
-            if (state == 0)
-            {
-                tConnectState.text = "服务器状态：连接成功";
-                return;
-            }
-
-            tConnectState.text = "服务器状态：连接失败";
-            InGameUIManager.ShowModalWindowWithClose("错误", state switch
-            {
-                -1 => "已经连接服务器",
-                -2 => "服务器Url不合法",
-                -3 => "无法连接服务器，可能是未启动",
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown Exception")
-            }, () => { }, "确定");
-        });
         bDisconnect.onClick.AddListener(() =>
         {
             selectedSongId = "";
@@ -123,16 +103,10 @@ public class MPServerTest : MonoBehaviour
         });
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        bLogin.onClick.AddListener(() =>
-            GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录"));
+        // bLogin.onClick.AddListener(() => GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录")); // TODO 迁移
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
-        ifUrl.onEndEdit.AddListener(str =>
-        {
-            if (str.Trim() == ifUrl.text) return;
-            ifUrl.text = str.Trim();
-        });
         bReady.OnValueChanged += (button, text, isOn) =>
         {
             text.text = isOn ? "取消准备" : "准备";
@@ -178,7 +152,7 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnSendPrepared += clientOperate =>
         {
-            if (clientOperate == ClientOperate.Room_SendMessage) return;
+            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer) return;
             sendMask.SetActive(true);
         };
         SocketManager.OnBackReceived += clientOperate =>
@@ -209,6 +183,16 @@ public class MPServerTest : MonoBehaviour
 #elif UNITY_ANDROID
         debugSongFolderPath = PlayerPrefs.GetString("file_path", Application.persistentDataPath) + "/Debug/Songs/";
 #endif
+    }
+
+    public void UpdateConnectState(string str)
+    {
+        tConnectState.text = $"服务器状态：{str}";
+    }
+
+    public void Connect()
+    {
+
     }
 
     private void OnUpdateSongReceived(string id, SongType type)
@@ -336,6 +320,7 @@ public class MPServerTest : MonoBehaviour
             ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
             return false;
         }
+
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
 

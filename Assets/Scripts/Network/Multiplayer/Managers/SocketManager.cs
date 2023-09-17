@@ -629,11 +629,11 @@ namespace Network.Multiplayer.Managers
                     OnGameStarted.Invoke();
                     break;
                 case ServerOperate.RoomClosed:
+                    ChatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
+                    (isOwner ? OnCloseRoomSucceeded : OnQuitRoomSucceeded).Invoke();
                     roomId = "";
                     isReady = false;
                     isOwner = false;
-                    ChatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
-                    (isOwner ? OnCloseRoomSucceeded : OnQuitRoomSucceeded).Invoke();
                     break;
                 case ServerOperate.UpdateSong:
                     Debug.Log("试图更新歌曲信息：" +
