@@ -36,7 +36,7 @@ namespace Network.Multiplayer.Components
         public async void Refresh()
         {
             tServerId.text = "";
-            tServerPing.text = "Ping: -ms";
+            tServerPing.text = "Ping: -ms, 谱面服务: 未知";
             tServerMotd.text = "正在连接服务器...";
             if (!General.TryParseHost(serverUrl, out IPEndPoint endPoint, out _))
             {
