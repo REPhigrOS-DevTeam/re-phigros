@@ -155,6 +155,10 @@ public class MPServerTest : MonoBehaviour
             SetButtonState(RoomState.RoomMember);
             SocketManager.SyncRoom();
         };
+        SocketManager.OnGetRoomInfoSucceeded += info =>
+        {
+            OnUpdateSongReceived(info.SelectedSongID, Enum.Parse<SongType>(info.SelectedSongType));
+        };
         SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
         SocketManager.OnSendPrepared += clientOperate =>
         {
@@ -166,7 +170,11 @@ public class MPServerTest : MonoBehaviour
             if (clientOperate == ClientOperate.Room_SendMessage) return;
             sendMask.SetActive(false);
         };
-        SocketManager.OnUpdateSongReceived += OnUpdateSongReceived;
+        SocketManager.OnUpdateSongReceived += (s, type) =>
+        {
+            ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
+            OnUpdateSongReceived(s, type);
+        };
         SocketManager.OnGameStarted += EnterGame;
         SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
@@ -191,7 +199,6 @@ public class MPServerTest : MonoBehaviour
 
     private void OnUpdateSongReceived(string id, SongType type)
     {
-        ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
         selectedSongId = id;
         selectedSongType = type;
         SetDownloaded(false);

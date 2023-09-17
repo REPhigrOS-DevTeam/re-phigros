@@ -308,7 +308,7 @@ namespace MainCore
 
         private void Quit()
         {
-            SceneTransit.Instance.TransitTo("ChartSelectorScene");
+            SceneTransit.Instance.TransitTo(GlobalSetting.isMultiplayer ? "NetworkTest" : "ChartSelectorScene");
         }
 
         private IEnumerator LoadEnding()
