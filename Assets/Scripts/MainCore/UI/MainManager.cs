@@ -1,7 +1,7 @@
-using System;
 using DG.Tweening;
 using LeTai.Asset.TranslucentImage;
 using MainCore.Common;
+using Network.Account;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -47,7 +47,7 @@ namespace MainCore.UI
 
             GlobalSetting.Reset();
 
-            usernameText.text = PlayerPrefs.GetString("player_name", "kagari939");
+            usernameText.text = PlayerPrefs.GetString("player_name", "kagari939") + "@" + LoginManager.Username;
 
             foregroundConfig.Strength = 0f;
             foregroundMask.SetActive(false);

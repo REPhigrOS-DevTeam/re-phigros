@@ -325,12 +325,12 @@ namespace MainCore
         public static async Task InitChartAuto(string path, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
-            Task.Run(delegate
+            if (showMessage) Task.Run(delegate
             {
                 var sec = 0;
                 while (true)
                 {
-                    if (showMessage) PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
+                    PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
                     Thread.Sleep(1000);
                     sec++;
                     if (cts.IsCancellationRequested)

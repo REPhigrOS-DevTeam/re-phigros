@@ -42,6 +42,7 @@ namespace Network.Multiplayer.Managers
         private static object threadLock = new();
         private static bool isReady = false;
         private static bool allGameEnded = true;
+        private static bool isOnline = false, enableChart = false;
 
         public static Action<string, SongType> OnUpdateSongReceived = (_, _) => { };
 
@@ -105,6 +106,14 @@ namespace Network.Multiplayer.Managers
                 OnGetRoomSongIdSucceeded = () => { };
             };
         }
+
+        public static void Set(bool online, bool chart)
+        {
+            isOnline = online;
+            enableChart = chart;
+        }
+
+        public static bool EnableChartUpload => enableChart;
 
         public static int CreateSocket(string serverUrl)
         {
@@ -576,7 +585,7 @@ namespace Network.Multiplayer.Managers
                 return;
             }
 
-            switch (serverOperate) // TODO: 分析Active包
+            switch (serverOperate)
             {
                 case ServerOperate.Message:
                     MessageActiveReceive receive = pack.ToObject<MessageActiveReceive>();

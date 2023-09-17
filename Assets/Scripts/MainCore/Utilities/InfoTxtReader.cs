@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -13,64 +14,28 @@ namespace MainCore.Utilities
             _text = File.ReadLines(fileName).ToList();
         }
 
-        public string GetComposer()
-        {
-            try
-            {
-                var text = _text.First((x) => x.StartsWith("Composer: "));
-                return text.Substring(text.IndexOf(" ") + 1);
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        public string GetComposer() => Get("Composer");
 
-        public string GetCharter()
-        {
-            try
-            {
-                var text = _text.First((x) => x.StartsWith("Charter: "));
-                return text.Substring(text.IndexOf(" ") + 1);
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        public string GetCharter() => Get("Charter");
 
-        public string GetIllustrator()
-        {
-            try
-            {
-                var text = _text.First((x) => x.StartsWith("Illustrator: "));
-                return text.Substring(text.IndexOf(" ") + 1);
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        public string GetIllustrator() => Get("Illustrator");
 
-        public string GetDifficulty()
-        {
-            try
-            {
-                var text = _text.First((x) => x.StartsWith("Level: "));
-                return text.Substring(text.IndexOf(" ") + 1);
-            }
-            catch
-            {
-                return "";
-            }
-        }
+        public string GetDifficulty() => Get("Illustrator");
 
-        public string GetName()
+        public string GetName() => Get("Name");
+
+        public string GetSongFileName() => Get("Song");
+        
+        public string GetIllustrationFileName() => Get("Picture");
+        
+        public string GetChartFileName() => Get("Chart");
+
+        private string Get(string identifier)
         {
             try
             {
-                var text = _text.First((x) => x.StartsWith("Name: "));
-                return text.Substring(text.IndexOf(" ") + 1);
+                var text = _text.First((x) => x.StartsWith($"{identifier}: "));
+                return text.Substring(text.IndexOf(" ", StringComparison.Ordinal) + 1);
             }
             catch
             {

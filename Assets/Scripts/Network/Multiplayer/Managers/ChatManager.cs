@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using MainCore.Common;
+using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
-using Network.Multiplayer.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Network.Multiplayer.Components
+namespace Network.Multiplayer.Managers
 {
     public class ChatManager : MonoBehaviour
     {

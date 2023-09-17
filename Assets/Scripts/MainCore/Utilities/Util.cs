@@ -121,5 +121,10 @@ namespace MainCore.Utilities
             Color color = Color.HSVToRGB(h, s, v);
             return new Color(color.r, color.g, color.b, avgColor.a);
         }
+
+        public static float GetRatio(this Vector2 vector2)
+        {
+            return vector2.x / vector2.y;
+        }
     }
 }

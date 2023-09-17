@@ -33,10 +33,7 @@ namespace Network.Multiplayer.Data
             qwq:
             while ((length = socket.Receive(buffer)) > 0)
             {
-                for (int i = 0; i < length; i++)
-                {
-                    dataList.Add(buffer[i]);
-                }
+                dataList.AddRange(buffer.Take(length));
 
                 if (socket.Available <= 0 || length < buffer.Length) break;
             }
@@ -156,6 +153,16 @@ namespace Network.Multiplayer.Data
     public class GeneralReceiveData
     {
         [JsonProperty("Type")] public string Type;
+    }
+
+    public class PingReceiveData : GeneralReceiveData
+    {
+        [JsonProperty("Status")] public bool Status;
+        [JsonProperty("Name")] public string Name;
+        [JsonProperty("Motd")] public string Motd;
+        [JsonProperty("ReceiveTime")] public long ReceiveTime;
+        [JsonProperty("OnlineMode")] public bool IsOnline;
+        [JsonProperty("ChartUploadMode")] public bool EnableChartUpload;
     }
 
     public class BackReceiveData : GeneralReceiveData

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -148,14 +149,14 @@ public class MPServerTest : MonoBehaviour
             if (await DownloadSong())
             {
                 ChatManager.AddMessage("downloadSucceeded",
-                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
+                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范",
                     MessageType.Server);
                 SetDownloaded(true);
             }
             else
             {
                 ChatManager.AddMessage("downloadFailed",
-                    $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
+                    $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范",
                     MessageType.Error);
                 SetDownloaded(false);
             }
@@ -232,58 +233,43 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
 #if true
-#if false // 官方服务器charts
-        string decompressedPath = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
-        if (Directory.Exists(decompressedPath)) Directory.Delete(decompressedPath);
-        Directory.CreateDirectory(decompressedPath);
-        string[] entries = Directory.GetFileSystemEntries(decompressedPath);
-        if (entries.Length == 1 && Directory.Exists(entries[0]))
+        string directory;
+        if (SocketManager.IsOwner)
         {
-            string[] directories = Directory.GetDirectories(entries[0]);
-            foreach (var qwq in directories)
+            directory = $"{PlayerPrefs.GetString("file_path", Application.persistentDataPath)}/{selectedSongId}";
+        }
+        else
+        {
+            directory = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
+            if (Directory.Exists(directory)) Directory.Delete(directory);
+            Directory.CreateDirectory(directory);
+            string[] entries = Directory.GetFileSystemEntries(directory);
+            if (entries.Length == 1 && Directory.Exists(entries[0]))
             {
-                Directory.Move(qwq, decompressedPath);
+                string[] directories = Directory.GetDirectories(entries[0]);
+                foreach (var qwq in directories)
+                {
+                    Directory.Move(qwq, directory);
+                }
+
+                string[] files = Directory.GetFiles(entries[0]);
+                foreach (var awa in files)
+                {
+                    File.Move(awa, directory);
+                }
+
+                Directory.Delete(entries[0]);
             }
 
-            string[] files = Directory.GetFiles(entries[0]);
-            foreach (var awa in files)
-            {
-                File.Move(awa, decompressedPath);
-            }
-
-            Directory.Delete(entries[0]);
+            ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
         }
 
-        ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), decompressedPath);
-#endif
-        string directory = debugSongFolderPath + selectedSongId;
         if (!Directory.Exists(directory))
         {
             InGameUIManager.ShowModalWindowWithClose("错误", "未知的歌曲id：" + selectedSongId, () => { }, "确定");
             return false;
         }
 
-        string debugInfoFile = directory + "/debug.json";
-        if (!File.Exists(debugInfoFile))
-        {
-            InGameUIManager.ShowModalWindowWithClose("错误", "歌曲信息不存在", () => { }, "确定");
-            return false;
-        }
-
-        DebugChartInfo debugChartInfo =
-            JsonConvert.DeserializeObject<DebugChartInfo>(await File.ReadAllTextAsync(debugInfoFile));
-        if (debugChartInfo == null)
-        {
-            InGameUIManager.ShowModalWindowWithClose("错误", "歌曲信格式有误", () => { }, "确定");
-            return false;
-        }
-
-        // path init
-        GlobalSetting.chartPath = directory + "/" + debugChartInfo.chartFileName;
-        GlobalSetting.musicPath = directory + "/" + debugChartInfo.musicFileName;
-        GlobalSetting.illustrationPath = directory + "/" + debugChartInfo.illustraionFileName;
-        PlayerPrefs.SetString("chartFolderPath", directory);
-        PlayerPrefs.Save();
         // phira info
         string phiraInfoPath = directory + "/info.yml";
         phiraInfoData = null;
@@ -294,12 +280,14 @@ public class MPServerTest : MonoBehaviour
             GlobalSetting.difficulty = phiraInfoData.level;
         }
 
+        bool hasInfo = false;
         // info init
         if (phiraInfoData == null)
         {
             var infoPath = directory + "/info.txt";
             if (File.Exists(infoPath))
             {
+                hasInfo = true;
                 GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
                 GlobalSetting.chartName = GlobalSetting.infoTxt.GetName();
                 GlobalSetting.difficulty = GlobalSetting.infoTxt.GetDifficulty();
@@ -307,14 +295,63 @@ public class MPServerTest : MonoBehaviour
             else
             {
                 GlobalSetting.infoTxt = null;
-                GlobalSetting.chartName = debugChartInfo.name;
-                GlobalSetting.difficulty = debugChartInfo.difficulte + " Lv." + Mathf.FloorToInt(debugChartInfo.hard);
+                GlobalSetting.chartName = "Unknown";
+                GlobalSetting.difficulty = "SP  Lv.?";
             }
         }
 
-        GlobalSetting.charter = debugChartInfo.charter;
-        GlobalSetting.composer = debugChartInfo.composer;
-        GlobalSetting.illustrator = debugChartInfo.illustrator;
+
+        // path init
+        try
+        {
+            GlobalSetting.chartPath = directory + "/" +
+                                      (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
+                                          ? phiraInfoData.chart
+                                          : hasInfo
+                                              ? GlobalSetting.infoTxt.GetChartFileName()
+                                              : Directory.GetFiles(directory)
+                                                  .Where(s => new List<string> { ".json", ".pec" }.Contains(
+                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]);
+            GlobalSetting.musicPath = directory + "/" +
+                                      (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
+                                          ? phiraInfoData.music
+                                          : hasInfo
+                                              ? GlobalSetting.infoTxt.GetSongFileName()
+                                              : Directory.GetFiles(directory)
+                                                  .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]);
+            GlobalSetting.illustrationPath = directory + "/" +
+                                             (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.illustration)
+                                                 ? phiraInfoData.illustration
+                                                 : hasInfo
+                                                     ? GlobalSetting.infoTxt.GetIllustrationFileName()
+                                                     : Directory.GetFiles(directory)
+                                                         .Where(s => new List<string>
+                                                                 { ".png", ".bmp", ".jpg", ".jpeg" }
+                                                             .Contains(Path.GetExtension(s).ToLowerInvariant()))
+                                                         .ToArray()[0]);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
+            return false;
+        }
+        PlayerPrefs.SetString("chartFolderPath", directory);
+        PlayerPrefs.Save();
+
+        GlobalSetting.charter = phiraInfoData != null
+            ? phiraInfoData.charter
+            : hasInfo
+                ? GlobalSetting.infoTxt.GetCharter()
+                : "Unknown";
+        GlobalSetting.composer = phiraInfoData != null
+            ? phiraInfoData.composer
+            : hasInfo
+                ? GlobalSetting.infoTxt.GetComposer()
+                : "Unknown";
+        GlobalSetting.illustrator = phiraInfoData != null
+            ? phiraInfoData.illustrator
+            : "Unknown";
         // extra init
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath))
@@ -325,10 +362,7 @@ public class MPServerTest : MonoBehaviour
         // chart init
         GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         GlobalSetting.chartFolderPath = directory;
-        await Main.InitChartAuto(
-            phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
-                ? GlobalSetting.chartFolderPath + "/" + phiraInfoData.chart
-                : GlobalSetting.chartPath, false).ConfigureAwait(false);
+        await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
         Main.OverloadInfoWithPhiraYaml(phiraInfoData);
         // convert illustration & music
         await UniTask.SwitchToMainThread();
@@ -431,19 +465,6 @@ public class MPServerTest : MonoBehaviour
     {
         SceneTransit.Instance.TransitTo("MainScene");
     }
-}
-
-public class DebugChartInfo
-{
-    public string chartFileName = "";
-    public string musicFileName = "";
-    public string illustraionFileName = "";
-    public string name = "";
-    public string composer = "";
-    public string charter = "";
-    public string illustrator = "";
-    public string difficulte = ""; // 难度标识
-    public float hard = 0.0f;
 }
 
 [Flags]
