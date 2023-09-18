@@ -117,8 +117,7 @@ public class MPServerTest : MonoBehaviour
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() => FileBrowser.ShowLoadDialog(async (paths) =>
             {
-                selectedSongId = await ChartHandler.Upload(ownerLocalPath = paths[0]);
-                int state = SocketManager.UpdateSong(selectedSongId, SongType.rep);
+                int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]), SongType.rep);
                 if (state == 0) return;
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }, () => { }, FileBrowser.PickMode.Folders, false,
@@ -218,8 +217,9 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> DownloadSong() // TODO: 接入PhiZone
     {
 #if true
-        string directory = $"{Application.temporaryCachePath}/decompressed_online_charts/rep/{selectedSongId}";
-        if (Directory.Exists(directory)) Directory.Delete(directory);
+        string directory = $"{ChartHandler.TmpPathRoot}/decompressed_online_charts/rep/{selectedSongId}";
+        Debug.Log("Directory: " + directory);
+        if (Directory.Exists(directory)) Directory.Delete(directory, true);
         Directory.CreateDirectory(directory);
 
         if (SocketManager.IsOwner)

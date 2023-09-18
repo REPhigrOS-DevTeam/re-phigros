@@ -42,6 +42,7 @@ namespace Network.Account.Utils
 
         public static async Task<string> PostWithHttpClient(this string url, MultipartFormDataContent content = null)
         {
+            Debug.Log("URL: " + url);
             using HttpClient httpClient = new HttpClient();
             HttpResponseMessage response = await httpClient.PostAsync(url, content ?? new MultipartContent());
             return await response.Content.ReadAsStringAsync();

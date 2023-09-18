@@ -18,10 +18,22 @@ namespace Network.Chart
 
         private static List<string> downloadedCharts = new List<string>(); // 给房员用的，下载好的文件我存在程序的tmp文件夹乐
 
+        public static string TmpPathRoot
+        {
+            get
+            {
+#if UNITY_ANDROID && !UNITY_EDITOR
+                return $"/data/data/{Application.identifier}/cache";
+#else
+                return Application.temporaryCachePath;
+#endif
+            }
+        }
+
         public static async Task<string> Upload(string folderPath)
         {
-            if (!Directory.Exists(Application.temporaryCachePath + "/zip_charts")) Directory.CreateDirectory(Application.temporaryCachePath + "/zip_charts");
-            string filePath = Path.GetFullPath(Application.temporaryCachePath + "/zip_charts/" + Path.GetFileName(folderPath) + ".zip");
+            if (!Directory.Exists(TmpPathRoot + "/zip_charts")) Directory.CreateDirectory(TmpPathRoot + "/zip_charts");
+            string filePath = Path.GetFullPath(TmpPathRoot + "/zip_charts/" + Path.GetFileName(folderPath) + ".zip");
             if (chartMap.ContainsKey(filePath)) return chartMap[filePath];
             ZipUtils.ZipDirectory(folderPath, filePath);
             byte[] zipResult = await File.ReadAllBytesAsync(filePath);
@@ -35,6 +47,7 @@ namespace Network.Chart
             {
                 string id = response["scoreid"].ToString();
                 chartMap.Add(filePath, id);
+                Debug.Log(id);
                 return id;
             }
 
@@ -46,8 +59,12 @@ namespace Network.Chart
         {
             using MultipartFormDataContent content = new MultipartFormDataContent();
             content.Add(new StringContent(id), "scoreid");
-            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/delete").PostWithHttpClient(content));
-            if (response.Properties().ToArray().Length == 0)
+            Debug.Log("Chart to delete: " + id);
+            var postWithHttpClient = await RepAPI.ChartUrlBase.UrlCombine("/delete").PostWithHttpClient(content);
+            Debug.Log("Response: \n" + postWithHttpClient);
+            // TODO: SKy这个沙雕写了个bug
+            JObject response = JObject.Parse(postWithHttpClient.Substring(postWithHttpClient.LastIndexOf('{')));
+            if (response["status"].ToObject<bool>())
             {
                 chartMap.Remove(chartMap.Where(kvp => kvp.Value == id).ToArray()[0].Key);
             }
@@ -60,10 +77,10 @@ namespace Network.Chart
 
         public static async Task<byte[]> Download(string id)
         {
-            if (downloadedCharts.Contains(id)) return await File.ReadAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}");
+            if (downloadedCharts.Contains(id)) return await File.ReadAllBytesAsync($"{TmpPathRoot}/online_charts/{id}");
             byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?scoreid={id}").SendGetRequestAsync();
-            if (!Directory.Exists($"{Application.temporaryCachePath}/online_charts/{id}")) Directory.CreateDirectory($"{Application.temporaryCachePath}/online_charts/{id}");
-            await File.WriteAllBytesAsync($"{Application.temporaryCachePath}/online_charts/{id}", bytes);
+            if (!Directory.Exists($"{TmpPathRoot}/online_charts/{id}")) Directory.CreateDirectory($"{TmpPathRoot}/online_charts/{id}");
+            await File.WriteAllBytesAsync($"{TmpPathRoot}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;
         }
@@ -87,8 +104,8 @@ namespace Network.Chart
         {
             chartMap.Clear();
             downloadedCharts.Clear();
-            if (!Directory.Exists($"{Application.temporaryCachePath}/online_charts")) return;
-            string[] strings = Directory.GetFiles($"{Application.temporaryCachePath}/online_charts");
+            if (!Directory.Exists($"{TmpPathRoot}/online_charts")) return;
+            string[] strings = Directory.GetFiles($"{TmpPathRoot}/online_charts");
             foreach (string s in strings)
             {
                 File.Delete(s);

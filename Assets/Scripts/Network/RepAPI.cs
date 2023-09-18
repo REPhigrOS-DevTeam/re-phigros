@@ -26,6 +26,7 @@ namespace Network
         }); // https://api.repacc.mirror.atomunite.cn
 
         private static bool useMirror = false;
+        private static bool switched = false;
 
         public static readonly string ManifestDirectory = Encoding.ASCII.GetString(new byte[]
             { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 }); // manifest.json
@@ -54,6 +55,7 @@ namespace Network
             }
 
             inited = true;
+            useMirror = PlayerPrefs.GetInt("useMirror", 0) == 1;
 
             byte[] data;
             try
@@ -62,9 +64,11 @@ namespace Network
             }
             catch (WebException)
             {
-                if (useMirror) return false;
-                useMirror = true;
-                Debug.Log("访问主站超时，切换到镜像站点");
+                if (switched) return false;
+                switched = true;
+                useMirror = !useMirror;
+                PlayerPrefs.SetInt("useMirror", useMirror ? 1 : 0);
+                Debug.Log(useMirror ? "访问主站超时，切换到镜像站点" : "访问镜像站超时，切换到主站点");
                 return await Init();
             }
             if (data == null)
