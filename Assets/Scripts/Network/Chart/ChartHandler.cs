@@ -18,12 +18,18 @@ namespace Network.Chart
 
         private static List<string> downloadedCharts = new List<string>(); // 给房员用的，下载好的文件我存在程序的tmp文件夹乐
 
+        private static string UserSpace = "";
+
         public static string TmpPathRoot
         {
             get
             {
 #if UNITY_ANDROID && !UNITY_EDITOR
-                return $"/data/data/{Application.identifier}/cache";
+                if (UserSpace == "") UserSpace = Path.GetFullPath(Application.persistentDataPath + "/../../../..");
+                string path = UserSpace + "/RPGRCache";
+                Debug.Log(path);
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                return path;
 #else
                 return Application.temporaryCachePath;
 #endif
@@ -41,13 +47,11 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            Debug.Log(RepAPI.ChartUrlBase.UrlCombine("/upload"));
             JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
             if (response["status"].ToObject<bool>())
             {
                 string id = response["scoreid"].ToString();
                 chartMap.Add(filePath, id);
-                Debug.Log(id);
                 return id;
             }
 
