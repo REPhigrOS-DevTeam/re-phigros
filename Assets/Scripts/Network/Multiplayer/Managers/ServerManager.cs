@@ -28,9 +28,11 @@ namespace Network.Multiplayer.Managers
 
         private void Awake()
         {
-            foreach (ServerPanelItem item in buttons)
+            for (var i = 0; i < buttons.Length; i++)
             {
-                item.Init(this);
+                var item = buttons[i];
+                if (i == 1) item.Init(this, () => selectedServerId >= 0); // MainPanel的Edit
+                else item.Init(this);
             }
         }
 
@@ -205,6 +207,7 @@ namespace Network.Multiplayer.Managers
 
         public void OnStartEdit()
         {
+            if (selectedServerId < 0) return;
             ifName1.text = serverList.servers[selectedServerId].customName;
             ifUrl1.text = serverList.servers[selectedServerId].url;
         }

@@ -20,9 +20,9 @@ namespace MainCore.UI
         {
             foregroundConfig = (ScalableBlurConfig)foregroundSource.BlurConfig;
             start.onClick.AddListener(Blur);
-            settings.onClick.AddListener(() => SceneTransit.Instance.TransitTo("SettingsScene"));
-            singlePlay.onClick.AddListener(() => SceneTransit.Instance.TransitTo("ChartSelectorScene"));
-            multiPlay.onClick.AddListener(() => SceneTransit.Instance.TransitTo("NetworkTest"));
+            settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
+            singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
+            multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             exitPlayChoice.onClick.AddListener(Unblur);
         }
 

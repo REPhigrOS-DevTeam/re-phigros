@@ -101,6 +101,7 @@ public class MPServerTest : MonoBehaviour
             selectedSongId = "";
             selectedSongType = SongType.empty;
             SocketManager.Disconnect();
+            SceneTransit.Instance.Back();
         });
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
@@ -389,7 +390,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.autoPlay = false;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();
-        SceneTransit.Instance.TransitTo("LoadInto");
+        SceneTransit.Instance.JumpScene("LoadInto");
     }
 
     // private int counter = 0;
@@ -444,7 +445,7 @@ public class MPServerTest : MonoBehaviour
 
     public void Back()
     {
-        SceneTransit.Instance.TransitTo("MainScene");
+        SceneTransit.Instance.Back();
     }
 
     /// <summary>

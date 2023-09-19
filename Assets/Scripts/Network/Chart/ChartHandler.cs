@@ -100,7 +100,6 @@ namespace Network.Chart
             {
                 Delete(id);
             }
-            chartMap.Clear();
             downloadedCharts.Clear();
         }
 

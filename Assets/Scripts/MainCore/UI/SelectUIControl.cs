@@ -78,7 +78,7 @@ namespace MainCore.UI
                 {
                     clickCounter++;
                     if (clickCounter < 15) return;
-                    SceneTransit.Instance.TransitTo("WahtThe");
+                    SceneTransit.Instance.JumpScene("WahtThe");
                 });
             }
         }
@@ -140,7 +140,7 @@ namespace MainCore.UI
             }
 
             PopupMessageManager.Instance.Clear();
-            SceneTransit.Instance.TransitTo("LoadInto");
+            SceneTransit.Instance.JumpScene("LoadInto");
         }
 
         public async void EnterGame()
@@ -330,7 +330,7 @@ namespace MainCore.UI
 
         public void EnterMain()
         {
-            SceneTransit.Instance.TransitTo("MainScene");
+            SceneTransit.Instance.Back();
         }
 
         public void UnzipPez()

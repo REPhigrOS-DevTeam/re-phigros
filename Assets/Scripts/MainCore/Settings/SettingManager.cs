@@ -28,7 +28,7 @@ namespace MainCore.Settings
             }
 #endif
             saveNExit.OnClick.AddListener(SaveNExit);
-            dspEnter.OnClick.AddListener(() => { SceneTransit.Instance.TransitTo("DSPScene"); });
+            dspEnter.OnClick.AddListener(() => { SceneTransit.Instance.LoadScene("DSPScene"); });
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
                 {
@@ -78,7 +78,7 @@ namespace MainCore.Settings
                 return;
             }
 
-            SceneTransit.Instance.TransitTo("MainScene");
+            SceneTransit.Instance.Back();
         }
 
         public void OnSkinChanged(int id)

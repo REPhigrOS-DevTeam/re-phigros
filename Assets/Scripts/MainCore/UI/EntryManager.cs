@@ -92,7 +92,7 @@ namespace MainCore.UI
             }
 
 //#endif
-            if (await InitAPI()) SceneTransit.Instance.TransitTo("LoginScene");
+            if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
         }
     }
 }

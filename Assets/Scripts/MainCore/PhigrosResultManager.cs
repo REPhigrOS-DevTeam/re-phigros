@@ -111,18 +111,14 @@ public class PhigrosResultManager : MonoBehaviour
         if (GlobalSetting.isMultiplayer)
         {
             SocketManager.EndGame(score, acc);
-            SceneTransit.Instance.TransitTo("NetWorkTest");
         }
-        else
-        {
-            SceneTransit.Instance.TransitTo("ChartSelectorScene");
-        }
+        SceneTransit.Instance.Back();
     }
 
     public void RetryButtonClicked()
     {
         GlobalSetting.Reset();
         //SceneManager.LoadSceneAsync("PlayingScene");
-        SceneTransit.Instance.TransitTo("PlayingScene");
+        SceneTransit.Instance.JumpScene("PlayingScene");
     }
 }

@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace MainCore.Common
 {
-    public class SceneTransit : MonoBehaviour
+    public class SceneTransit : MonoSingleton<SceneTransit>
     {
         public static Action OnSceneClosing = () => { };
         private static readonly int UseColor = Shader.PropertyToID("_UseColor");
@@ -18,27 +18,61 @@ namespace MainCore.Common
         private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
         [SerializeField] private Image transitionImage;
         [SerializeField] private List<Texture2D> ruleImages;
-
+        private Exception stackIsEmptyException => new InvalidOperationException("stack is empty");
 
         private Stack<string> _sceneTraceStack = new Stack<string>();
         [SerializeField] private Material transitionMaterial;
         private Material transitMaterial = null;
 
-        public static SceneTransit Instance { get; private set; }
-
-
         // Start is called before the first frame update
         void Start()
         {
-            if (Instance != null)
-                DestroyImmediate(Instance);
-            Instance = this;
             // DontDestroyOnLoad(gameObject);
             transitMaterial = transitionImage.material = Instantiate(transitionMaterial);
-            _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
+            JumpScene(SceneManager.GetActiveScene().name);
         }
 
-        public async void TransitTo(string sceneName)
+        /// <summary>
+        /// 跳转场景，不能返回
+        /// </summary>
+        /// <param name="sceneName"></param>
+        public void JumpScene(string sceneName)
+        {
+            if (_sceneTraceStack.Count == 0)
+            {
+                _sceneTraceStack.Push(sceneName);
+                return;
+            }
+
+            if (!_sceneTraceStack.TryPeek(out string item))
+                throw stackIsEmptyException;
+
+            _sceneTraceStack.Push(sceneName);
+            TransitTo(sceneName);
+        }
+
+        /// <summary>
+        /// 跳转场景 可以返回
+        /// </summary> 
+        public void LoadScene(string sceneName)
+        {
+            if (_sceneTraceStack.Count == 0)
+                throw stackIsEmptyException;
+
+            _sceneTraceStack.Push(sceneName);
+            TransitTo(sceneName);
+        }
+
+        public void Back()
+        {
+            if (_sceneTraceStack.Count == 1)
+                return;
+            _sceneTraceStack.Pop();
+            string lastScene = _sceneTraceStack.Peek();
+            TransitTo(lastScene);
+        }
+
+        private async void TransitTo(string sceneName)
         {
             transitionImage.raycastTarget = true;
             var operation = SceneManager.LoadSceneAsync(sceneName);
@@ -66,13 +100,8 @@ namespace MainCore.Common
             {
                 await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
             }
-            transitionImage.raycastTarget = false;
-        }
 
-        public void Back()
-        {
-            TransitTo(_sceneTraceStack.Pop());
-            _sceneTraceStack.Push(SceneManager.GetActiveScene().name);
+            transitionImage.raycastTarget = false;
         }
     }
 }

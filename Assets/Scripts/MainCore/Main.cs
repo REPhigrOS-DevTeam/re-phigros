@@ -292,7 +292,7 @@ namespace MainCore
             retryButton.OnClick.AddListener(() =>
             {
                 GlobalSetting.Reset();
-                SceneTransit.Instance.TransitTo("PlayingScene");
+                SceneTransit.Instance.JumpScene("PlayingScene");
             });
             terminateButton.OnClick.AddListener(() =>
             {
@@ -308,7 +308,7 @@ namespace MainCore
 
         private void Quit()
         {
-            SceneTransit.Instance.TransitTo(GlobalSetting.isMultiplayer ? "NetworkTest" : "ChartSelectorScene");
+            SceneTransit.Instance.Back();
         }
 
         private IEnumerator LoadEnding()

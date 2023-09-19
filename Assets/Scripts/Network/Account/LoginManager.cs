@@ -204,11 +204,11 @@ namespace Network.Account
             {
                 PlayerPrefs.SetInt("first_start", 1);
                 PlayerPrefs.Save();
-                SceneTransit.Instance.TransitTo("SettingsScene");
+                SceneTransit.Instance.JumpScene("SettingsScene");
             }
             else
             {
-                SceneTransit.Instance.TransitTo("MainScene");
+                SceneTransit.Instance.JumpScene("MainScene");
             }
         }
 
