@@ -121,7 +121,6 @@ namespace MainCore.Utilities
             }
 
             File.Move(temporaryCachePath, ZipedPath);
-            File.Delete(temporaryCachePath);
         }
 
         /// <summary>

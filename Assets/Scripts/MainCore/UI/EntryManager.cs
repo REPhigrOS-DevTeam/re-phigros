@@ -23,16 +23,6 @@ namespace MainCore.UI
             ZipConstants.DefaultCodePage = 65001; // UTF-8
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();
-            if (!CheckAndroidPermission.CheckFilePermission())
-                CheckAndroidPermission.OpenAllFilesAccessSettings(_ => { },
-                    _ => { InGameUIManager.ShowModalWindowWithClose("错误", "请开启文件读写权限", Util.QuitApp, "确定"); },
-                    _ =>
-                    {
-                        InGameUIManager.ShowModalWindowWithClose("你tm勾选不再询问干什么", "请开启文件读写权限", Util.QuitApp, "确定");
-                    });
-#if !UNITY_EDITOR && UNITY_ANDROID
-            else Debug.Log("文件读写权限已开启");
-#endif
         }
 
         private async Task<bool> InitAPI()

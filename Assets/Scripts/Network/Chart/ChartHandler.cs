@@ -20,21 +20,7 @@ namespace Network.Chart
 
         private static string UserSpace = "";
 
-        public static string TmpPathRoot
-        {
-            get
-            {
-#if UNITY_ANDROID && !UNITY_EDITOR
-                if (UserSpace == "") UserSpace = Path.GetFullPath(Application.persistentDataPath + "/../../../..");
-                string path = UserSpace + "/RPGRCache";
-                Debug.Log(path);
-                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-                return path;
-#else
-                return Application.temporaryCachePath;
-#endif
-            }
-        }
+        public static string TmpPathRoot => Application.temporaryCachePath;
 
         public static async Task<string> Upload(string folderPath)
         {
@@ -81,10 +67,10 @@ namespace Network.Chart
 
         public static async Task<byte[]> Download(string id)
         {
-            if (downloadedCharts.Contains(id)) return await File.ReadAllBytesAsync($"{TmpPathRoot}/online_charts/{id}");
+            if (downloadedCharts.Contains(id)) return await ReadChartZip($"{TmpPathRoot}/online_charts/{id}");
             byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?scoreid={id}").SendGetRequestAsync();
-            if (!Directory.Exists($"{TmpPathRoot}/online_charts/{id}")) Directory.CreateDirectory($"{TmpPathRoot}/online_charts/{id}");
-            await File.WriteAllBytesAsync($"{TmpPathRoot}/online_charts/{id}", bytes);
+            if (File.Exists($"{TmpPathRoot}/online_charts/{id}")) File.Delete($"{TmpPathRoot}/online_charts/{id}");
+            await WriteChartZip($"{TmpPathRoot}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;
         }
@@ -113,6 +99,16 @@ namespace Network.Chart
             {
                 File.Delete(s);
             }
+        }
+
+        private static async Task<byte[]> ReadChartZip(string path)
+        {
+            return (await File.ReadAllBytesAsync(path)).Select(b => (byte) (b ^ 0x4A)).ToArray();
+        }
+
+        private static async Task WriteChartZip(string path, byte[] bytes)
+        {
+            await File.WriteAllBytesAsync(path, bytes.Select(b => (byte) (b ^ 0x4A)).ToArray());
         }
     }
 }

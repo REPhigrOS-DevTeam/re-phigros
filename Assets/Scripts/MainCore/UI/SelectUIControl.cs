@@ -13,6 +13,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using Utilities;
 using YamlDotNet.Serialization;
+using Random = UnityEngine.Random;
 using UniTask = Cysharp.Threading.Tasks.UniTask;
 
 namespace MainCore.UI
@@ -78,7 +79,7 @@ namespace MainCore.UI
                 {
                     clickCounter++;
                     if (clickCounter < 15) return;
-                    SceneTransit.Instance.JumpScene("WahtThe");
+                    SceneTransit.Instance.LoadScene(Random.Range(0, 100) < 50 ? "WahtThe" : "About");
                 });
             }
         }
