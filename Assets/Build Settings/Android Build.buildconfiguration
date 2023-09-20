@@ -15,12 +15,6 @@
             "PackageName": "com.totorowldox.REPhigros"
         },
         {
-            "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
-            "ScriptingBackend": 1,
-            "Il2CppCompilerConfiguration": 1,
-            "UseIncrementalGC": true
-        },
-        {
             "$type": "Unity.Build.DotsRuntime.IL2CPPSettings, Unity.Build.DotsRuntime",
             "ScriptDebugging": 0,
             "WaitForDebugger": false
