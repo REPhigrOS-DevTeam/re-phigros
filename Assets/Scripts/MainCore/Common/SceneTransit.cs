@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -25,7 +24,7 @@ namespace MainCore.Common
         private Material transitMaterial = null;
 
         // Start is called before the first frame update
-        void Start()
+        protected override void OnAwake()
         {
             // DontDestroyOnLoad(gameObject);
             transitMaterial = transitionImage.material = Instantiate(transitionMaterial);
@@ -40,6 +39,7 @@ namespace MainCore.Common
         {
             if (_sceneTraceStack.Count == 0)
             {
+                Debug.Log("初始化场景切换");
                 _sceneTraceStack.Push(sceneName);
                 return;
             }
@@ -47,6 +47,7 @@ namespace MainCore.Common
             if (!_sceneTraceStack.TryPeek(out string item))
                 throw stackIsEmptyException;
 
+            _sceneTraceStack.Pop();
             _sceneTraceStack.Push(sceneName);
             TransitTo(sceneName);
         }

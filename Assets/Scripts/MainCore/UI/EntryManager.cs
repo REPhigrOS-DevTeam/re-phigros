@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
@@ -7,9 +6,7 @@ using MainCore.Utilities;
 using Network;
 using Network.Account;
 using Network.Multiplayer.Managers;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
 using Utilities;
 
 namespace MainCore.UI
@@ -26,6 +23,16 @@ namespace MainCore.UI
             ZipConstants.DefaultCodePage = 65001; // UTF-8
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();
+            if (!CheckAndroidPermission.CheckFilePermission())
+                CheckAndroidPermission.OpenAllFilesAccessSettings(_ => { },
+                    _ => { InGameUIManager.ShowModalWindowWithClose("错误", "请开启文件读写权限", Util.QuitApp, "确定"); },
+                    _ =>
+                    {
+                        InGameUIManager.ShowModalWindowWithClose("你tm勾选不再询问干什么", "请开启文件读写权限", Util.QuitApp, "确定");
+                    });
+#if !UNITY_EDITOR && UNITY_ANDROID
+            else Debug.Log("文件读写权限已开启");
+#endif
         }
 
         private async Task<bool> InitAPI()
@@ -88,7 +95,8 @@ namespace MainCore.UI
             {
                 var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
                 await t.DisposeAsync();
-                await File.WriteAllTextAsync(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
+                await File.WriteAllTextAsync(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"),
+                    "Fucking IOS...");
             }
 
 //#endif
