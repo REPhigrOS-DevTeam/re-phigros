@@ -204,6 +204,7 @@ namespace Network.Account
             {
                 PlayerPrefs.SetInt("first_start", 1);
                 PlayerPrefs.Save();
+                SceneTransit.Instance.AppendScene("MainScene");
                 SceneTransit.Instance.JumpScene("SettingsScene");
             }
             else

@@ -52,6 +52,16 @@ namespace MainCore.Common
             TransitTo(sceneName);
         }
 
+        public void AppendScene(string sceneName)
+        {
+            if (_sceneTraceStack.Count == 0)
+                throw stackIsEmptyException;
+            if (!SceneManager.GetSceneByName(sceneName).IsValid()) return;
+            string item = _sceneTraceStack.Pop();
+            _sceneTraceStack.Push(sceneName);
+            _sceneTraceStack.Push(item);
+        }
+
         /// <summary>
         /// 跳转场景 可以返回
         /// </summary> 
