@@ -36,6 +36,7 @@ namespace Network.Account.Utils
             catch (HttpRequestException)
             {
                 if (message != null) Debug.LogError($"Error while requesting {url}, http code: {message.StatusCode}");
+                else throw new WebException();
                 return null;
             }
         }

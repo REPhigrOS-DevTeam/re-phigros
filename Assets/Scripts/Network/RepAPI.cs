@@ -62,13 +62,13 @@ namespace Network
             {
                 data = await GetAPIBase().SendGetRequestAsync(3000);
             }
-            catch (WebException)
+            catch (Exception e) when (e is WebException or TaskCanceledException)
             {
                 if (switched) return false;
                 switched = true;
-                useMirror = !useMirror;
-                PlayerPrefs.SetInt("useMirror", useMirror ? 1 : 0);
-                Debug.Log(useMirror ? "访问主站超时，切换到镜像站点" : "访问镜像站超时，切换到主站点");
+                PlayerPrefs.SetInt("useMirror", useMirror ? 0 : 1);
+                Debug.Log(!useMirror ? "访问主站超时，切换到镜像站点" : "访问镜像站超时，切换到主站点");
+                inited = false;
                 return await Init();
             }
             if (data == null)
@@ -85,6 +85,8 @@ namespace Network
                 InGameUIManager.ShowModalWindowWithClose("致命错误", "Re:Phigros服务器内部故障，请联系开发组", Util.QuitApp, "退出程序");
                 throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
             }
+            
+            Debug.Log($"已连接{(useMirror ? "镜像站" : "主站")}");
 
             return await GetManifest();
         }
