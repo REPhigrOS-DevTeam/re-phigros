@@ -59,6 +59,7 @@ public class EffectManager : MonoBehaviour
         return GlobalSetting.Skin switch {
             Skin.Official => 0.16f,
             Skin.Phira => 0.32f,
+            Skin.OldOfficial => 0.16f,
             Skin.Sacabam => 0.25f,
             Skin.StarPinkXz => 0.16f,
             _ => throw new ArgumentOutOfRangeException()

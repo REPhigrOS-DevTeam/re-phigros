@@ -340,11 +340,6 @@ namespace Network.Multiplayer.Managers
 
         #endregion
 
-        public static void GetSong()
-        {
-            OnUpdateSongReceived.Invoke(songId, songType);
-        }
-
         private static int GeneralSend(ClientOperate clientOperate, GeneralSendData value)
         {
             lock (threadLock)
@@ -404,7 +399,7 @@ namespace Network.Multiplayer.Managers
             if (!pack.ContainsKey("Type"))
             {
                 Debug.Log("错误：无法处理接收到的数据");
-                Debug.Log(pack); 
+                Debug.Log(pack);
                 return;
             }
 
@@ -664,7 +659,7 @@ namespace Network.Multiplayer.Managers
         {
             return serverId;
         }
-        
+
         public static bool CanStartGame => isOwner && allGameEnded;
 
         public static bool IsOwner => isOwner;

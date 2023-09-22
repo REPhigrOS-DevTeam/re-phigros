@@ -195,27 +195,11 @@ namespace MainCore.UI
             else GlobalSetting.infoTxt = null;
 
 
-            var extraJsonPath = Path.Combine(tempPath, "extra.json");
+            var extraJsonPath = tempPath+ "/extra.json";
             if (File.Exists(extraJsonPath))
             {
-                InGameUIManager.ShowModalWindowWithClose("检测到extra.json",
-                    "检测到extra.json, 暂时只支持内置shader的使用，不支持global属性，确认使用extra.json吗？",
-                    () =>
-                    {
-                        GlobalSetting.extraJson = File.ReadAllText(extraJsonPath);
-                        LoadChart();
-                    },
-                    "使用",
-                    () =>
-                    {
-                        GlobalSetting.extraJson = "";
-                        LoadChart();
-                    },
-                    "不使用");
-                return;
+                GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
             }
-
-            GlobalSetting.extraJson = "";
 
             //We load chart from here.
             LoadChart();
@@ -253,12 +237,11 @@ namespace MainCore.UI
             chartPathDropdown.AddOptions(GetFileName(tempPath, ".json", ".pec"));
             musicPathDropdown.AddOptions(GetFileName(tempPath, ".wav", ".ogg", ".mp3"));
             illustrationPathDropdown.AddOptions(GetFileName(tempPath, ".png", ".bmp", ".jpg", ".jpeg"));
-            try
+            if (File.Exists(tempPath + "/line.csv"))
             {
-                string t = GetFileName(tempPath, "line.csv").FirstOrDefault()?.text;
-                GlobalSetting.lineImage = new CSVReader(Path.Combine(tempPath, t));
+                GlobalSetting.lineImage = new CSVReader(tempPath + "/line.csv");
             }
-            catch
+            else
             {
                 GlobalSetting.lineImage = null;
             }

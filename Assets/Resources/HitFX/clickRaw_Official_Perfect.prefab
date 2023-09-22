@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: -1179361811
   m_SortingLayer: 3
   m_SortingOrder: 10
-  m_Sprite: {fileID: 1721080341, guid: 3782c3c8224a00649a659e396b464dad, type: 3}
+  m_Sprite: {fileID: 695057711, guid: f1c7402ce1cde2246a1051b9ab036682, type: 3}
   m_Color: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -88,7 +88,7 @@ SpriteRenderer:
   m_SpriteSortPoint: 0
 --- !u!95 &-1938923678543821724
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -96,7 +96,7 @@ Animator:
   m_GameObject: {fileID: 5927403883721511955}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c0d12361f42eb714aa1c8e11d03583d2, type: 2}
+  m_Controller: {fileID: 9100000, guid: ac14c1fe02b02fb40926925dd424fb4e, type: 2}
   m_CullingMode: 2
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -105,7 +105,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &4628800623168291726
 MonoBehaviour:
   m_ObjectHideFlags: 0

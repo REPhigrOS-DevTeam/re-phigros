@@ -148,19 +148,19 @@ MonoBehaviour:
     isMulti: 0
   isAbove: 0
   NormalSprites:
-  - {fileID: 21300000, guid: 3ae8f1b48974641429413a00bff2880f, type: 3}
-  - {fileID: 21300000, guid: ac71f5bca8e4075439a442abac12f1f2, type: 3}
-  - {fileID: 21300000, guid: e96eeccc00452b24dab48e29fff88041, type: 3}
-  HLsprite: {fileID: 21300000, guid: ba2f3cf2b724427478aac8143a333613, type: 3}
-  tapSound: {fileID: 8300000, guid: cd0da3840e52ba24eac0a90eedbe3c40, type: 3}
+  - {fileID: 21300000, guid: 1452f241589439c48b9014f027f34c78, type: 3}
+  - {fileID: 21300000, guid: 8099cb8842663be45a56549a4830cd0e, type: 3}
+  - {fileID: 21300000, guid: 74463def775fee943bc04863726d3b8b, type: 3}
+  HLsprite: {fileID: 21300000, guid: b42f112e51670594c8fb315f935c578b, type: 3}
   destroyed: 0
   badTap: {fileID: 0}
   status: 4
+  originalSize: {x: 0, y: 0, z: 0}
   thisRenderer: {fileID: 0}
   cachedTransform: {fileID: 5892388667819635139}
   parentLine: {fileID: 0}
-  HLspriteHoldBody: {fileID: 21300000, guid: e03d6dc5d53e5b2439d13a798f445381, type: 3}
-  HLspriteHoldEnd: {fileID: 21300000, guid: e1246f74de264e64b8761ab7e72d20b6, type: 3}
+  HLspriteHoldBody: {fileID: 21300000, guid: 5f602453bb0bc1a488f673dc5b80e796, type: 3}
+  HLspriteHoldEnd: {fileID: 21300000, guid: e73960b8b8395e84eb2803bde4f83beb, type: 3}
   holdRenders:
   - {fileID: 1144284071667138570}
   - {fileID: 8284217919009959085}

@@ -108,6 +108,7 @@ namespace Network.Chart
 
         private static async Task WriteChartZip(string path, byte[] bytes)
         {
+            if (!new FileInfo(path).Directory.Exists) new FileInfo(path).Directory.Create();
             await File.WriteAllBytesAsync(path, bytes.Select(b => (byte) (b ^ 0x4A)).ToArray());
         }
     }

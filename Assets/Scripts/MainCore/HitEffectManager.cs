@@ -133,6 +133,7 @@ namespace MainCore
     {
         Official = 0,
         StarPinkXz,
+        OldOfficial,
         Phira,
         Sacabam
     }

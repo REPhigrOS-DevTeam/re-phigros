@@ -27,8 +27,9 @@ public class MPServerTest : MonoBehaviour
     public Button bCreateRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
 
-    private SongType selectedSongType = SongType.empty;
-    private string selectedSongId = "";
+    private static SongType selectedSongType = SongType.empty;
+    private static string selectedSongId = "";
+    private static bool downloaded = false;
 
     private int roomId = -1;
 
@@ -45,7 +46,7 @@ public class MPServerTest : MonoBehaviour
 
     private Dictionary<GameObject, RoomState> buttonToState = new();
 
-    private string ownerLocalPath = "";
+    private static string ownerLocalPath = "";
 
     private void Awake()
     {
@@ -141,7 +142,6 @@ public class MPServerTest : MonoBehaviour
                     MessageType.Error);
                 SetDownloaded(false);
             }
-
             sendMask.SetActive(false);
         });
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
@@ -150,7 +150,12 @@ public class MPServerTest : MonoBehaviour
             SetButtonState(RoomState.RoomOwner);
             SetDownloaded(false);
         };
-        SocketManager.OnCloseRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
+        SocketManager.OnCloseRoomSucceeded += () =>
+        {
+            SetButtonState(RoomState.NotInRoom);
+            selectedSongId = "";
+            selectedSongType = SongType.empty;
+        };
         SocketManager.OnJoinRoomSucceeded += () =>
         {
             SetButtonState(RoomState.RoomMember);
@@ -160,21 +165,27 @@ public class MPServerTest : MonoBehaviour
         {
             OnUpdateSongReceived(info.SelectedSongID, Enum.Parse<SongType>(info.SelectedSongType));
         };
-        SocketManager.OnQuitRoomSucceeded += () => { SetButtonState(RoomState.NotInRoom); };
+        SocketManager.OnQuitRoomSucceeded += () =>
+        {
+            SetButtonState(RoomState.NotInRoom); 
+            selectedSongId = "";
+            selectedSongType = SongType.empty;
+        };
         SocketManager.OnSendPrepared += clientOperate =>
         {
-            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer) return;
+            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
             sendMask.SetActive(true);
         };
         SocketManager.OnBackReceived += clientOperate =>
         {
-            if (clientOperate == ClientOperate.Room_SendMessage) return;
             sendMask.SetActive(false);
         };
+        
         SocketManager.OnUpdateSongReceived += (s, type) =>
         {
             ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
             OnUpdateSongReceived(s, type);
+            if (SocketManager.IsOwner) bDownloadSong.onClick.Invoke();
         };
         SocketManager.OnGameStarted += EnterGame;
         SetButtonState(RoomState.NotInRoom);
@@ -185,7 +196,8 @@ public class MPServerTest : MonoBehaviour
             loginObj.SetActive(false);
             SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom :
                 SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
-            if (SocketManager.GetRoomId() != "") SocketManager.GetSong();
+            SetDownloaded(downloaded);
+            // if (SocketManager.GetRoomId() != "") SocketManager.GetSong();
         }
         else
         {
@@ -438,6 +450,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetDownloaded(bool value)
     {
+        downloaded = value;
         bDownloadSong.interactable = !value && selectedSongType != SongType.empty;
         bReady.Interactable = value;
         bStartGame.interactable = value && SocketManager.CanStartGame;

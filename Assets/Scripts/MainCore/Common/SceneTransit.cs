@@ -39,7 +39,6 @@ namespace MainCore.Common
         {
             if (_sceneTraceStack.Count == 0)
             {
-                Debug.Log("初始化场景切换");
                 _sceneTraceStack.Push(sceneName);
                 return;
             }
