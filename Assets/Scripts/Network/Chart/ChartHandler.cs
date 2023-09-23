@@ -14,7 +14,8 @@ namespace Network.Chart
 {
     public class ChartHandler
     {
-        private static Dictionary<string, string> chartMap = new Dictionary<string, string>(); // 给房主用的, key是path，value是id
+        private static Dictionary<string, string>
+            chartMap = new Dictionary<string, string>(); // 给房主用的, key是path，value是id
 
         private static List<string> downloadedCharts = new List<string>(); // 给房员用的，下载好的文件我存在程序的tmp文件夹乐
 
@@ -24,8 +25,8 @@ namespace Network.Chart
 
         public static async Task<string> Upload(string folderPath)
         {
-            if (!Directory.Exists(TmpPathRoot + "/zip_charts")) Directory.CreateDirectory(TmpPathRoot + "/zip_charts");
-            string filePath = Path.GetFullPath(TmpPathRoot + "/zip_charts/" + Path.GetFileName(folderPath) + ".zip");
+            CheckDirectory($"{TmpPathRoot}/zip_charts");
+            string filePath = Path.GetFullPath($"{TmpPathRoot}/zip_charts/{Path.GetFileName(folderPath)}.zip");
             if (chartMap.ContainsKey(filePath)) return chartMap[filePath];
             ZipUtils.ZipDirectory(folderPath, filePath);
             byte[] zipResult = await File.ReadAllBytesAsync(filePath);
@@ -33,7 +34,8 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            JObject response = JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
+            JObject response =
+                JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
             if (response["status"].ToObject<bool>())
             {
                 string id = response["scoreid"].ToString();
@@ -44,7 +46,7 @@ namespace Network.Chart
             Debug.LogError($"上传谱面{filePath}失败");
             throw new ArgumentException();
         }
-        
+
         private static async void Delete(string id)
         {
             using MultipartFormDataContent content = new MultipartFormDataContent();
@@ -67,25 +69,42 @@ namespace Network.Chart
 
         public static async Task<byte[]> Download(string id)
         {
+            CheckDirectory($"{TmpPathRoot}/online_charts");
             if (downloadedCharts.Contains(id)) return await ReadChartZip($"{TmpPathRoot}/online_charts/{id}");
-            byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?scoreid={id}").SendGetRequestAsync();
-            if (File.Exists($"{TmpPathRoot}/online_charts/{id}")) File.Delete($"{TmpPathRoot}/online_charts/{id}");
+            byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?chartid={id}").SendGetRequestAsync();
             await WriteChartZip($"{TmpPathRoot}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;
         }
 
-        public static async Task<byte[]> DownloadFromPhiZone(string id)
+        private static void CheckDirectory(string path)
+        {
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        }
+
+        public static async Task<byte[]> DownloadFromPhiZone(string id) // TODO
         {
             return Array.Empty<byte>();
         }
 
-        public static void OnRoomClosed()
+        public static async void OnRoomClosed()
         {
-            // foreach (string id in chartMap.Values)
-            // {
-            //     Delete(id);
-            // }
+#if false
+            using MultipartFormDataContent content = new MultipartFormDataContent();
+            content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
+            content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
+            string data = await RepAPI.ChartUrlBase.UrlCombine("/api/roomLogOff").PostWithHttpClient(content);
+            var jObject = JObject.Parse(data);
+            if (!jObject["status"].ToObject<bool>())
+            {
+                Debug.LogError(jObject["msg"].ToString());
+            }
+#else
+            foreach (string s in chartMap.Values)
+            {
+                Delete(s);
+            }
+#endif
             downloadedCharts.Clear();
         }
 
@@ -103,13 +122,18 @@ namespace Network.Chart
 
         private static async Task<byte[]> ReadChartZip(string path)
         {
-            return (await File.ReadAllBytesAsync(path)).Select(b => (byte) (b ^ 0x4A)).ToArray();
+            return TransformByteArray(await File.ReadAllBytesAsync(path));
+        }
+
+        private static byte[] TransformByteArray(byte[] bytes)
+        {
+            return bytes.Select(b => (byte)(b ^ 0x4A)).ToArray();
         }
 
         private static async Task WriteChartZip(string path, byte[] bytes)
         {
             if (!new FileInfo(path).Directory.Exists) new FileInfo(path).Directory.Create();
-            await File.WriteAllBytesAsync(path, bytes.Select(b => (byte) (b ^ 0x4A)).ToArray());
+            await File.WriteAllBytesAsync(path, TransformByteArray(bytes));
         }
     }
 }

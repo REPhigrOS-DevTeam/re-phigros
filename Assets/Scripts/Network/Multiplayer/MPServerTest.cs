@@ -42,7 +42,7 @@ public class MPServerTest : MonoBehaviour
     private static int? unityThreadId;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
-    public GameObject sendMask;
+    public GameObject sendMask, downloadMask;
 
     private Dictionary<GameObject, RoomState> buttonToState = new();
 
@@ -97,53 +97,28 @@ public class MPServerTest : MonoBehaviour
         // Username = RepAPI.Username;
         loginObj.SetActive(true);
         tConnectState.text = "服务器状态：未连接";
-        bDisconnect.onClick.AddListener(() =>
-        {
-            selectedSongId = "";
-            selectedSongType = SongType.empty;
-            SocketManager.Disconnect();
-            SceneTransit.Instance.Back();
-        });
+        bDisconnect.onClick.AddListener(Disconnect);
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
         // bLogin.onClick.AddListener(() => GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录")); // TODO 迁移
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
-        bReady.OnValueChanged += (button, text, isOn) =>
-        {
-            text.text = isOn ? "取消准备" : "准备";
-            if (isOn) SocketManager.Ready();
-            else SocketManager.Unready();
-        };
+        bReady.OnValueChanged += OnReadyButtonValueChanged;
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
-        bUpdateSong.onClick.AddListener(() => FileBrowser.ShowLoadDialog(async (paths) =>
+        bUpdateSong.onClick.AddListener(() =>
+        {
+            async void OnGetFileSuccess(string[] paths)
             {
                 int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]), SongType.rep);
                 if (state == 0) return;
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
-            }, () => { }, FileBrowser.PickMode.Folders, false,
-            PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传"));
-        bDownloadSong.onClick.AddListener(async () =>
-        {
-            if (selectedSongType == SongType.empty) return;
-            sendMask.SetActive(true);
-            if (await DownloadSong())
-            {
-                ChatManager.AddMessage("downloadSucceeded",
-                    $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
-                    MessageType.Server);
-                SetDownloaded(true);
             }
-            else
-            {
-                ChatManager.AddMessage("downloadFailed",
-                    $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范",
-                    MessageType.Error);
-                SetDownloaded(false);
-            }
-            sendMask.SetActive(false);
+
+            FileBrowser.ShowLoadDialog(OnGetFileSuccess, () => { }, FileBrowser.PickMode.Folders, false,
+                PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传");
         });
+        bDownloadSong.onClick.AddListener(Download);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
         SocketManager.OnCreateRoomSucceeded += () =>
         {
@@ -171,24 +146,17 @@ public class MPServerTest : MonoBehaviour
             selectedSongId = "";
             selectedSongType = SongType.empty;
         };
-        // SocketManager.OnSendPrepared += clientOperate =>
-        // {
-        //     if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
-        //     sendMask.SetActive(true);
-        // };
-        // SocketManager.OnBackReceived += clientOperate =>
-        // {
-        //     sendMask.SetActive(false);
-        // };
-        
-        SocketManager.OnUpdateSongReceived += (s, type) =>
+        SocketManager.OnSendPrepared += clientOperate =>
         {
-            ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
-            OnUpdateSongReceived(s, type);
-            if (SocketManager.IsOwner) bDownloadSong.onClick.Invoke();
+            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
+            sendMask.SetActive(true);
         };
+        SocketManager.OnBackReceived += clientOperate =>
+        {
+            sendMask.SetActive(false);
+        };
+        SocketManager.OnUpdateSongReceived += OnSongReceived;
         SocketManager.OnGameStarted += EnterGame;
-        SetButtonState(RoomState.NotInRoom);
         sendMask.SetActive(false);
         if (SocketManager.GetToken() != "")
         {
@@ -201,8 +169,64 @@ public class MPServerTest : MonoBehaviour
         }
         else
         {
-            bReady.IsOn = false;
+            SetButtonState(RoomState.NotInRoom);
         }
+    }
+
+    private void OnSongReceived(string s, SongType type)
+    {
+        ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
+        OnUpdateSongReceived(s, type);
+        if (!SocketManager.IsOwner) return;
+        OwnerOperation();
+
+        async void OwnerOperation()
+        {
+            if (!await MoveSong())
+            {
+                ChatManager.AddMessage("downloadFailed", $"错误：未知错误", MessageType.Error);
+                SetDownloaded(false);
+            }
+            else
+            {
+                SetDownloaded(true);
+            }
+        }
+    }
+
+    private async void Download()
+    {
+        if (selectedSongType == SongType.empty) return;
+        downloadMask.SetActive(true);
+        if (await DownloadSong())
+        {
+            ChatManager.AddMessage("downloadSucceeded", $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Server);
+            SetDownloaded(true);
+        }
+        else
+        {
+            ChatManager.AddMessage("downloadFailed", $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范", MessageType.Error);
+            SetDownloaded(false);
+        }
+
+        downloadMask.SetActive(false);
+    }
+
+    private void OnReadyButtonValueChanged(Button button, Text text, bool isOn)
+    {
+        text.text = isOn ? "取消准备" : "准备";
+        if (isOn)
+            SocketManager.Ready();
+        else
+            SocketManager.Unready();
+    }
+
+    private void Disconnect()
+    {
+        selectedSongId = "";
+        selectedSongType = SongType.empty;
+        SocketManager.Disconnect();
+        SceneTransit.Instance.Back();
     }
 
     public void UpdateConnectState(string str)
@@ -227,43 +251,54 @@ public class MPServerTest : MonoBehaviour
 
     private PhiraInfoData phiraInfoData;
 
-    private async Task<bool> DownloadSong() // TODO: 接入PhiZone
+    private string GetDirectory()
     {
-#if true
         string directory = $"{ChartHandler.TmpPathRoot}/decompressed_online_charts/rep/{selectedSongId}";
         Debug.Log("Directory: " + directory);
         if (Directory.Exists(directory)) Directory.Delete(directory, true);
         Directory.CreateDirectory(directory);
+        return directory;
+    }
 
-        if (SocketManager.IsOwner)
-        {
-            CopyFolder(ownerLocalPath, directory);
-        }
-        else
-        {
-            ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
+    private async Task<bool> MoveSong()
+    {
+        string directory = GetDirectory();
+        CopyFolder(ownerLocalPath, directory);
+        return await ProcessChart(directory);
+    }
 
-            // 如果出现了zip里是单个根文件夹的情况就把文件夹里的东西移出来
-            string[] entries = Directory.GetFileSystemEntries(directory);
-            if (entries.Length == 1 && Directory.Exists(entries[0]))
+    private async Task<bool> DownloadSong() // TODO: 接入PhiZone
+    {
+        string directory = GetDirectory();
+
+        ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
+
+        // 如果出现了zip里是单个根文件夹的情况就把文件夹里的东西移出来
+        string[] entries = Directory.GetFileSystemEntries(directory);
+        if (entries.Length == 1 && Directory.Exists(entries[0]))
+        {
+            string[] directories = Directory.GetDirectories(entries[0]);
+            foreach (var qwq in directories)
             {
-                string[] directories = Directory.GetDirectories(entries[0]);
-                foreach (var qwq in directories)
-                {
-                    Directory.Move(qwq, directory);
-                }
-
-                string[] files = Directory.GetFiles(entries[0]);
-                foreach (var awa in files)
-                {
-                    File.Move(awa, directory);
-                }
-
-                Directory.Delete(entries[0]);
+                Directory.Move(qwq, directory);
             }
+
+            string[] files = Directory.GetFiles(entries[0]);
+            foreach (var awa in files)
+            {
+                File.Move(awa, directory);
+            }
+
+            Directory.Delete(entries[0]);
         }
 
-        // phira info
+        return await ProcessChart(directory);
+    }
+
+    private async Task<bool> ProcessChart(string directory)
+    {
+#if true
+                // phira info
         string phiraInfoPath = directory + "/info.yml";
         phiraInfoData = null;
         if (File.Exists(phiraInfoPath))
@@ -450,6 +485,12 @@ public class MPServerTest : MonoBehaviour
 
     private void SetDownloaded(bool value)
     {
+        if (!IsFromUnityThread)
+        {
+            throw new ArgumentException("Not from Unity thread");
+        }
+        Debug.Log("djkfjdksjfldsfsjlkfsjlkfjdlkfjdslfjdlf");
+
         downloaded = value;
         bDownloadSong.interactable = !value && selectedSongType != SongType.empty;
         bReady.Interactable = value;

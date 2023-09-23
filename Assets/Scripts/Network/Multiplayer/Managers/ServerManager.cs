@@ -40,7 +40,7 @@ namespace Network.Multiplayer.Managers
         {
             serverList =
                 JsonConvert.DeserializeObject<ServerList>(PlayerPrefs.GetString("server_list", "{\"Servers\": []}"));
-            RefreshServerList();
+            if (SocketManager.GetToken() == "") RefreshServerList();
         }
 
         public void RefreshServerStatus()
