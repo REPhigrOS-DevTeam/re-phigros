@@ -48,6 +48,7 @@ namespace Network.Multiplayer.Data
         private static JObject[] SplitSocketPacks(string s)
         {
             List<JObject> packs = new List<JObject>();
+            bool zhuanYi = false;
             bool isInString = false;
             int j = 0;
             TextElementEnumerator textElementEnumerator = StringInfo.GetTextElementEnumerator(s);
@@ -56,7 +57,20 @@ namespace Network.Multiplayer.Data
             {
                 string element = textElementEnumerator.GetTextElement();
                 if (stringBuilder.Length == 0 && element != "{") throw new ArgumentException("你这包有问题啊");
-                if (element == "\"") isInString = !isInString;
+                if (element == "\\")
+                {
+                    if (!isInString) throw new ArgumentException();
+                    zhuanYi = !zhuanYi;
+                }
+                else if (element == "\"")
+                {
+                    if (zhuanYi)
+                    {
+                        zhuanYi = false;
+                    }
+                    else
+                        isInString = !isInString;
+                }
                 else if (!isInString)
                 {
                     if (element == "{") j++;

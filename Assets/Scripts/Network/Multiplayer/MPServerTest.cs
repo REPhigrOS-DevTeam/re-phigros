@@ -64,6 +64,10 @@ public class MPServerTest : MonoBehaviour
         };
         SocketManager.OnCloseRoomSucceeded += ChartHandler.OnRoomClosed;
         SocketManager.OnQuitRoomSucceeded += ChartHandler.OnRoomQuited;
+        // SocketManager.OnCloseRoomSucceeded += chatManager.OnInitOrRoomClosed;
+        // SocketManager.OnQuitRoomSucceeded += chatManager.OnInitOrRoomClosed;
+        // SocketManager.OnCreateRoomSucceeded += chatManager.OnRoomJoinedOrCreated;
+        // SocketManager.OnJoinRoomSucceeded += chatManager.OnRoomJoinedOrCreated;
         GlobalSetting.ReadUserSettings();
         chatManager.RevertChatHistory();
         // try
@@ -164,7 +168,7 @@ public class MPServerTest : MonoBehaviour
             loginObj.SetActive(false);
             SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom :
                 SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
-            SetDownloaded(downloaded);
+            SetDownloaded(downloaded && SocketManager.GetSongId() == selectedSongId && SocketManager.GetSongType() == selectedSongType);
             // if (SocketManager.GetRoomId() != "") SocketManager.GetSong();
         }
         else
@@ -337,27 +341,27 @@ public class MPServerTest : MonoBehaviour
                                           ? phiraInfoData.chart
                                           : hasInfo
                                               ? GlobalSetting.infoTxt.GetChartFileName()
-                                              : Directory.GetFiles(directory)
+                                              : Path.GetFileName(Directory.GetFiles(directory)
                                                   .Where(s => new List<string> { ".json", ".pec" }.Contains(
-                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]);
+                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
             GlobalSetting.musicPath = directory + "/" +
                                       (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
                                           ? phiraInfoData.music
                                           : hasInfo
                                               ? GlobalSetting.infoTxt.GetSongFileName()
-                                              : Directory.GetFiles(directory)
+                                              : Path.GetFileName(Directory.GetFiles(directory)
                                                   .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]);
+                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
             GlobalSetting.illustrationPath = directory + "/" +
                                              (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.illustration)
                                                  ? phiraInfoData.illustration
                                                  : hasInfo
                                                      ? GlobalSetting.infoTxt.GetIllustrationFileName()
-                                                     : Directory.GetFiles(directory)
+                                                     : Path.GetFileName(Directory.GetFiles(directory)
                                                          .Where(s => new List<string>
                                                                  { ".png", ".bmp", ".jpg", ".jpeg" }
                                                              .Contains(Path.GetExtension(s).ToLowerInvariant()))
-                                                         .ToArray()[0]);
+                                                         .ToArray()[0]));
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -437,7 +441,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.autoPlay = false;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();
-        SceneTransit.Instance.JumpScene("LoadInto");
+        SceneTransit.Instance.LoadScene("LoadInto");
     }
 
     // private int counter = 0;
@@ -479,7 +483,12 @@ public class MPServerTest : MonoBehaviour
 
         if (state == RoomState.NotInRoom)
         {
+            chatManager.OnInitOrRoomClosed();
             SetDownloaded(false);
+        }
+        else
+        {
+            chatManager.OnRoomJoinedOrCreated();
         }
     }
 
@@ -489,7 +498,6 @@ public class MPServerTest : MonoBehaviour
         {
             throw new ArgumentException("Not from Unity thread");
         }
-        Debug.Log("djkfjdksjfldsfsjlkfsjlkfjdlkfjdslfjdlf");
 
         downloaded = value;
         bDownloadSong.interactable = !value && selectedSongType != SongType.empty;

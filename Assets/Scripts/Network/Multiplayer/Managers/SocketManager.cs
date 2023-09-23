@@ -597,8 +597,7 @@ namespace Network.Multiplayer.Managers
                                 break;
                             case "User_Ready":
                             case "User_UnReady":
-                                ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Room);
-                                break;
+                            case "User_QuitGame":
                             case "User_GameEnd":
                                 ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Room);
                                 break;
@@ -643,6 +642,16 @@ namespace Network.Multiplayer.Managers
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public static string GetSongId()
+        {
+            return songId;
+        }
+
+        public static SongType GetSongType()
+        {
+            return songType;
         }
 
         public static string GetToken()

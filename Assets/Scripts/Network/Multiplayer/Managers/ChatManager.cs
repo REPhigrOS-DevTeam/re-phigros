@@ -30,11 +30,7 @@ namespace Network.Multiplayer.Managers
             ifMessage.onEndEdit.AddListener(input => ifMessage.text = input.TrimEnd());
             scrollViewTransform = (RectTransform)contentPanel.parent.parent;
             OnInitOrRoomClosed();
-            SocketManager.OnCloseRoomSucceeded += OnInitOrRoomClosed;
-            SocketManager.OnQuitRoomSucceeded += OnInitOrRoomClosed;
-            SocketManager.OnCreateRoomSucceeded += OnRoomJoinedOrCreated;
-            SocketManager.OnJoinRoomSucceeded += OnRoomJoinedOrCreated;
-            SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
+            // SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
             if (!inited)
             {
                 inited = true;
@@ -115,7 +111,7 @@ namespace Network.Multiplayer.Managers
             });
         }
 
-        private void OnInitOrRoomClosed()
+        public void OnInitOrRoomClosed()
         {
             tSendButton.text = "加入\n房间";
             ifMessage.text = "";
@@ -123,7 +119,7 @@ namespace Network.Multiplayer.Managers
             bSend.onClick.AddListener(JoinRoom);
         }
 
-        private void OnRoomJoinedOrCreated()
+        public void OnRoomJoinedOrCreated()
         {
             tSendButton.text = "发送\n信息";
             ifMessage.text = "";
@@ -146,6 +142,7 @@ namespace Network.Multiplayer.Managers
             }
 
             GeneralListener(() => SocketManager.SendRoomMessage(ifMessage.text), GeneralErrorMessages);
+            ifMessage.text = "";
         }
 
         private void JoinRoom()

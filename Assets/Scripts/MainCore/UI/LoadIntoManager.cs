@@ -1,4 +1,5 @@
 using System.Collections;
+using MainCore.Common;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -73,6 +74,7 @@ namespace MainCore.UI
         {
             yield return new WaitForSeconds(1);
             GlobalSetting.PlayClipAtPoint(enter, new Vector3(0, 0, -10), 1);
+            SceneTransit.Instance.ReplaceScene("PlayingScene");
             var operation = SceneManager.LoadSceneAsync("PlayingScene");
             operation.allowSceneActivation = false;
             slideInto.enabled = true;

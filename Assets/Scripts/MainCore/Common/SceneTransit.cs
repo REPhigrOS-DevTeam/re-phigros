@@ -17,17 +17,23 @@ namespace MainCore.Common
         private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
         [SerializeField] private Image transitionImage;
         [SerializeField] private List<Texture2D> ruleImages;
-        private Exception stackIsEmptyException => new InvalidOperationException("stack is empty");
 
-        private Stack<string> _sceneTraceStack = new Stack<string>();
         [SerializeField] private Material transitionMaterial;
         private Material transitMaterial = null;
 
-        // Start is called before the first frame update
-        protected override void OnAwake()
+        private class NavigationInfo
         {
-            // DontDestroyOnLoad(gameObject);
-            transitMaterial = transitionImage.material = Instantiate(transitionMaterial);
+            public string SceneName;
+            public object Data = null;
+        }
+
+        private Stack<NavigationInfo> navStack = new();
+        private Exception stackIsEmptyException => new InvalidOperationException("stack is empty");
+        
+        void Start()
+        {
+            DontDestroyOnLoad(gameObject);
+            transitMaterial = transitionImage.material;
             JumpScene(SceneManager.GetActiveScene().name);
         }
 
@@ -37,28 +43,27 @@ namespace MainCore.Common
         /// <param name="sceneName"></param>
         public void JumpScene(string sceneName)
         {
-            if (_sceneTraceStack.Count == 0)
+            if (navStack.Count == 0)
             {
-                _sceneTraceStack.Push(sceneName);
+                navStack.Push(new()
+                {
+                    SceneName = sceneName,
+                });
                 return;
             }
-
-            if (!_sceneTraceStack.TryPeek(out string item))
-                throw stackIsEmptyException;
-
-            _sceneTraceStack.Pop();
-            _sceneTraceStack.Push(sceneName);
+            ReplaceScene(sceneName);
+            Debug.Log($"从{SceneManager.GetActiveScene().name}跳到{sceneName}");
             TransitTo(sceneName);
         }
 
-        public void AppendScene(string sceneName)
+        public void Back()
         {
-            if (_sceneTraceStack.Count == 0)
-                throw stackIsEmptyException;
-            if (!SceneManager.GetSceneByName(sceneName).IsValid()) return;
-            string item = _sceneTraceStack.Pop();
-            _sceneTraceStack.Push(sceneName);
-            _sceneTraceStack.Push(item);
+            if (navStack.Count == 1)
+                return;
+
+            navStack.Pop();
+            var lastScene = navStack.Peek();
+            TransitTo(lastScene.SceneName);
         }
 
         /// <summary>
@@ -66,20 +71,28 @@ namespace MainCore.Common
         /// </summary> 
         public void LoadScene(string sceneName)
         {
-            if (_sceneTraceStack.Count == 0)
-                throw stackIsEmptyException;
-
-            _sceneTraceStack.Push(sceneName);
+            Debug.Log($"从{SceneManager.GetActiveScene().name}加载到{sceneName}");
+            AppendScene(sceneName);
             TransitTo(sceneName);
         }
 
-        public void Back()
+        public void ReplaceScene(string sceneName)
         {
-            if (_sceneTraceStack.Count == 1)
-                return;
-            _sceneTraceStack.Pop();
-            string lastScene = _sceneTraceStack.Peek();
-            TransitTo(lastScene);
+            if (!navStack.TryPeek(out var item))
+                throw stackIsEmptyException;
+
+            item.SceneName = sceneName;
+        }
+
+        public void AppendScene(string sceneName)
+        {
+            if (navStack.Count == 0)
+                throw stackIsEmptyException;
+
+            navStack.Push(new()
+            {
+                SceneName = sceneName
+            });
         }
 
         private async void TransitTo(string sceneName)

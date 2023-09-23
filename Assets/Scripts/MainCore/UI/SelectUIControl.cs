@@ -141,7 +141,7 @@ namespace MainCore.UI
             }
 
             PopupMessageManager.Instance.Clear();
-            SceneTransit.Instance.JumpScene("LoadInto");
+            SceneTransit.Instance.LoadScene("LoadInto");
         }
 
         public async void EnterGame()
