@@ -171,15 +171,15 @@ public class MPServerTest : MonoBehaviour
             selectedSongId = "";
             selectedSongType = SongType.empty;
         };
-        SocketManager.OnSendPrepared += clientOperate =>
-        {
-            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
-            sendMask.SetActive(true);
-        };
-        SocketManager.OnBackReceived += clientOperate =>
-        {
-            sendMask.SetActive(false);
-        };
+        // SocketManager.OnSendPrepared += clientOperate =>
+        // {
+        //     if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
+        //     sendMask.SetActive(true);
+        // };
+        // SocketManager.OnBackReceived += clientOperate =>
+        // {
+        //     sendMask.SetActive(false);
+        // };
         
         SocketManager.OnUpdateSongReceived += (s, type) =>
         {

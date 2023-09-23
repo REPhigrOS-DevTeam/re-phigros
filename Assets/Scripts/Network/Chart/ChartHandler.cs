@@ -82,10 +82,10 @@ namespace Network.Chart
 
         public static void OnRoomClosed()
         {
-            foreach (string id in chartMap.Values)
-            {
-                Delete(id);
-            }
+            // foreach (string id in chartMap.Values)
+            // {
+            //     Delete(id);
+            // }
             downloadedCharts.Clear();
         }
 
