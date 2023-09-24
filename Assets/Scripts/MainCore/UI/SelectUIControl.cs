@@ -82,6 +82,7 @@ namespace MainCore.UI
                     SceneTransit.Instance.LoadScene(Random.Range(0, 100) < 50 ? "WahtThe" : "About");
                 });
             }
+            GlobalSetting.Reset();
         }
 
         private void RefreshGameFolder()

@@ -32,7 +32,6 @@ namespace MainCore.Common
         
         void Start()
         {
-            DontDestroyOnLoad(gameObject);
             transitMaterial = transitionImage.material;
             JumpScene(SceneManager.GetActiveScene().name);
         }
@@ -52,7 +51,6 @@ namespace MainCore.Common
                 return;
             }
             ReplaceScene(sceneName);
-            Debug.Log($"从{SceneManager.GetActiveScene().name}跳到{sceneName}");
             TransitTo(sceneName);
         }
 
@@ -71,7 +69,6 @@ namespace MainCore.Common
         /// </summary> 
         public void LoadScene(string sceneName)
         {
-            Debug.Log($"从{SceneManager.GetActiveScene().name}加载到{sceneName}");
             AppendScene(sceneName);
             TransitTo(sceneName);
         }

@@ -34,6 +34,12 @@ namespace Network.Multiplayer.Managers
                 if (i == 1) item.Init(this, () => selectedServerId >= 0); // MainPanel的Edit
                 else item.Init(this);
             }
+
+            SocketManager.OnLoginSucceeded += () =>
+            {
+                gameObject.SetActive(false);
+                mpServerTest.UpdateConnectState("登录成功");
+            };
         }
 
         private void Start()
@@ -130,8 +136,7 @@ namespace Network.Multiplayer.Managers
                 await UniTask.SwitchToMainThread();
                 if (state1 == 0)
                 {
-                    mpServerTest.UpdateConnectState("登录成功");
-                    gameObject.SetActive(false);
+                    mpServerTest.UpdateConnectState("成功发送登录数据");
                     return;
                 }
                 mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + state1 switch

@@ -39,8 +39,6 @@ namespace MainCore.UI
 
             Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
 
-            GlobalSetting.Reset();
-
             usernameText.text = PlayerPrefs.GetString("player_name", "kagari939") + "@" + LoginManager.Username;
             avatarBackGround.sizeDelta = new Vector2(234 + 5 + 42 + usernameText.preferredWidth, 240f);
         }

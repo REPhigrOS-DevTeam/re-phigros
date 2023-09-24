@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MainCore.Common;
 using Network.Multiplayer.Components;
 using Network.Multiplayer.Data;
@@ -14,7 +15,8 @@ namespace Network.Multiplayer.Managers
     {
         private static readonly string[] GeneralErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
         private static readonly object threadLock = new();
-        [SerializeField] private RectTransform contentPanel;
+        [SerializeField] private ScrollRect scrollView;
+        private RectTransform contentPanel;
         [SerializeField] private GameObject chatMessagePrefab;
         [SerializeField] private InputField ifMessage;
         [SerializeField] private Button bSend;
@@ -26,9 +28,10 @@ namespace Network.Multiplayer.Managers
 
         private void Awake()
         {
+            contentPanel = scrollView.content;
             tSendButton = bSend.transform.GetChild(0).gameObject.GetComponent<Text>();
             ifMessage.onEndEdit.AddListener(input => ifMessage.text = input.TrimEnd());
-            scrollViewTransform = (RectTransform)contentPanel.parent.parent;
+            scrollViewTransform = (RectTransform)scrollView.transform;
             OnInitOrRoomClosed();
             // SocketManager.OnSendMessageSucceeded += () => ifMessage.text = "";
             if (!inited)
@@ -36,6 +39,7 @@ namespace Network.Multiplayer.Managers
                 inited = true;
                 SceneTransit.OnSceneClosing += () => Instance = null;
             }
+
             Instance = this;
         }
 
@@ -46,7 +50,8 @@ namespace Network.Multiplayer.Managers
 
         private void Update()
         {
-            if (SocketManager.GetToken() == "" || (!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) ||
+            if (SocketManager.GetToken() == "" ||
+                (!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) ||
                 ifMessage.isFocused) return;
             ifMessage.ActivateInputField();
             bSend.onClick.Invoke();
@@ -71,15 +76,18 @@ namespace Network.Multiplayer.Managers
             }
         }
 
-        private void AddMessageInternal(string from, string message, MessageType type)
+        private async void AddMessageInternal(string from, string message, MessageType type)
         {
+            Debug.Log("傻逼: " + scrollView.verticalNormalizedPosition);
+            bool autoScroll = scrollView.verticalNormalizedPosition < 0.01f ||
+                              scrollView.content.sizeDelta.y <= scrollViewTransform.sizeDelta.y;
             GameObject obj = Instantiate(chatMessagePrefab, contentPanel);
             obj.GetComponent<ChatMessage>().Init(from, message, type);
             // LayoutRebuilder.ForceRebuildLayoutImmediate(obj.GetComponent<RectTransform>());
-            float sizeDeltaY = contentPanel.sizeDelta.y - scrollViewTransform.sizeDelta.y;
-            if (sizeDeltaY > 0)
-                contentPanel.position = new Vector3(contentPanel.position.x, sizeDeltaY, contentPanel.position.z);
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
+            await UniTask.Yield();
+            if (scrollView.content.sizeDelta.y < scrollViewTransform.sizeDelta.y) scrollView.verticalNormalizedPosition = 1f;
+            else if (autoScroll) scrollView.verticalNormalizedPosition = 0f;
         }
 
         public void CleanChatHistory()
@@ -135,11 +143,11 @@ namespace Network.Multiplayer.Managers
                 return;
             }
 
-            if (new StringInfo(ifMessage.text).LengthInTextElements > 233)
-            {
-                InGameUIManager.ShowModalWindowWithClose("错误", "信息长度过长", () => { }, "确定");
-                return;
-            }
+            // if (new StringInfo(ifMessage.text).LengthInTextElements > 233)
+            // {
+            //     InGameUIManager.ShowModalWindowWithClose("错误", "信息长度过长", () => { }, "确定");
+            //     return;
+            // }
 
             GeneralListener(() => SocketManager.SendRoomMessage(ifMessage.text), GeneralErrorMessages);
             ifMessage.text = "";

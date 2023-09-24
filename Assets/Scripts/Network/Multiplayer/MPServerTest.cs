@@ -175,6 +175,7 @@ public class MPServerTest : MonoBehaviour
         {
             SetButtonState(RoomState.NotInRoom);
         }
+        GlobalSetting.Reset();
     }
 
     private void OnSongReceived(string s, SongType type)
