@@ -183,18 +183,20 @@ public class MPServerTest : MonoBehaviour
         ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
         OnUpdateSongReceived(s, type);
         if (!SocketManager.IsOwner) return;
+        bDownloadSong.interactable = false;
         OwnerOperation();
 
         async void OwnerOperation()
         {
-            if (!await MoveSong())
+            if (await MoveSong())
             {
-                ChatManager.AddMessage("downloadFailed", $"错误：未知错误", MessageType.Error);
-                SetDownloaded(false);
+                ChatManager.AddMessage("downloadSucceeded", $"成功上传谱面，id：" + s, MessageType.Server);
+                SetDownloaded(true);
             }
             else
             {
-                SetDownloaded(true);
+                ChatManager.AddMessage("downloadFailed", $"错误：未知错误", MessageType.Error);
+                SetDownloaded(false);
             }
         }
     }

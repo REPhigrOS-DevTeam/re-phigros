@@ -673,7 +673,10 @@ namespace Network.Multiplayer.Managers
 
         public static bool IsOwner => isOwner;
 
-        public static void Disconnect() => Close();
+        public static void Disconnect()
+        {
+            LeaveServer();
+        }
 
         private static void Close()
         {
