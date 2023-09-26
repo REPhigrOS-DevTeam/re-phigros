@@ -442,6 +442,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.ReadUserSettings();
         GlobalSetting.recordMode = false;
         GlobalSetting.autoPlay = false;
+        GlobalSetting.useCourseMode = false;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();
         SceneTransit.Instance.LoadScene("LoadInto");
