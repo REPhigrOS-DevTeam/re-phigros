@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Lean.Gui;
 using LeTai.Asset.TranslucentImage;
@@ -288,7 +289,7 @@ namespace MainCore
         {
             pauseButton.OnDoubleTap.AddListener(Pause);
             backButton.OnClick.AddListener(Quit);
-            continueButton.OnClick.AddListener(UnPause);
+            continueButton.OnClick.AddListener(() => UnPause().Forget());
             retryButton.OnClick.AddListener(() =>
             {
                 GlobalSetting.Reset();
@@ -571,7 +572,7 @@ namespace MainCore
             }
         }
 
-        async void UnPause()
+        async UniTaskVoid UnPause()
         {
             if (GlobalSetting.Playing && GlobalSetting.Paused)
             {

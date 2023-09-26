@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using E7.Native;
 using MainCore.Common;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace MainCore
         protected override void OnAwake()
         {
 #if UNITY_ANDROID && !UNITY_EDITOR
-            InitNativeAudio();
+            InitNativeAudio().Forget();
 #else
             InitUnityAudio();
 #endif
@@ -127,7 +128,7 @@ namespace MainCore
             _nativeAudioOptions.volume = _hitSoundVolume;
         }
 
-        private async void InitNativeAudio()
+        private async UniTaskVoid InitNativeAudio()
         {
             if (!NativeAudio.OnSupportedPlatform) return;
 

@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,10 +17,10 @@ namespace MainCore.UI
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            CheckClick();
+            CheckClick().Forget();
         }
 
-        async void CheckClick()
+        async UniTaskVoid CheckClick()
         {
             if (!clicked)
             {

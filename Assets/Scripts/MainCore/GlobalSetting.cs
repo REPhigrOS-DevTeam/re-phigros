@@ -105,6 +105,8 @@ namespace MainCore
 
         public static bool IsPhira;
 
+        public static bool useCourseMode = false;
+
         public static void PlayNoteSound(int notetype)
         {
             /*if (hitVolume < .01f) return;
@@ -175,6 +177,7 @@ namespace MainCore
             maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
             fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
+            useCourseMode = PlayerPrefs.GetInt("use_course_mode", 0) == 1;
         }
     }
 }

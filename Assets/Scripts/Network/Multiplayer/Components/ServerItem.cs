@@ -66,7 +66,7 @@ namespace Network.Multiplayer.Components
                 await UniTask.SwitchToThreadPool();
                 long currentTime = (long)Math.Round((DateTime.UtcNow - TimeStampStart).TotalMilliseconds);
                 socket.Send(new SendData());
-                JObject[] packs = socket.Receive();
+                JObject[] packs;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
                 while ((packs = socket.Receive()) == null)

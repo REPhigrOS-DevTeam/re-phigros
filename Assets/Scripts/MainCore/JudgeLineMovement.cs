@@ -17,9 +17,9 @@ namespace MainCore
 {
     public class JudgeTime
     {
-        public float bTime;
-        public float gTime;
-        public float judgeTime;
+        public float bTime; // time to bad
+        public float gTime; // time to good
+        public float judgeTime; // time to miss
         public float pTime;
     }
 
@@ -38,7 +38,20 @@ namespace MainCore
         public judgeLine Line;
         public double JudgeLineDistance = 0; // { get; private set; }
         public float SpeedFactor = 6f; // { get; private set; } = 1;
-        public readonly JudgeTime JudgeTime = new JudgeTime();
+
+        private static readonly JudgeTime easyTime = new JudgeTime
+        {
+            bTime = 0.16f,
+            gTime = 0.08f,
+            judgeTime = 0.2f,
+        };
+        private static readonly JudgeTime hardTime = new JudgeTime
+        {
+            bTime = 0.08f,
+            gTime = 0.04f,
+            judgeTime = 0.16f,
+        };
+        public static JudgeTime JudgeTime => GlobalSetting.useCourseMode ? hardTime : easyTime;
         private float alphaVal = 0;
         private NativeArray<float> floorPosArray;
         [NonSerialized] public int ID;
@@ -161,10 +174,7 @@ namespace MainCore
                     virtualPosYVersion1 += (b.endTime - b.startTime) * b.value;
                 }
             }
-
-            JudgeTime.bTime = 0.16f;
-            JudgeTime.gTime = 0.08f;
-            JudgeTime.judgeTime = 0.2f;
+            
             transform.localScale = TargetScale;
             for (int i = 0; i < 20; i++)
                 PositionX.Add(0f);

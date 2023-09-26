@@ -42,6 +42,7 @@ namespace Network.Multiplayer.Data
             if (socket.Available > 0) goto qwq;
 
             string s = NoBomUtf8Encoding.GetString(dataList.ToArray());
+            Debug.Log("接收到：" + s);
             return SplitSocketPacks(s);
         }
 
@@ -62,19 +63,19 @@ namespace Network.Multiplayer.Data
                     if (!isInString) throw new ArgumentException();
                     zhuanYi = !zhuanYi;
                 }
-                else if (element == "\"")
+                else
                 {
-                    if (zhuanYi)
+                    if (element == "\"")
                     {
-                        zhuanYi = false;
+                        if (!zhuanYi)
+                            isInString = !isInString;
                     }
-                    else
-                        isInString = !isInString;
-                }
-                else if (!isInString)
-                {
-                    if (element == "{") j++;
-                    if (element == "}") j--;
+                    else if (!isInString)
+                    {
+                        if (element == "{") j++;
+                        if (element == "}") j--;
+                    }
+                    zhuanYi = false;
                 }
 
                 stringBuilder.Append(element);

@@ -96,7 +96,7 @@ namespace MainCore
                 }
 
                 if (parentLine.PgrTime >=
-                    Note.time + Math.Max(0, Note.holdTime - parentLine.JudgeTime.judgeTime) && !holdOK)
+                    Note.time + Math.Max(0, Note.holdTime - JudgeLineMovement.JudgeTime.judgeTime) && !holdOK)
                 {
                     GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
                     holdOK = true;
@@ -119,7 +119,7 @@ namespace MainCore
                 JudgeHold();
             if (Note.time <= parentLine.PgrTime)
             {
-                if (parentLine.PgrTime - Note.time >= parentLine.JudgeTime.bTime && !holdCatched &&
+                if (parentLine.PgrTime - Note.time >= JudgeLineMovement.JudgeTime.bTime && !holdCatched &&
                     !GlobalSetting.autoPlay)
                 {
                     holdMissed = true;
@@ -142,7 +142,7 @@ namespace MainCore
                 else if (parentLine.PgrTime >= Note.time + .2f) destroyed = true;
             }
 
-            if (Note.time - parentLine.PgrTime < -parentLine.JudgeTime.bTime && !holdCatched &&
+            if (Note.time - parentLine.PgrTime < -JudgeLineMovement.JudgeTime.bTime && !holdCatched &&
                 status == NoteStat.None) //没接住miss
             {
                 GlobalSetting.scoreCounter.Add(NoteStat.Miss);
@@ -213,13 +213,13 @@ namespace MainCore
                 if (!holdCatched && f.IsFirstClick)
                 {
                     f.ClearTapFlag();
-                    if (deltaTime > parentLine.JudgeTime.gTime)
+                    if (deltaTime > JudgeLineMovement.JudgeTime.gTime)
                     {
                         status = NoteStat.Early;
                         //GlobalSetting.scoreCounter.early++;
                         GlobalSetting.PlayNoteSound(notetype);
                     }
-                    else if (deltaTime > -parentLine.JudgeTime.gTime)
+                    else if (deltaTime > -JudgeLineMovement.JudgeTime.gTime)
                     {
                         status = NoteStat.Perfect;
                         GlobalSetting.PlayNoteSound(notetype);
@@ -259,7 +259,7 @@ namespace MainCore
 
         private void JudgeHold()
         {
-            if (Note.time + Note.holdTime - parentLine.JudgeTime.judgeTime <= parentLine.PgrTime)
+            if (Note.time + Note.holdTime - JudgeLineMovement.JudgeTime.judgeTime <= parentLine.PgrTime)
             {
                 holdOK = true;
                 GlobalSetting.scoreCounter.Add(status);
@@ -284,7 +284,7 @@ namespace MainCore
             {
                 releaseCounter += Time.deltaTime;
                 holdCatched = true;
-                if (releaseCounter > parentLine.JudgeTime.gTime)
+                if (releaseCounter > JudgeLineMovement.JudgeTime.gTime)
                 {
                     holdCatched = false;
                     holdMissed = true;
