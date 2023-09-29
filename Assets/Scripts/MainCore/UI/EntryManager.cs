@@ -34,11 +34,12 @@ namespace MainCore.UI
         private async Task<bool> InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
-            LoginManagerOld.ReadAccountFromPlayerPrefs();
+            // LoginManagerOld.ReadAccountFromPlayerPrefs();
             bool succeeded = await RepAPI.Init();
             if (!succeeded)
             {
-                InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
+                Debug.Log("我是扇贝");
+                // InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
             }
             else
             {

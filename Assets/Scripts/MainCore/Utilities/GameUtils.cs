@@ -454,6 +454,11 @@ namespace MainCore.Utilities
                 {
                     InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
                 }
+                catch (Exception)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息", () => { }, "确认");
+                }
+
             }
 
             var infoPath = Path.Combine(directory, "info.txt");

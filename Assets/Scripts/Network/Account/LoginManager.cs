@@ -55,7 +55,16 @@ namespace Network.Account
             }
 
             GenerateDropdown();
-            if (accountInfos.Count == 0) Create();
+
+            if (accountInfos.Count == 0)
+            {
+                createButton.IsOn = true;
+                createButton.Interactable = false;
+            }
+            else
+            {
+                createButton.IsOn = false;
+            }
         }
 
 
