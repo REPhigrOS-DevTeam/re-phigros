@@ -64,6 +64,8 @@ namespace MainCore
         public static string illustrator;
         public static bool isMultiplayer;
         public static InfoType infoType = InfoType.Empty;
+        public static string username;
+        public static string verifyToken;
 
         public static YayaMode YayaKawaii = YayaMode.冲;
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;

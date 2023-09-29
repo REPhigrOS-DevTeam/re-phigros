@@ -9,7 +9,8 @@ namespace MainCore.Common
     {
         private Button button;
         private Text buttonText;
-        public Action<Button, Text, bool> OnValueChanged = (_, _, _) => {};
+        public Action<bool> OnValueChanged = _ => {};
+        public string onOnLabel, onOffLabel;
         private bool isOn;
         public bool IsOn
         {
@@ -35,7 +36,8 @@ namespace MainCore.Common
         {
             if (button == null) Awake();
             isOn = value;
-            OnValueChanged.Invoke(button, buttonText, value);
+            buttonText.text = isOn ? onOnLabel : onOffLabel;
+            OnValueChanged.Invoke(value);
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => ChangeValue(!value));
         }

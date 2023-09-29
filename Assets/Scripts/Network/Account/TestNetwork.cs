@@ -16,7 +16,7 @@ namespace Network.Account
             return;
             Task.Run(async () =>
             {
-                LoginManager.ReadAccountFromPlayerPrefs();
+                LoginManagerOld.ReadAccountFromPlayerPrefs();
                 if (await RepAPI.Init())
                 {
                     button1.onClick.AddListener(Request);
@@ -33,12 +33,12 @@ namespace Network.Account
             //if (!api.IsLoggedIn())
             {
                 Debug.Log("Logging in...");
-                await LoginManager.Login("Debug", "RepRunDebug2023");
+                await LoginManagerOld.Login("Debug", "RepRunDebug2023");
             }
             //else
             {
                 Debug.Log("Verifying...");
-                await LoginManager.Verify();
+                await LoginManagerOld.Verify();
             }
         }
     }

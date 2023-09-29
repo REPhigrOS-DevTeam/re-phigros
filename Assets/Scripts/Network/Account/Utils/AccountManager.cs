@@ -16,24 +16,26 @@ namespace Network.Account.Utils
             {
                 accountInfos.Add(new AccountInfo(lines[i], lines[i+1]));
             }
+            accountInfos.Reverse();
             return accountInfos;
         }
 
         public static void SaveAccountList(List<AccountInfo> accountInfos)
         {
-            PlayerPrefs.SetString(Key, string.Join("\n", accountInfos.Select(info => $"{info.Username}\n{info.LoginToken}")));
+            accountInfos.Reverse();
+            PlayerPrefs.SetString(Key, string.Join("\n", accountInfos.Select(info => $"{info.Username}\n{info.VerifyToken}")));
             PlayerPrefs.Save();
         }
 
         public class AccountInfo
         {
             public string Username;
-            public string LoginToken;
+            public string VerifyToken;
 
-            public AccountInfo(string username = "", string loginToken = "")
+            public AccountInfo(string username = "", string verifyToken = "")
             {
                 Username = username;
-                LoginToken = loginToken;
+                VerifyToken = verifyToken;
             }
         }
     }

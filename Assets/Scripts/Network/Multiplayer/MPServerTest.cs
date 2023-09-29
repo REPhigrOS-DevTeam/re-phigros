@@ -45,7 +45,7 @@ public class MPServerTest : MonoBehaviour
     private static int? unityThreadId;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
-    public GameObject sendMask, downloadMask;
+    public GameObject sendMask, downloadMask, uploadMask;
 
     private Dictionary<GameObject, RoomState> buttonToState = new();
 
@@ -111,6 +111,8 @@ public class MPServerTest : MonoBehaviour
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
+        bReady.onOnLabel = "取消准备";
+        bReady.onOffLabel = "准备";
         bReady.OnValueChanged += OnReadyButtonValueChanged;
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() =>
@@ -123,7 +125,12 @@ public class MPServerTest : MonoBehaviour
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }
 
-            FileBrowser.ShowLoadDialog(OnGetFileSuccess, () => { }, FileBrowser.PickMode.Folders, false,
+            uploadMask.SetActive(true);
+            FileBrowser.ShowLoadDialog(paths =>
+                {
+                    OnGetFileSuccess(paths);
+                    uploadMask.SetActive(false);
+                }, () => {uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false,
                 PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传");
         });
         bDownloadSong.onClick.AddListener(Download);
@@ -227,9 +234,8 @@ public class MPServerTest : MonoBehaviour
         downloadMask.SetActive(false);
     }
 
-    private void OnReadyButtonValueChanged(Button button, Text text, bool isOn)
+    private void OnReadyButtonValueChanged(bool isOn)
     {
-        text.text = isOn ? "取消准备" : "准备";
         if (isOn)
             SocketManager.Ready();
         else

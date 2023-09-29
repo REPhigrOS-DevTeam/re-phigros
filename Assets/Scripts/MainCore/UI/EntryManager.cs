@@ -34,7 +34,7 @@ namespace MainCore.UI
         private async Task<bool> InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
-            LoginManager.ReadAccountFromPlayerPrefs();
+            LoginManagerOld.ReadAccountFromPlayerPrefs();
             bool succeeded = await RepAPI.Init();
             if (!succeeded)
             {

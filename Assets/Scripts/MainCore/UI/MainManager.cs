@@ -40,7 +40,7 @@ namespace MainCore.UI
             Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
 
             usernameText.text =
-                $"{PlayerPrefs.GetString("player_name", "kagari939")}\n<size=55>@{LoginManager.Username}</size>";
+                $"{PlayerPrefs.GetString("player_name", "kagari939")}\n<size=55>@{GlobalSetting.username}</size>";
             avatarBackGround.sizeDelta = new Vector2(234 + 5 + 42 + usernameText.preferredWidth, 240f);
         }
     }

@@ -75,6 +75,7 @@ namespace Network.Multiplayer.Data
                         if (element == "{") j++;
                         if (element == "}") j--;
                     }
+
                     zhuanYi = false;
                 }
 

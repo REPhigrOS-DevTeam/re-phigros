@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
+using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
 using Network.Account;
@@ -188,8 +189,8 @@ namespace Network.Multiplayer.Managers
                 LoginSendData pack = new LoginSendData
                 {
                     Operate = currentClientOperate.ToString(),
-                    Username = LoginManager.Username,
-                    VerifyToken = LoginManager.VerifyToken
+                    Username = GlobalSetting.username,
+                    VerifyToken = GlobalSetting.verifyToken
                 };
                 socket.Send(pack);
                 return 0;
@@ -368,7 +369,7 @@ namespace Network.Multiplayer.Managers
         {
             SendDataWithToken pack = new SendDataWithToken
             {
-                Username = LoginManager.Username,
+                Username = GlobalSetting.username,
                 LoginToken = token
             };
             return pack;
@@ -616,7 +617,7 @@ namespace Network.Multiplayer.Managers
                     else
                     {
                         ChatManager.AddMessage(receive.Author, receive.Message,
-                            receive.Author == LoginManager.Username ? MessageType.Self : MessageType.Common);
+                            receive.Author == GlobalSetting.username ? MessageType.Self : MessageType.Common);
                     }
 
                     break;
