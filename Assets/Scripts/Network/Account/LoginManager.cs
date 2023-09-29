@@ -50,6 +50,7 @@ namespace Network.Account
                 AccountManager.SaveAccountList(accountInfos);
                 PlayerPrefs.DeleteKey("repapi_playername");
                 PlayerPrefs.DeleteKey("repapi_verifytoken");
+                PlayerPrefs.DeleteKey("repapi_rememberme");
                 PlayerPrefs.Save();
             }
 
