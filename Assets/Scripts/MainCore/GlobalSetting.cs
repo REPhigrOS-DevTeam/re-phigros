@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CsvHelper;
 using MainCore.Utilities;
 using UnityEngine;
 using Utilities;
@@ -103,8 +104,6 @@ namespace MainCore
 
         public static Skin Skin = Skin.StarPinkXz;
 
-        public static bool IsPhira;
-
         public static bool useCourseMode = false;
 
         public static void PlayNoteSound(int notetype)
@@ -150,7 +149,6 @@ namespace MainCore
             HitEffectManager.GetInstance().Reset();
             NotePool.GetInstance().Reset();
             lineImage = null;
-            IsPhira = false;
             composer = "Unknown";
             charter = "Unknown";
             illustrator = "Unknown";

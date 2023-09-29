@@ -374,21 +374,21 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0)
-            {
-                GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
-                    rpeChartData.META.song);
-                GlobalSetting.illustrationPath =
-                    Path.Combine(GlobalSetting.chartFolderPath, rpeChartData.META.background);
-                GlobalSetting.charter = rpeChartData.META.charter;
-                GlobalSetting.composer = rpeChartData.META.composer;
-                GlobalSetting.illustrator = "Unknown";
-                if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 && GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
-                {
-                    GlobalSetting.chartName = rpeChartData.META.name;
-                    GlobalSetting.difficulty = rpeChartData.META.level;
-                }
-            }
+            // if (rpeChartData.META.RPEVersion >= 0)
+            // {
+            //     GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
+            //         rpeChartData.META.song);
+            //     GlobalSetting.illustrationPath =
+            //         Path.Combine(GlobalSetting.chartFolderPath, rpeChartData.META.background);
+            //     GlobalSetting.charter = rpeChartData.META.charter;
+            //     GlobalSetting.composer = rpeChartData.META.composer;
+            //     GlobalSetting.illustrator = "Unknown";
+            //     if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 && GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
+            //     {
+            //         GlobalSetting.chartName = rpeChartData.META.name;
+            //         GlobalSetting.difficulty = rpeChartData.META.level;
+            //     }
+            // }
 
             //Convert BPM
             rpeChartData.BPMList.OrderBy(x => Frac(x.startTime)).ToList().ForEach(x =>

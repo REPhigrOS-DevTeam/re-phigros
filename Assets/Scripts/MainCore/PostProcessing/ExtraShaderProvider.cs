@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MainCore.Data;
+using MainCore.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -31,6 +32,8 @@ namespace MainCore.PostProcessing
             Arrangement();
             foreach (var e in data.effects)
             {
+                e.shader = e.shader.Substring(e.shader.Replace('\\', '/')
+                    .IndexOf("/", StringComparison.InvariantCulture) + 1).FirstToLowerInvariant();
                 LoadShader(e.shader);
                 e.varTypes = new Effect.ExtraPropertyType[e.vars.Count];
                 int i = 0;

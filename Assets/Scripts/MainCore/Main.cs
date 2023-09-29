@@ -586,39 +586,14 @@ namespace MainCore
             }
         }
 
-        public static void OverloadInfoWithPhiraYaml(PhiraInfoData phiraInfoData)
+        public static void ApplyPhiraOffset(PhiraInfoData phiraInfoData)
         {
             if (phiraInfoData == null)
             {
-                GlobalSetting.IsPhira = false;
                 return;
             }
 
             json.offset += phiraInfoData.offset;
-
-
-            if (!string.IsNullOrEmpty(phiraInfoData.music))
-            {
-                GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
-                    phiraInfoData.music);
-            }
-
-            if (!string.IsNullOrEmpty(phiraInfoData.illustration))
-            {
-                GlobalSetting.illustrationPath =
-                    Path.Combine(GlobalSetting.chartFolderPath, phiraInfoData.illustration);
-            }
-
-            GlobalSetting.IsPhira = true;
-            GlobalSetting.charter = LoadIntoManager.Charter = phiraInfoData.charter;
-            GlobalSetting.composer = LoadIntoManager.Composer = phiraInfoData.composer;
-            GlobalSetting.illustrator = LoadIntoManager.Illustrator = phiraInfoData.illustrator;
-            if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 &&
-                GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
-            {
-                GlobalSetting.chartName = phiraInfoData.name;
-                GlobalSetting.difficulty = phiraInfoData.level;
-            }
         }
 
 #if UNITY_EDITOR

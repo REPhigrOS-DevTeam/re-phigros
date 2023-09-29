@@ -46,22 +46,9 @@ namespace MainCore.UI
                 difficultyNumber.text = GlobalSetting.difficulty;
             }
 
-            if (!GlobalSetting.IsPhira)
-            {
-                if (GlobalSetting.formatVersion == 1919810)
-                {
-                    Charter = GlobalSetting.charter;
-                    Composer = GlobalSetting.composer;
-                    Illustrator = GlobalSetting.illustrator;
-                }else
-                if (GlobalSetting.infoTxt != null)
-                {
-                    Charter = GlobalSetting.infoTxt.GetCharter();
-                    Composer = GlobalSetting.infoTxt.GetComposer();
-                    Illustrator = GlobalSetting.infoTxt.GetIllustrator();
-                }
-            }
-
+            Charter = GlobalSetting.charter;
+            Composer = GlobalSetting.composer;
+            Illustrator = GlobalSetting.illustrator;
 
             charter.text = Charter;
             composer.text = Composer;

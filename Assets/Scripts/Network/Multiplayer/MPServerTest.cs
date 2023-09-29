@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore;
 using MainCore.Common;
@@ -114,7 +117,8 @@ public class MPServerTest : MonoBehaviour
         {
             async void OnGetFileSuccess(string[] paths)
             {
-                int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]), SongType.rep);
+                int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]),
+                    SongType.rep);
                 if (state == 0) return;
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }
@@ -146,19 +150,17 @@ public class MPServerTest : MonoBehaviour
         };
         SocketManager.OnQuitRoomSucceeded += () =>
         {
-            SetButtonState(RoomState.NotInRoom); 
+            SetButtonState(RoomState.NotInRoom);
             selectedSongId = "";
             selectedSongType = SongType.empty;
         };
         SocketManager.OnSendPrepared += clientOperate =>
         {
-            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer or ClientOperate.Room_UpdateSong) return;
+            if (clientOperate is ClientOperate.Room_SendMessage or ClientOperate.User_LoginToServer
+                or ClientOperate.Room_UpdateSong) return;
             sendMask.SetActive(true);
         };
-        SocketManager.OnBackReceived += clientOperate =>
-        {
-            sendMask.SetActive(false);
-        };
+        SocketManager.OnBackReceived += clientOperate => { sendMask.SetActive(false); };
         SocketManager.OnUpdateSongReceived += OnSongReceived;
         SocketManager.OnGameStarted += EnterGame;
         sendMask.SetActive(false);
@@ -168,13 +170,15 @@ public class MPServerTest : MonoBehaviour
             loginObj.SetActive(false);
             SetButtonState(SocketManager.GetRoomId() == "" ? RoomState.NotInRoom :
                 SocketManager.IsOwner ? RoomState.RoomOwner : RoomState.RoomMember);
-            SetDownloaded(downloaded && SocketManager.GetSongId() == selectedSongId && SocketManager.GetSongType() == selectedSongType);
+            SetDownloaded(downloaded && SocketManager.GetSongId() == selectedSongId &&
+                          SocketManager.GetSongType() == selectedSongType);
             // if (SocketManager.GetRoomId() != "") SocketManager.GetSong();
         }
         else
         {
             SetButtonState(RoomState.NotInRoom);
         }
+
         GlobalSetting.Reset();
     }
 
@@ -207,12 +211,16 @@ public class MPServerTest : MonoBehaviour
         downloadMask.SetActive(true);
         if (await DownloadSong())
         {
-            ChatManager.AddMessage("downloadSucceeded", $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}", MessageType.Server);
+            ChatManager.AddMessage("downloadSucceeded",
+                $"成功从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}",
+                MessageType.Server);
             SetDownloaded(true);
         }
         else
         {
-            ChatManager.AddMessage("downloadFailed", $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范", MessageType.Error);
+            ChatManager.AddMessage("downloadFailed",
+                $"错误：无法从{selectedSongType switch { SongType.rep => "官方谱面服务器", SongType.Phizone => "PhiZone谱面服务器", SongType.empty => throw new ArgumentOutOfRangeException(), _ => throw new ArgumentOutOfRangeException() }}下载谱面{selectedSongId}，或谱面文件不规范",
+                MessageType.Error);
             SetDownloaded(false);
         }
 
@@ -305,7 +313,7 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> ProcessChart(string directory)
     {
 #if true
-                // phira info
+        // phira info
         string phiraInfoPath = directory + "/info.yml";
         phiraInfoData = null;
         if (File.Exists(phiraInfoPath))
@@ -315,23 +323,33 @@ public class MPServerTest : MonoBehaviour
             GlobalSetting.difficulty = phiraInfoData.level;
         }
 
-        bool hasInfo = false;
+        string lchzhInfoPath = directory + "/info.csv";
+        LchzhInfo lchzhInfo = null;
+        if (File.Exists(lchzhInfoPath))
+        {
+            CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
+                new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    HasHeaderRecord = false
+                });
+            try
+            {
+                lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+            }
+            catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+            {
+                InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+            }
+        }
+
         // info init
-        if (phiraInfoData == null)
+        GlobalSetting.infoTxt = null;
+        if (phiraInfoData == null && lchzhInfo == null)
         {
             var infoPath = directory + "/info.txt";
             if (File.Exists(infoPath))
             {
-                hasInfo = true;
                 GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
-                GlobalSetting.chartName = GlobalSetting.infoTxt.GetName();
-                GlobalSetting.difficulty = GlobalSetting.infoTxt.GetDifficulty();
-            }
-            else
-            {
-                GlobalSetting.infoTxt = null;
-                GlobalSetting.chartName = "Unknown";
-                GlobalSetting.difficulty = "SP  Lv.?";
             }
         }
 
@@ -342,7 +360,7 @@ public class MPServerTest : MonoBehaviour
             GlobalSetting.chartPath = directory + "/" +
                                       (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
                                           ? phiraInfoData.chart
-                                          : hasInfo
+                                          : GlobalSetting.infoTxt != null
                                               ? GlobalSetting.infoTxt.GetChartFileName()
                                               : Path.GetFileName(Directory.GetFiles(directory)
                                                   .Where(s => new List<string> { ".json", ".pec" }.Contains(
@@ -350,7 +368,7 @@ public class MPServerTest : MonoBehaviour
             GlobalSetting.musicPath = directory + "/" +
                                       (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
                                           ? phiraInfoData.music
-                                          : hasInfo
+                                          : GlobalSetting.infoTxt != null
                                               ? GlobalSetting.infoTxt.GetSongFileName()
                                               : Path.GetFileName(Directory.GetFiles(directory)
                                                   .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
@@ -358,7 +376,7 @@ public class MPServerTest : MonoBehaviour
             GlobalSetting.illustrationPath = directory + "/" +
                                              (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.illustration)
                                                  ? phiraInfoData.illustration
-                                                 : hasInfo
+                                                 : GlobalSetting.infoTxt != null
                                                      ? GlobalSetting.infoTxt.GetIllustrationFileName()
                                                      : Path.GetFileName(Directory.GetFiles(directory)
                                                          .Where(s => new List<string>
@@ -375,19 +393,41 @@ public class MPServerTest : MonoBehaviour
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
 
+        GlobalSetting.chartName =
+            phiraInfoData != null
+                ? phiraInfoData.name
+                : lchzhInfo != null
+                    ? lchzhInfo.Name
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetName()
+                        : "Unknown";
+        GlobalSetting.difficulty =
+            phiraInfoData != null
+                ? phiraInfoData.level
+                : lchzhInfo != null
+                    ? lchzhInfo.Level
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetDifficulty()
+                        : "SP  LV.?";
         GlobalSetting.charter = phiraInfoData != null
             ? phiraInfoData.charter
-            : hasInfo
-                ? GlobalSetting.infoTxt.GetCharter()
-                : "Unknown";
+            : lchzhInfo != null
+                ? lchzhInfo.Charter
+                : GlobalSetting.infoTxt != null
+                    ? GlobalSetting.infoTxt.GetCharter()
+                    : "Unknown";
         GlobalSetting.composer = phiraInfoData != null
             ? phiraInfoData.composer
-            : hasInfo
-                ? GlobalSetting.infoTxt.GetComposer()
-                : "Unknown";
+            : lchzhInfo != null
+                ? lchzhInfo.Artist
+                : GlobalSetting.infoTxt != null
+                    ? GlobalSetting.infoTxt.GetComposer()
+                    : "Unknown";
         GlobalSetting.illustrator = phiraInfoData != null
             ? phiraInfoData.illustrator
-            : "Unknown";
+            : lchzhInfo != null
+                ? lchzhInfo.Illustrator
+                : "Unknown";
         // extra init
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath))
@@ -399,7 +439,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         GlobalSetting.chartFolderPath = directory;
         await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
-        Main.OverloadInfoWithPhiraYaml(phiraInfoData);
+        Main.ApplyPhiraOffset(phiraInfoData);
         // convert illustration & music
         await UniTask.SwitchToMainThread();
         GlobalSetting.backgroundImage =

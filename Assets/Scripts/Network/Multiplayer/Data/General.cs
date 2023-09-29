@@ -191,6 +191,18 @@ namespace Network.Multiplayer.Data
         [JsonProperty("operate")] public string Operate;
     }
 
+    public class SongInfo
+    {
+        [JsonIgnore] public string Id;
+        [JsonProperty("FolderName")] public string FolderName;
+        [JsonProperty("SongName")] public string SongName;
+        [JsonProperty("SongComposer")] public string SongComposer;
+        [JsonProperty("SongDifficulty")] public string SongDifficulty;
+        [JsonProperty("SongCharter")] public string SongCharter;
+        [JsonProperty("SongIllustrator")] public string SongIllustrator;
+        [JsonProperty("MusicLength")] public float MusicLength;
+    }
+
     public enum ClientOperate
     {
         User_LoginToServer = 0,

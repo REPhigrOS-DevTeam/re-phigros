@@ -1,10 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using MainCore;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using CsvHelper;
+using CsvHelper.Configuration;
+using Cysharp.Threading.Tasks;
 using MainCore.Data;
+using Network.Multiplayer.Data;
 using UnityEngine;
+using YamlDotNet.Serialization;
 
-namespace Utilities
+namespace MainCore.Utilities
 {
     public static class GameUtils
     {
@@ -15,7 +22,7 @@ namespace Utilities
             get
             {
 #if UNITY_EDITOR
-                _screenDelta = Mathf.Min((float) Screen.width / Screen.height * 0.5625f, 1f);
+                _screenDelta = Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
 #else
                 if (_screenDelta < 0)
                     _screenDelta = Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
@@ -41,7 +48,7 @@ namespace Utilities
         public static bool ResetDSPBuffer(float pow)
         {
             var config = AudioSettings.GetConfiguration();
-            config.dspBufferSize = (int) Math.Pow(2, (int) pow);
+            config.dspBufferSize = (int)Math.Pow(2, (int)pow);
             return AudioSettings.Reset(config);
         }
 
@@ -51,10 +58,22 @@ namespace Utilities
             Main.Mian.TEST_COUNT++;
 #endif
         }
-        
+
         public static void Print(this Exception exception)
         {
             Debug.LogException(exception);
+        }
+
+        public static LchzhInfo GetInfoCsv(string path)
+        {
+            CsvReader csvReader = new CsvReader(new StreamReader(path),
+                new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    HasHeaderRecord = false
+                });
+            LchzhInfo info = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+            csvReader.Dispose();
+            return info;
         }
 
         #region TEMPPPP
@@ -340,5 +359,114 @@ namespace Utilities
         }
 
         #endregion
+
+        public static async UniTask<SongInfo> GetSongInfo(string directory)
+        {
+            string phiraInfoPath = directory + "/info.yml";
+            PhiraInfoData phiraInfoData = null;
+            if (File.Exists(phiraInfoPath))
+            {
+                IDeserializer deserializer = new DeserializerBuilder().Build();
+                phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+            }
+
+            string lchzhInfoPath = directory + "/info.csv";
+            LchzhInfo lchzhInfo = null;
+            if (File.Exists(lchzhInfoPath))
+            {
+                CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
+                    new CsvConfiguration(CultureInfo.InvariantCulture)
+                    {
+                        HasHeaderRecord = false
+                    });
+                try
+                {
+                    lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+                }
+                catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                }
+            }
+
+            InfoTxtReader infoTxtReader = null;
+            // info init
+            if (phiraInfoData == null)
+            {
+                var infoPath = directory + "/info.txt";
+                if (File.Exists(infoPath))
+                {
+                    infoTxtReader = new InfoTxtReader(infoPath);
+                }
+            }
+
+            string musicPath = directory + "/" +
+                               (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
+                                   ? phiraInfoData.music
+                                   : lchzhInfo != null
+                                       ? lchzhInfo.Music
+                                       : infoTxtReader != null
+                                           ? infoTxtReader.GetSongFileName()
+                                           : Path.GetFileName(Directory.GetFiles(directory)
+                                               .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+                                                   Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+
+            float musicLength = (await Util.ReadMusicAsAudioClip(musicPath)).length;
+            return new SongInfo
+            {
+                FolderName = Path.GetFileName(directory),
+                SongName = phiraInfoData != null ? phiraInfoData.name :
+                    lchzhInfo != null ? lchzhInfo.Name :
+                    infoTxtReader != null ? infoTxtReader.GetName() : Path.GetFileNameWithoutExtension(Directory
+                        .GetFiles(directory)
+                        .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+                            Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]),
+                SongComposer = phiraInfoData != null ? phiraInfoData.composer :
+                    lchzhInfo != null ? lchzhInfo.Artist :
+                    infoTxtReader != null ? infoTxtReader.GetComposer() : "Unknown",
+                SongDifficulty = phiraInfoData != null ? phiraInfoData.level :
+                    lchzhInfo != null ? lchzhInfo.Level :
+                    infoTxtReader != null ? infoTxtReader.GetDifficulty() : "SP  Lv.?",
+                SongCharter = phiraInfoData != null ? phiraInfoData.charter :
+                    lchzhInfo != null ? lchzhInfo.Charter :
+                    infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
+                SongIllustrator = phiraInfoData != null ? phiraInfoData.illustrator :
+                    lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
+                MusicLength = musicLength
+            };
+        }
+    }
+
+    public class LchzhInfo
+    {
+        [CsvHelper.Configuration.Attributes.Name("Music")]
+        public string Music { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Image")]
+        public string Image { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Name")]
+        public string Name { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Artist")]
+        public string Artist { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Level")]
+        public string Level { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Illustrator")]
+        public string Illustrator { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("Charter")]
+        public string Charter { get; set; }
+
+        [CsvHelper.Configuration.Attributes.Name("AspectRatio")]
+        public double? AspectRatio { get; set; } = 16f / 9f;
+
+        [CsvHelper.Configuration.Attributes.Name("NoteScale")]
+        public double? NoteScale { get; set; } = 1f;
+
+        [CsvHelper.Configuration.Attributes.Name("GlobalAlpha")]
+        public double? GlobalAlpha { get; set; } = 0.6f;
     }
 }

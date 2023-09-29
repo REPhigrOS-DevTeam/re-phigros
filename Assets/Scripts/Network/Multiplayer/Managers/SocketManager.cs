@@ -278,11 +278,13 @@ namespace Network.Multiplayer.Managers
             }
         }
 
-        public static int UpdateSong(string songId, SongType type)
+        public static int UpdateSong(string songId, SongType type, SongInfo songInfo = null)
         {
+            if (type == SongType.empty) return -4; // ????
             SendDataWithToken pack = GetSendDataWithToken();
             pack.Addition.Add("songId", songId);
             pack.Addition.Add("songType", type.ToString());
+            pack.Addition.Add("songInfo", type == SongType.rep ? JsonConvert.SerializeObject(songInfo, Formatting.None) : null);
             return GeneralSend(ClientOperate.Room_UpdateSong, pack);
         }
 

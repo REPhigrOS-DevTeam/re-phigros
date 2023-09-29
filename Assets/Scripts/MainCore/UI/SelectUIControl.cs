@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Data;
@@ -49,7 +52,7 @@ namespace MainCore.UI
                 PlayerPrefs.GetString("difficultyName", "SP Lv.?");
             chartNameUI.GetComponent<InputField>().text = PlayerPrefs.GetString("chartName", "Untitled");
             RefreshGameFolder();
-            
+
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_sou)
             {
                 titleButton.onClick.AddListener(() =>
@@ -82,6 +85,7 @@ namespace MainCore.UI
                     SceneTransit.Instance.LoadScene(Random.Range(0, 100) < 50 ? "WahtThe" : "About");
                 });
             }
+
             GlobalSetting.Reset();
         }
 
@@ -100,12 +104,15 @@ namespace MainCore.UI
             GlobalSetting.isMultiplayer = false;
 
             loading = false;
-            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.illustrationPath), out Exception exception);
+            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.illustrationPath),
+                out Exception exception);
             if (exception != null)
             {
-                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace, () => { }, "确认");
+                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace,
+                    () => { }, "确认");
                 return;
             }
+
             GlobalSetting.backgroundImage = sprite;
 
             UniTask a = UniTask.Create(async () =>
@@ -158,8 +165,69 @@ namespace MainCore.UI
                 phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
                 GameObject.Find("DiffInput").GetComponent<InputField>().text = phiraInfoData.level;
             }
-            
-            GlobalSetting.chartName = chartNameUI.GetComponent<InputField>().text.Trim();
+
+            string lchzhInfoPath = Path.Combine(tempPath, "info.csv");
+            LchzhInfo lchzhInfo = null;
+            if (File.Exists(lchzhInfoPath))
+            {
+                CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
+                    new CsvConfiguration(CultureInfo.InvariantCulture)
+                    {
+                        HasHeaderRecord = false
+                    });
+                try
+                {
+                    lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+                }
+                catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                }
+            }
+
+            GlobalSetting.infoTxt = null;
+            var infoPath = Path.Combine(tempPath, "info.txt");
+            if (File.Exists(infoPath))
+            {
+                GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
+            }
+
+            GlobalSetting.chartName =
+                phiraInfoData != null
+                    ? phiraInfoData.name
+                    : lchzhInfo != null
+                        ? lchzhInfo.Name
+                        : GlobalSetting.infoTxt != null
+                            ? GlobalSetting.infoTxt.GetName()
+                            : chartNameUI.GetComponent<InputField>().text.Trim();
+            GlobalSetting.difficulty =
+                phiraInfoData != null
+                    ? phiraInfoData.level
+                    : lchzhInfo != null
+                        ? lchzhInfo.Level
+                        : GlobalSetting.infoTxt != null
+                            ? GlobalSetting.infoTxt.GetDifficulty()
+                            : GameObject.Find("DiffInput").GetComponent<InputField>().text;
+            GlobalSetting.charter = phiraInfoData != null
+                ? phiraInfoData.charter
+                : lchzhInfo != null
+                    ? lchzhInfo.Charter
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetCharter()
+                        : "Unknown";
+            GlobalSetting.composer = phiraInfoData != null
+                ? phiraInfoData.composer
+                : lchzhInfo != null
+                    ? lchzhInfo.Artist
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetComposer()
+                        : "Unknown";
+            GlobalSetting.illustrator = phiraInfoData != null
+                ? phiraInfoData.illustrator
+                : lchzhInfo != null
+                    ? lchzhInfo.Illustrator
+                    : "Unknown";
+
 //#if UNITY_EDITOR || UNITY_STANDALONE_WIN
 //            GlobalSetting.chartpath = tempPath + "\\" + chartPathDropdown.captionText.text;
 //            GlobalSetting.musicPath = tempPath + "\\" + musicPathDropdown.captionText.text;
@@ -167,36 +235,33 @@ namespace MainCore.UI
 //#else
             //tempPath = Path.Combine(internalPath, tempPath.Substring(tempPath.IndexOf("/0") + 2, tempPath.Length));
             // chart settings
-            GlobalSetting.chartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text).Replace('\\', '/');
-            GlobalSetting.musicPath = Path.Combine(tempPath, musicPathDropdown.captionText.text).Replace('\\', '/');
-            GlobalSetting.illustrationPath =
-                Path.Combine(tempPath, illustrationPathDropdown.captionText.text).Replace('\\', '/');
+            GlobalSetting.chartPath = Path.Combine(tempPath,
+                phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
+                    ? phiraInfoData.chart
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetChartFileName()
+                        : chartPathDropdown.captionText.text);
+            GlobalSetting.musicPath = Path.Combine(tempPath,
+                phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
+                    ? phiraInfoData.music
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetSongFileName()
+                        : musicPathDropdown.captionText.text);
+            GlobalSetting.illustrationPath = Path.Combine(tempPath,
+                phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.illustration)
+                    ? phiraInfoData.illustration
+                    : GlobalSetting.infoTxt != null
+                        ? GlobalSetting.infoTxt.GetIllustrationFileName()
+                        : illustrationPathDropdown.captionText.text);
 //#endif
             PlayerPrefs.SetString("chartFolderPath", tempPath);
             PlayerPrefs.Save();
-            GlobalSetting.difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
             GlobalSetting.ReadUserSettings();
 
             HitSoundManager.Init();
 
-            if (phiraInfoData == null)
-            {
-                var infoPath = Path.Combine(tempPath, "info.txt");
-                if (File.Exists(infoPath))
-                {
-                    GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
-                    GlobalSetting.chartName = GlobalSetting.infoTxt.GetName();
-                    GlobalSetting.difficulty = GlobalSetting.infoTxt.GetDifficulty();
-                }
-                else
-                {
-                    GlobalSetting.infoTxt = null;
-                }
-            }
-            else GlobalSetting.infoTxt = null;
 
-
-            var extraJsonPath = tempPath+ "/extra.json";
+            var extraJsonPath = tempPath + "/extra.json";
             if (File.Exists(extraJsonPath))
             {
                 GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
@@ -210,7 +275,7 @@ namespace MainCore.UI
         {
             GlobalSetting.chartFolderPath = PlayerPrefs.GetString("chartFolderPath", "");
             await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
-            Main.OverloadInfoWithPhiraYaml(phiraInfoData);
+            Main.ApplyPhiraOffset(phiraInfoData);
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
                 (GlobalSetting.composer.ToLowerInvariant().Contains("pepoyo") ||
                  GlobalSetting.composer.Contains("ぺぽよ") || GlobalSetting.composer.Contains("ペポヨ")))

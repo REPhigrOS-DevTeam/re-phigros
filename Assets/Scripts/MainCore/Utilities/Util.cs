@@ -126,5 +126,11 @@ namespace MainCore.Utilities
         {
             return vector2.x / vector2.y;
         }
+
+        public static string FirstToLowerInvariant(this string str)
+        {
+            if (str.Length < 1) return str;
+            return str.Substring(0, 1).ToLowerInvariant() + str.Substring(1);
+        }
     }
 }
