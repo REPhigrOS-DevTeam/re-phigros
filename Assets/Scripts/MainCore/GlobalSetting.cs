@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CsvHelper;
+using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
 using Utilities;
@@ -46,7 +47,6 @@ namespace MainCore
         public static string chart = "";
         public static string extraJson = "";
         public static CSVReader lineImage;
-        public static InfoTxtReader infoTxt;
         public static bool usingApi = false;
         public static bool isMirror;
         public static bool is3D;
@@ -63,6 +63,7 @@ namespace MainCore
         public static string composer;
         public static string illustrator;
         public static bool isMultiplayer;
+        public static InfoType infoType = InfoType.Empty;
 
         public static YayaMode YayaKawaii = YayaMode.冲;
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;
@@ -135,7 +136,6 @@ namespace MainCore
             Playing = false;
             IsEnding = false;
             Paused = false;
-            infoTxt = null;
             YayaKawaii = YayaMode.冲;
             PepoyoDaisuki = PepoyoMode.Waraninja;
             highLightedNotes.Clear();
@@ -152,6 +152,7 @@ namespace MainCore
             composer = "Unknown";
             charter = "Unknown";
             illustrator = "Unknown";
+            infoType = InfoType.Empty;
         }
 
         public static void ReadUserSettings()
@@ -177,5 +178,14 @@ namespace MainCore
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
             useCourseMode = PlayerPrefs.GetInt("use_course_mode", 0) == 1;
         }
+    }
+
+    public enum InfoType
+    {
+        Empty = 0,
+        InfoTxt,
+        RpeJson,
+        InfoCsv,
+        InfoYml
     }
 }

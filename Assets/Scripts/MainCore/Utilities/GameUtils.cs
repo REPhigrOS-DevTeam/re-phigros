@@ -64,18 +64,6 @@ namespace MainCore.Utilities
             Debug.LogException(exception);
         }
 
-        public static LchzhInfo GetInfoCsv(string path)
-        {
-            CsvReader csvReader = new CsvReader(new StreamReader(path),
-                new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    HasHeaderRecord = false
-                });
-            LchzhInfo info = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
-            csvReader.Dispose();
-            return info;
-        }
-
         #region TEMPPPP
 
         public static judgeLineEvent GetEventFromCurrentTime(List<judgeLineEvent> events, float time)
@@ -435,10 +423,55 @@ namespace MainCore.Utilities
                 MusicLength = musicLength
             };
         }
+
+        public static async UniTask<(InfoType, object)> GetInfo(string directory)
+        {
+            string phiraInfoPath = Path.Combine(directory, "info.yml");
+            PhiraInfoData phiraInfoData;
+            if (File.Exists(phiraInfoPath))
+            {
+                IDeserializer deserializer = new DeserializerBuilder().Build();
+                phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                return (InfoType.InfoYml, phiraInfoData);
+            }
+
+            string lchzhInfoPath = Path.Combine(directory, "info.csv");
+            LchzhInfo lchzhInfo;
+            if (File.Exists(lchzhInfoPath))
+            {
+                try
+                {
+                    CsvReader csvReader = new CsvReader(new StreamReader(directory),
+                        new CsvConfiguration(CultureInfo.InvariantCulture)
+                        {
+                            HasHeaderRecord = false
+                        });
+                    lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+                    csvReader.Dispose();
+                    return (InfoType.InfoCsv, lchzhInfo);
+                }
+                catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                }
+            }
+
+            var infoPath = Path.Combine(directory, "info.txt");
+            if (File.Exists(infoPath))
+            {
+                // GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
+                return (InfoType.InfoTxt, new InfoTxtReader(infoPath));
+            }
+
+            return (InfoType.Empty, null);
+        }
     }
 
     public class LchzhInfo
     {
+        [CsvHelper.Configuration.Attributes.Name("Chart")]
+        public string Chart { get; set; }
+
         [CsvHelper.Configuration.Attributes.Name("Music")]
         public string Music { get; set; }
 

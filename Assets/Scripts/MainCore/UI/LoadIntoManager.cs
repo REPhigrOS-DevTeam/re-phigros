@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.IO;
 using MainCore.Common;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -21,7 +23,7 @@ namespace MainCore.UI
         [SerializeField] private Animator slideInto;
         [SerializeField] private Animator cutOut;
         [SerializeField] private AudioClip enter;
-        
+
         public static string Charter { get; set; } = "Unknown";
         public static string Composer { get; set; } = "Unknown";
         public static string Illustrator { get; set; } = "Unknown";
@@ -30,6 +32,18 @@ namespace MainCore.UI
         // Start is called before the first frame update
         void Start()
         {
+
+            if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
+            {
+                GlobalSetting.chartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";
+                GlobalSetting.difficulty = "枇杷油嘿嘿枇杷油";
+            }
+            else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
+            {
+                GlobalSetting.chartName = "夜夜爱的嗫中毒";
+                GlobalSetting.difficulty = "夜夜ღ醉可爱";
+            }
+
             chartName.text = GlobalSetting.chartName;
 
             songCover.sprite = GlobalSetting.backgroundImage;

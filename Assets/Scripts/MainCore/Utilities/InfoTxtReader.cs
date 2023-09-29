@@ -18,8 +18,6 @@ namespace MainCore.Utilities
 
         public string GetCharter() => Get("Charter");
 
-        public string GetIllustrator() => Get("Illustrator");
-
         public string GetDifficulty() => Get("Illustrator");
 
         public string GetName() => Get("Name");

@@ -313,121 +313,124 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> ProcessChart(string directory)
     {
 #if true
-        // phira info
-        string phiraInfoPath = directory + "/info.yml";
-        phiraInfoData = null;
-        if (File.Exists(phiraInfoPath))
-        {
-            IDeserializer deserializer = new DeserializerBuilder().Build();
-            phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
-            GlobalSetting.difficulty = phiraInfoData.level;
-        }
-
-        string lchzhInfoPath = directory + "/info.csv";
+        GlobalSetting.chartFolderPath = directory;
+        string originalPath = PlayerPrefs.GetString("chartFolderPath", Application.persistentDataPath);
+        PlayerPrefs.SetString("chartFolderPath", directory);
+        PlayerPrefs.Save();
+        InfoTxtReader infoTxt = null;
         LchzhInfo lchzhInfo = null;
-        if (File.Exists(lchzhInfoPath))
+        PhiraInfoData phiraInfoData = null;
+        (InfoType type, object info) = await GameUtils.GetInfo(directory);
+
+        GlobalSetting.infoType = type;
+        switch (type)
         {
-            CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
-                new CsvConfiguration(CultureInfo.InvariantCulture)
+            case InfoType.Empty:
+                GlobalSetting.chartName = "Unknown";
+                GlobalSetting.difficulty = "SP  Lv.?";
+                GlobalSetting.charter = "Unknown";
+                GlobalSetting.composer = "Unknown";
+                GlobalSetting.illustrator = "Unknown";
+                try
                 {
-                    HasHeaderRecord = false
-                });
-            try
-            {
-                lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
-            }
-            catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
-            {
-                InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
-            }
+                    GlobalSetting.musicPath =
+                        Path.Combine(directory, Path.GetFileName(Directory.GetFiles(directory)
+                            .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+                                Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+                    GlobalSetting.illustrationPath = Path.Combine(directory,
+                        Path.GetFileName(Directory.GetFiles(directory)
+                            .Where(s => new List<string>
+                                    { ".png", ".bmp", ".jpg", ".jpeg" }
+                                .Contains(Path.GetExtension(s).ToLowerInvariant()))
+                            .ToArray()[0]));
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    PlayerPrefs.SetString("chartFolderPath", originalPath);
+                    PlayerPrefs.Save();
+                    ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
+                    return false;
+                }
+
+                break;
+            case InfoType.InfoTxt:
+                infoTxt = (InfoTxtReader)info;
+                break;
+            case InfoType.InfoCsv:
+                lchzhInfo = (LchzhInfo)info;
+                break;
+            case InfoType.InfoYml:
+                phiraInfoData = (PhiraInfoData)info;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
-        // info init
-        GlobalSetting.infoTxt = null;
-        if (phiraInfoData == null && lchzhInfo == null)
-        {
-            var infoPath = directory + "/info.txt";
-            if (File.Exists(infoPath))
-            {
-                GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
-            }
-        }
-
-
-        // path init
         try
         {
-            GlobalSetting.chartPath = directory + "/" +
-                                      (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.chart)
-                                          ? phiraInfoData.chart
-                                          : GlobalSetting.infoTxt != null
-                                              ? GlobalSetting.infoTxt.GetChartFileName()
-                                              : Path.GetFileName(Directory.GetFiles(directory)
-                                                  .Where(s => new List<string> { ".json", ".pec" }.Contains(
-                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
-            GlobalSetting.musicPath = directory + "/" +
-                                      (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
-                                          ? phiraInfoData.music
-                                          : GlobalSetting.infoTxt != null
-                                              ? GlobalSetting.infoTxt.GetSongFileName()
-                                              : Path.GetFileName(Directory.GetFiles(directory)
-                                                  .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                                      Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
-            GlobalSetting.illustrationPath = directory + "/" +
-                                             (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.illustration)
-                                                 ? phiraInfoData.illustration
-                                                 : GlobalSetting.infoTxt != null
-                                                     ? GlobalSetting.infoTxt.GetIllustrationFileName()
-                                                     : Path.GetFileName(Directory.GetFiles(directory)
-                                                         .Where(s => new List<string>
-                                                                 { ".png", ".bmp", ".jpg", ".jpeg" }
-                                                             .Contains(Path.GetExtension(s).ToLowerInvariant()))
-                                                         .ToArray()[0]));
+            GlobalSetting.chartPath = Path.Combine(directory, type switch
+            {
+                InfoType.Empty => Path.GetFileName(Directory.GetFiles(directory)
+                    .Where(s => new List<string> { ".json", ".pec" }.Contains(
+                        Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]),
+                InfoType.InfoTxt => infoTxt.GetChartFileName(),
+                InfoType.InfoCsv => lchzhInfo.Chart,
+                InfoType.InfoYml => phiraInfoData.chart,
+                _ => throw new ArgumentOutOfRangeException()
+            });
         }
         catch (ArgumentOutOfRangeException)
         {
+            PlayerPrefs.SetString("chartFolderPath", originalPath);
+            PlayerPrefs.Save();
             ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
             return false;
         }
 
-        PlayerPrefs.SetString("chartFolderPath", directory);
-        PlayerPrefs.Save();
+        await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
+        switch (GlobalSetting.infoType)
+        {
+            case InfoType.Empty:
+            case InfoType.RpeJson:
+                break;
+            case InfoType.InfoTxt:
+                GlobalSetting.chartName = infoTxt.GetName();
+                GlobalSetting.difficulty = infoTxt.GetDifficulty();
+                GlobalSetting.charter = infoTxt.GetCharter();
+                GlobalSetting.composer = infoTxt.GetComposer();
+                GlobalSetting.illustrator = "Unknown";
+                GlobalSetting.musicPath = Path.Combine(directory,
+                    infoTxt.GetSongFileName());
+                GlobalSetting.illustrationPath = Path.Combine(directory,
+                    infoTxt.GetIllustrationFileName());
+                break;
+            case InfoType.InfoCsv:
+                GlobalSetting.chartName = lchzhInfo.Name;
+                GlobalSetting.difficulty = lchzhInfo.Level;
+                GlobalSetting.charter = lchzhInfo.Charter;
+                GlobalSetting.composer = lchzhInfo.Artist;
+                GlobalSetting.illustrator = lchzhInfo.Illustrator;
+                GlobalSetting.musicPath =
+                    Path.Combine(directory, lchzhInfo.Music);
+                GlobalSetting.illustrationPath =
+                    Path.Combine(directory, lchzhInfo.Image);
+                break;
+            case InfoType.InfoYml:
+                GlobalSetting.chartName = phiraInfoData.name;
+                GlobalSetting.difficulty = phiraInfoData.level;
+                GlobalSetting.charter = phiraInfoData.charter;
+                GlobalSetting.composer = phiraInfoData.composer;
+                GlobalSetting.illustrator = phiraInfoData.illustrator;
+                GlobalSetting.musicPath =
+                    Path.Combine(directory, phiraInfoData.music);
+                GlobalSetting.illustrationPath = Path.Combine(directory,
+                    phiraInfoData.illustration);
+                Main.ApplyPhiraOffset(phiraInfoData);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
 
-        GlobalSetting.chartName =
-            phiraInfoData != null
-                ? phiraInfoData.name
-                : lchzhInfo != null
-                    ? lchzhInfo.Name
-                    : GlobalSetting.infoTxt != null
-                        ? GlobalSetting.infoTxt.GetName()
-                        : "Unknown";
-        GlobalSetting.difficulty =
-            phiraInfoData != null
-                ? phiraInfoData.level
-                : lchzhInfo != null
-                    ? lchzhInfo.Level
-                    : GlobalSetting.infoTxt != null
-                        ? GlobalSetting.infoTxt.GetDifficulty()
-                        : "SP  LV.?";
-        GlobalSetting.charter = phiraInfoData != null
-            ? phiraInfoData.charter
-            : lchzhInfo != null
-                ? lchzhInfo.Charter
-                : GlobalSetting.infoTxt != null
-                    ? GlobalSetting.infoTxt.GetCharter()
-                    : "Unknown";
-        GlobalSetting.composer = phiraInfoData != null
-            ? phiraInfoData.composer
-            : lchzhInfo != null
-                ? lchzhInfo.Artist
-                : GlobalSetting.infoTxt != null
-                    ? GlobalSetting.infoTxt.GetComposer()
-                    : "Unknown";
-        GlobalSetting.illustrator = phiraInfoData != null
-            ? phiraInfoData.illustrator
-            : lchzhInfo != null
-                ? lchzhInfo.Illustrator
-                : "Unknown";
         // extra init
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath))
@@ -437,9 +440,6 @@ public class MPServerTest : MonoBehaviour
 
         // chart init
         GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
-        GlobalSetting.chartFolderPath = directory;
-        await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
-        Main.ApplyPhiraOffset(phiraInfoData);
         // convert illustration & music
         await UniTask.SwitchToMainThread();
         GlobalSetting.backgroundImage =
