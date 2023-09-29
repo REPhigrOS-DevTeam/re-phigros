@@ -320,7 +320,7 @@ namespace Network.Account
 
         public static void ReadAccountFromPlayerPrefs(bool refresh = false)
         {
-            RememberMe = PlayerPrefsExtension.GetBoolean("repapi_rememberme", false);
+            RememberMe = PlayerPrefsExtension.GetBoolean("repapi_rememberme", true);
             if (RememberMe)
             {
                 Username = PlayerPrefs.GetString("repapi_playername", "");

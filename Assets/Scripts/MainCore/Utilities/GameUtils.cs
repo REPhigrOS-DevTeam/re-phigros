@@ -441,7 +441,7 @@ namespace MainCore.Utilities
             {
                 try
                 {
-                    CsvReader csvReader = new CsvReader(new StreamReader(directory),
+                    CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
                         new CsvConfiguration(CultureInfo.InvariantCulture)
                         {
                             HasHeaderRecord = false
@@ -494,12 +494,12 @@ namespace MainCore.Utilities
         public string Charter { get; set; }
 
         [CsvHelper.Configuration.Attributes.Name("AspectRatio")]
-        public double? AspectRatio { get; set; } = 16f / 9f;
+        public string AspectRatio { get; set; } = 16f / 9f + "";
 
         [CsvHelper.Configuration.Attributes.Name("NoteScale")]
-        public double? NoteScale { get; set; } = 1f;
+        public string NoteScale { get; set; } = "1.0";
 
         [CsvHelper.Configuration.Attributes.Name("GlobalAlpha")]
-        public double? GlobalAlpha { get; set; } = 0.6f;
+        public string GlobalAlpha { get; set; } = "0.6";
     }
 }

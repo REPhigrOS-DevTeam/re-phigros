@@ -51,9 +51,9 @@ namespace MainCore.UI
 
             try //Try Parse difficulty
             {
-                difficultyNumber.text =
-                    GlobalSetting.difficulty.Substring(GlobalSetting.difficulty.LastIndexOf('.') + 1);
-                difficulty.text = GlobalSetting.difficulty.Substring(0, GlobalSetting.difficulty.LastIndexOf(' '));
+                string s = GlobalSetting.difficulty.Substring(GlobalSetting.difficulty.LastIndexOf(' ') + 1);
+                difficultyNumber.text = s.Substring(s.LastIndexOf('.') + 1).Trim();
+                difficulty.text = GlobalSetting.difficulty.Substring(0, GlobalSetting.difficulty.LastIndexOf(' ')).Trim();
             }
             catch
             {

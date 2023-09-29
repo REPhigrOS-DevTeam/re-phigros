@@ -29,10 +29,14 @@ namespace MainCore.Common
 
         private Stack<NavigationInfo> navStack = new();
         private Exception stackIsEmptyException => new InvalidOperationException("stack is empty");
-        
+
         void Start()
         {
-            transitMaterial = transitionImage.material;
+            transitMaterial = transitionImage.material
+#if UNITY_EDITOR
+                    = Instantiate(transitionMaterial) // 防止本地mat文件每次都变动
+#endif
+                ;
             JumpScene(SceneManager.GetActiveScene().name);
         }
 
@@ -50,6 +54,7 @@ namespace MainCore.Common
                 });
                 return;
             }
+
             ReplaceScene(sceneName);
             TransitTo(sceneName);
         }
