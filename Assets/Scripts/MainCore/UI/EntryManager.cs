@@ -26,7 +26,6 @@ namespace MainCore.UI
 
         private void Awake()
         {
-            ZipConstants.DefaultCodePage = 65001; // UTF-8
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init(); 
         }

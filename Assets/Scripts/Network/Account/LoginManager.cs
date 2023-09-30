@@ -285,9 +285,9 @@ namespace Network.Account
 #if !UNITY_EDITOR
             Debug.Log("Try verify");
 #endif
-            if (accountInfo.Username == "" || accountInfo.VerifyToken == "")
+            if (accountInfo.Username == "")
             {
-                Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify without login.");
+                Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify with illegal param.");
             }
 
             var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine(RepAPI.verifyUrl))

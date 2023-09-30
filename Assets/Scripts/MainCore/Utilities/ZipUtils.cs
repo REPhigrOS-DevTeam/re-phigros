@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using ICSharpCode.SharpZipLib.Checksums;
+using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip;
 using UnityEngine;
 
@@ -53,6 +53,7 @@ namespace MainCore.Utilities
 
             while ((theEntry = zipfiles.GetNextEntry()) != null)
             {
+                theEntry.IsUnicodeText = true;
                 string directoryName = "";
                 string pathToZip = "";
                 pathToZip = theEntry.Name;
@@ -114,6 +115,7 @@ namespace MainCore.Utilities
             using (FileStream ZipFile = File.Create(temporaryCachePath))
             {
                 using ZipOutputStream s = new ZipOutputStream(ZipFile);
+                s.ZipCryptoEncoding = StringCodec.UnicodeZipEncoding;
                 s.SetLevel(6);
                 Crc32 crc = new Crc32();
                 DirectoryToZip = DirectoryToZip.Replace("\\", "/");
