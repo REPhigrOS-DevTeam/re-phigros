@@ -263,7 +263,7 @@ namespace Network.Account
             byte[] data = await uri.SendGetRequestAsync();
             if (data == null)
             {
-                Debug.Log("RePhigros API: Unable to connect to server when logging");
+                Debug.LogError("RePhigros API: Unable to connect to server when logging");
                 return (StatusCode.Unknown, null);
             }
 
@@ -271,7 +271,7 @@ namespace Network.Account
             var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
             if (res == null || res.status == false)
             {
-                Debug.LogError($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
+                Debug.Log($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
                 return (res?.Code ?? StatusCode.Unknown, null);
             }
 
@@ -287,7 +287,7 @@ namespace Network.Account
 #endif
             if (accountInfo.Username == "")
             {
-                Debug.LogError("RePhigros API: Undefined behaviour detected, trying to verify with illegal param.");
+                Debug.Log("RePhigros API: Undefined behaviour detected, trying to verify with illegal param.");
             }
 
             var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine(RepAPI.verifyUrl))
@@ -309,7 +309,7 @@ namespace Network.Account
             var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
             if (res == null || res.status == false)
             {
-                Debug.LogError($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
+                Debug.Log($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
                 return (res?.Code ?? StatusCode.Unknown, null);
             }
 

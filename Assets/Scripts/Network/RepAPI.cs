@@ -96,7 +96,7 @@ namespace Network
             byte[] data = await GetAPIBase().UrlCombine(ManifestDirectory).SendGetRequestAsync();
             if (data == null)
             {
-                Debug.Log("Error while get server manifest");
+                Debug.LogError("Error while get server manifest");
                 return false;
             }
 
