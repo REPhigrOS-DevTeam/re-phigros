@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using MainCore.UI;
-using PhiZone.Utils;
+using Network.PhiZoneV1.Data;
+using Network.PhiZoneV1.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace PhiZone
+namespace Network.PhiZoneV1.Data
 {
     public class TestPhiZone : MonoBehaviour
     {

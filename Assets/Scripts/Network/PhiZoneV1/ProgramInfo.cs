@@ -1,4 +1,4 @@
-﻿namespace PhiZone
+﻿namespace Network.PhiZoneV1
 {
     public static class ProgramInfo
     {

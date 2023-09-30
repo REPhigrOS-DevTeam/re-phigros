@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using MainCore;
 using MainCore.ECS_ver;
@@ -57,7 +58,7 @@ public class EffectManager : MonoBehaviour
     private float GetFactor()
     {
         return GlobalSetting.Skin switch {
-            Skin.Official => 0.16f,
+            Skin.Official => 0.215f,
             Skin.Phira => 0.32f,
             Skin.OldOfficial => 0.16f,
             Skin.Sacabam => 0.25f,

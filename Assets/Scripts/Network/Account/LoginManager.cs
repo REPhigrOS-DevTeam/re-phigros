@@ -166,6 +166,9 @@ namespace Network.Account
                             Util.QuitApp,
                             "确定");
                         break;
+                    case StatusCode.UserBanned:
+                        InGameUIManager.ShowModalWindowWithClose("悲报", "您已被封禁", () => { }, "确定");
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -223,6 +226,9 @@ namespace Network.Account
                         InGameUIManager.ShowModalWindowWithClose("致命错误", "调用验证接口时收到了不应出现的状态码：密码不合法\n程序即将退出",
                             Util.QuitApp,
                             "确定");
+                        break;
+                    case StatusCode.UserBanned:
+                        InGameUIManager.ShowModalWindowWithClose("悲报", "您已被封禁", () => { }, "确定");
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();

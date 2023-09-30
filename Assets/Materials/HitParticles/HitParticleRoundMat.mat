@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HitParticleOldOfficialMat
+  m_Name: HitParticleRoundMat
   m_Shader: {fileID: 4800000, guid: 0ed81ae0394d38648af7d38739801948, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords:
@@ -67,7 +67,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: ce0024d98eb5a444b8993f73db4d6e2a, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3ce90cf4149b3994492c558d52e1fdb8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:

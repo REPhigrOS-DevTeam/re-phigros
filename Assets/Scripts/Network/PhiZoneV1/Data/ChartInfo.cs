@@ -6,7 +6,7 @@
 //
 //    var chartInfo = ChartInfo.FromJson(jsonString);
 
-namespace PhiZone.Data
+namespace Network.PhiZoneV1.Data
 {
     using System;
     using System.Collections.Generic;
@@ -926,12 +926,12 @@ namespace PhiZone.Data
 
     public partial class ChartInfo
     {
-        public static ChartInfo FromJson(string json) => JsonConvert.DeserializeObject<ChartInfo>(json, PhiZone.Data.Converter.Settings);
+        public static ChartInfo FromJson(string json) => JsonConvert.DeserializeObject<ChartInfo>(json, Converter.Settings);
     }
 
     public static class Serialize
     {
-        public static string ToJson(this ChartInfo self) => JsonConvert.SerializeObject(self, PhiZone.Data.Converter.Settings);
+        public static string ToJson(this ChartInfo self) => JsonConvert.SerializeObject(self, Converter.Settings);
     }
 
     internal static class Converter

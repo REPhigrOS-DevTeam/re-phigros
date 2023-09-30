@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Network.PhiZoneV1.Data;
 using Newtonsoft.Json.Linq;
 using UnityEngine.Networking;
 
-namespace PhiZone.Utils
+namespace Network.PhiZoneV1.Utils
 {
     public static class PhiZoneUrlRequest
     {

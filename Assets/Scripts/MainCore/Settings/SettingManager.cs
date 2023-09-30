@@ -27,6 +27,7 @@ namespace MainCore.Settings
                 dataPath.SetValue($"{Application.persistentDataPath}");
             }
 #endif
+            skinDropdown.onValueChanged.AddListener(OnSkinChanged);
             saveNExit.OnClick.AddListener(SaveNExit);
             dspEnter.OnClick.AddListener(() => { SceneTransit.Instance.LoadScene("DSPScene"); });
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
@@ -61,7 +62,9 @@ namespace MainCore.Settings
                     //     "确认");
                     // GlobalSetting.useShader = true;
                 });
-            skinDropdown.value = PlayerPrefs.GetInt("skin", 0);
+            int oldValue = skinDropdown.value;
+            skinDropdown.value = PlayerPrefs.GetInt("skin");
+            if (oldValue == skinDropdown.value) OnSkinChanged(skinDropdown.value);
         }
 
         private void SaveNExit()

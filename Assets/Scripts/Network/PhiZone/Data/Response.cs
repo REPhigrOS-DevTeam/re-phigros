@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Network.PhiZoneV1.Data
+namespace Network.PhiZone.Data
 {
     public class Response
     {

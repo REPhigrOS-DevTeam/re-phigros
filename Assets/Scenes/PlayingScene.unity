@@ -1185,7 +1185,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   materials:
-  - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
+  - {fileID: 2100000, guid: 164e766e3bdb17148b8c6e0bbe4c029d, type: 2}
   - {fileID: 2100000, guid: 164e766e3bdb17148b8c6e0bbe4c029d, type: 2}
   - {fileID: 2100000, guid: 9d5a54e1d4fb13742b9a1f99fa9598fc, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
