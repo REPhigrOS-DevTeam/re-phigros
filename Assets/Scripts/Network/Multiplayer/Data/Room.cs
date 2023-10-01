@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Network.Multiplayer.Data
 {
@@ -19,8 +20,9 @@ namespace Network.Multiplayer.Data
         [JsonProperty("message")] public string Message;
     }
 
-    public class UpdaeSongActiveReceive : ActiveReceiveData
+    public class UpdateSongActiveReceive : ActiveReceiveData
     {
+        [JsonProperty("SongType")] public string songType;
         [JsonProperty("songId")] public string songId;
         [JsonProperty("songInfo")] public SongInfo songInfo;
     }
@@ -35,7 +37,7 @@ namespace Network.Multiplayer.Data
         [JsonProperty("Room_PlayerList")] public string[] PlayerList;
         [JsonProperty("Room_SongType")] public string SelectedSongType;
         [JsonProperty("Room_SongId")] public string SelectedSongID;
-        [JsonProperty("Room_SongInfo")] public SongInfo selectedSongInfo;
+        [JsonProperty("Room_SongInfo")] public JObject selectedSongInfo;
     }
 
     public enum MessageType

@@ -348,43 +348,52 @@ namespace MainCore.Utilities
 
         #endregion
 
-        public static async UniTask<SongInfo> GetSongInfo(string directory)
+        public static async UniTask<(SongInfo, InfoType, object)> GetSongInfo(string directory)
         {
+            InfoType infoType = InfoType.Empty;
             string phiraInfoPath = directory + "/info.yml";
             PhiraInfoData phiraInfoData = null;
+            LchzhInfo lchzhInfo = null;
+            InfoTxtReader infoTxtReader = null;
             if (File.Exists(phiraInfoPath))
             {
                 IDeserializer deserializer = new DeserializerBuilder().Build();
                 phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                infoType = InfoType.InfoYml;
             }
-
-            string lchzhInfoPath = directory + "/info.csv";
-            LchzhInfo lchzhInfo = null;
-            if (File.Exists(lchzhInfoPath))
+            else
             {
-                CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
-                    new CsvConfiguration(CultureInfo.InvariantCulture)
+                string lchzhInfoPath = directory + "/info.csv";
+                if (File.Exists(lchzhInfoPath))
+                {
+                    CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
+                        new CsvConfiguration(CultureInfo.InvariantCulture)
+                        {
+                            HasHeaderRecord = false
+                        });
+                    try
                     {
-                        HasHeaderRecord = false
-                    });
-                try
-                {
-                    lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+                        lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
+                        infoType = InfoType.InfoCsv;
+                    }
+                    catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                    {
+                        InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                    }
+                    catch (Exception)
+                    {
+                        InGameUIManager.ShowModalWindowWithClose("错误", "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息", () => { }, "确认");
+                    }
                 }
-                catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                else
                 {
-                    InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
-                }
-            }
-
-            InfoTxtReader infoTxtReader = null;
-            // info init
-            if (phiraInfoData == null)
-            {
-                var infoPath = directory + "/info.txt";
-                if (File.Exists(infoPath))
-                {
-                    infoTxtReader = new InfoTxtReader(infoPath);
+                    // info init
+                    var infoPath = directory + "/info.txt";
+                    if (File.Exists(infoPath))
+                    {
+                        infoTxtReader = new InfoTxtReader(infoPath);
+                        infoType = InfoType.InfoTxt;
+                    }
                 }
             }
 
@@ -400,7 +409,7 @@ namespace MainCore.Utilities
                                                    Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
 
             float musicLength = (await Util.ReadMusicAsAudioClip(musicPath)).length;
-            return new SongInfo
+            return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
                 SongName = phiraInfoData != null ? phiraInfoData.name :
@@ -421,55 +430,55 @@ namespace MainCore.Utilities
                 SongIllustrator = phiraInfoData != null ? phiraInfoData.illustrator :
                     lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
                 MusicLength = musicLength
-            };
+            }, infoType, infoType switch {
+                InfoType.Empty => null,
+                InfoType.InfoTxt => infoTxtReader,
+                InfoType.InfoCsv => lchzhInfo,
+                InfoType.InfoYml => phiraInfoData,
+                _ => throw new ArgumentOutOfRangeException()
+            });
         }
 
-        public static async UniTask<(InfoType, object)> GetInfo(string directory)
+        public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(string directory)
         {
-            string phiraInfoPath = Path.Combine(directory, "info.yml");
-            PhiraInfoData phiraInfoData;
-            if (File.Exists(phiraInfoPath))
+            (SongInfo songInfo, InfoType infoType, object obj) = await GetSongInfo(directory);
+            GameFilePathInfo gameFilePathInfo = new GameFilePathInfo();
+            switch (infoType)
             {
-                IDeserializer deserializer = new DeserializerBuilder().Build();
-                phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
-                return (InfoType.InfoYml, phiraInfoData);
+                case InfoType.Empty:
+                    gameFilePathInfo = null;
+                    break;
+                case InfoType.InfoTxt:
+                    InfoTxtReader infoTxtReader = obj as InfoTxtReader;
+                    gameFilePathInfo.chart = infoTxtReader.GetChartFileName();
+                    gameFilePathInfo.music = infoTxtReader.GetSongFileName();
+                    gameFilePathInfo.illustration = infoTxtReader.GetIllustrationFileName();
+                    break;
+                case InfoType.InfoCsv:
+                    LchzhInfo lchzhInfo = obj as LchzhInfo;
+                    gameFilePathInfo.chart = lchzhInfo.Chart;
+                    gameFilePathInfo.music = lchzhInfo.Music;
+                    gameFilePathInfo.illustration = lchzhInfo.Image;
+                    break;
+                case InfoType.InfoYml:
+                    PhiraInfoData phiraInfoData = obj as PhiraInfoData;
+                    gameFilePathInfo.chart = phiraInfoData.chart;
+                    gameFilePathInfo.music = phiraInfoData.music;
+                    gameFilePathInfo.illustration = phiraInfoData.illustration;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            string lchzhInfoPath = Path.Combine(directory, "info.csv");
-            LchzhInfo lchzhInfo;
-            if (File.Exists(lchzhInfoPath))
-            {
-                try
-                {
-                    CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
-                        new CsvConfiguration(CultureInfo.InvariantCulture)
-                        {
-                            HasHeaderRecord = false
-                        });
-                    lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
-                    csvReader.Dispose();
-                    return (InfoType.InfoCsv, lchzhInfo);
-                }
-                catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
-                {
-                    InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
-                }
-                catch (Exception)
-                {
-                    InGameUIManager.ShowModalWindowWithClose("错误", "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息", () => { }, "确认");
-                }
-
-            }
-
-            var infoPath = Path.Combine(directory, "info.txt");
-            if (File.Exists(infoPath))
-            {
-                // GlobalSetting.infoTxt = new InfoTxtReader(infoPath);
-                return (InfoType.InfoTxt, new InfoTxtReader(infoPath));
-            }
-
-            return (InfoType.Empty, null);
+            return (songInfo, infoType, gameFilePathInfo, infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null); // TODO
         }
+    }
+
+    public class GameFilePathInfo
+    {
+        public string chart;
+        public string music;
+        public string illustration;
     }
 
     public class LchzhInfo

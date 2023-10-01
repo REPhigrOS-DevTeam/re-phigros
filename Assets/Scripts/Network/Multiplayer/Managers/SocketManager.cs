@@ -282,7 +282,7 @@ namespace Network.Multiplayer.Managers
             pack.Addition.Add("songId", songId);
             pack.Addition.Add("songType", type.ToString());
             pack.Addition.Add("songInfo",
-                type == SongType.rep ? JsonConvert.SerializeObject(songInfo, Formatting.None) : null);
+                type == SongType.rep ? songInfo : null);
             return GeneralSend(ClientOperate.Room_UpdateSong, pack);
         }
 
@@ -469,7 +469,12 @@ namespace Network.Multiplayer.Managers
                         {
                             songId = receive.RoomInfo.SelectedSongID;
                             songType = Enum.Parse<SongType>(receive.RoomInfo.SelectedSongType, true);
-                            songInfo = receive.RoomInfo.selectedSongInfo;
+                            if (songType == SongType.rep) songInfo = receive.RoomInfo.selectedSongInfo.ToObject<SongInfo>();
+                            else if (songType == SongType.Phizone)
+                            {
+                                // TODO: 接入PhiZone
+                            }
+
                             OnGetRoomInfoSucceeded.Invoke(receive.RoomInfo);
                         },
                         failedCallback: LocalQuitRoom);
@@ -631,11 +636,11 @@ namespace Network.Multiplayer.Managers
                     isOwner = false;
                     break;
                 case ServerOperate.UpdateSong:
-                    Debug.Log("试图更新歌曲信息：" +
-                              JsonConvert.SerializeObject(pack.ToObject<UpdaeSongActiveReceive>(), Formatting.None));
-                    songId = pack["songId"].ToString();
-                    songType = Enum.Parse<SongType>(pack["songType"].ToString(), true);
-                    songInfo = pack["songInfo"].ToObject<SongInfo>();
+                    UpdateSongActiveReceive updateSongActiveReceive = pack.ToObject<UpdateSongActiveReceive>();
+                    Debug.Log("试图更新歌曲信息：" + JsonConvert.SerializeObject(updateSongActiveReceive, Formatting.None));
+                    songId = updateSongActiveReceive.songId;
+                    songType = Enum.Parse<SongType>(updateSongActiveReceive.songType, true);
+                    if (songType == SongType.rep) songInfo = updateSongActiveReceive.songInfo;
                     OnUpdateSongReceived.Invoke(songId, songType, songInfo);
                     break;
                 case ServerOperate.ServerClosed:

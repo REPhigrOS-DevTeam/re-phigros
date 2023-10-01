@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using MainCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -153,7 +154,7 @@ namespace Network.Multiplayer.Data
     {
         [JsonProperty("operate")] public string Operate;
         [JsonProperty("username")] public string Username;
-        [JsonProperty("addition")] public Dictionary<string, string> Addition = new();
+        [JsonProperty("addition")] public Dictionary<string, object> Addition = new();
     }
 
     public class LoginSendData : GeneralSendData

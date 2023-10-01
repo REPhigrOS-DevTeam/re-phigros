@@ -581,14 +581,14 @@ namespace MainCore
             }
         }
 
-        public static void ApplyPhiraOffset(PhiraInfoData phiraInfoData)
+        public static void ApplyPhiraOffset(float? f)
         {
-            if (phiraInfoData == null)
+            if (f == null)
             {
                 return;
             }
 
-            json.offset += phiraInfoData.offset;
+            json.offset += (float) f;
         }
 
 #if UNITY_EDITOR

@@ -11,6 +11,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
+using Network.Multiplayer.Data;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -150,14 +151,12 @@ namespace MainCore.UI
 
             GlobalSetting.chartFolderPath = tempPath;
 
-            InfoTxtReader infoTxt = null;
-            LchzhInfo lchzhInfo = null;
-            PhiraInfoData phiraInfoData = null;
-
-            (InfoType type, object info) = await GameUtils.GetInfo(tempPath);
-
-            GlobalSetting.infoType = type;
-            switch (type)
+            SongInfo songInfo;
+            GameFilePathInfo pathInfo;
+            object obj;
+            (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
+            
+            switch (GlobalSetting.infoType)
             {
                 case InfoType.Empty:
                     GlobalSetting.chartName = chartNameUI.GetComponent<InputField>().text.Trim();
@@ -165,32 +164,27 @@ namespace MainCore.UI
                     GlobalSetting.charter = "Unknown";
                     GlobalSetting.composer = "Unknown";
                     GlobalSetting.illustrator = "Unknown";
+                    GlobalSetting.chartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text);
                     GlobalSetting.musicPath =
                         Path.Combine(tempPath, musicPathDropdown.captionText.text);
                     GlobalSetting.illustrationPath = Path.Combine(tempPath,
                         illustrationPathDropdown.captionText.text);
                     break;
                 case InfoType.InfoTxt:
-                    infoTxt = (InfoTxtReader)info;
-                    break;
                 case InfoType.InfoCsv:
-                    lchzhInfo = (LchzhInfo)info;
-                    break;
                 case InfoType.InfoYml:
-                    phiraInfoData = (PhiraInfoData)info;
+                    GlobalSetting.chartName = songInfo.SongName;
+                    GlobalSetting.difficulty = songInfo.SongDifficulty;
+                    GlobalSetting.charter = songInfo.SongCharter;
+                    GlobalSetting.composer = songInfo.SongComposer;
+                    GlobalSetting.illustrator = songInfo.SongIllustrator;
+                    GlobalSetting.chartPath = Path.Combine(tempPath, pathInfo.chart);
+                    GlobalSetting.musicPath = Path.Combine(tempPath, pathInfo.music);
+                    GlobalSetting.illustrationPath = Path.Combine(tempPath, pathInfo.illustration);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            GlobalSetting.chartPath = Path.Combine(tempPath, type switch
-            {
-                InfoType.Empty => chartPathDropdown.captionText.text,
-                InfoType.InfoTxt => infoTxt.GetChartFileName(),
-                InfoType.InfoCsv => lchzhInfo.Chart,
-                InfoType.InfoYml => phiraInfoData.chart,
-                _ => throw new ArgumentOutOfRangeException()
-            });
 //#if UNITY_EDITOR || UNITY_STANDALONE_WIN
 //            GlobalSetting.chartpath = tempPath + "\\" + chartPathDropdown.captionText.text;
 //            GlobalSetting.musicPath = tempPath + "\\" + musicPathDropdown.captionText.text;
@@ -214,49 +208,8 @@ namespace MainCore.UI
 
             //We load chart from here.
             await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
-            switch (GlobalSetting.infoType)
-            {
-                case InfoType.Empty:
-                case InfoType.RpeJson:
-                    break;
-                case InfoType.InfoTxt:
-                    GlobalSetting.chartName = infoTxt.GetName();
-                    GlobalSetting.difficulty = infoTxt.GetDifficulty();
-                    GlobalSetting.charter = infoTxt.GetCharter();
-                    GlobalSetting.composer = infoTxt.GetComposer();
-                    GlobalSetting.illustrator = "Unknown";
-                    GlobalSetting.musicPath = Path.Combine(tempPath,
-                        infoTxt.GetSongFileName());
-                    GlobalSetting.illustrationPath = Path.Combine(tempPath,
-                        infoTxt.GetIllustrationFileName());
-                    break;
-                case InfoType.InfoCsv:
-                    GlobalSetting.chartName = lchzhInfo.Name;
-                    GlobalSetting.difficulty = lchzhInfo.Level;
-                    GlobalSetting.charter = lchzhInfo.Charter;
-                    GlobalSetting.composer = lchzhInfo.Artist;
-                    GlobalSetting.illustrator = lchzhInfo.Illustrator;
-                    GlobalSetting.musicPath =
-                        Path.Combine(tempPath, lchzhInfo.Music);
-                    GlobalSetting.illustrationPath =
-                        Path.Combine(tempPath, lchzhInfo.Image);
-                    break;
-                case InfoType.InfoYml:
-                    GlobalSetting.chartName = phiraInfoData.name;
-                    GlobalSetting.difficulty = phiraInfoData.level;
-                    GlobalSetting.charter = phiraInfoData.charter;
-                    GlobalSetting.composer = phiraInfoData.composer;
-                    GlobalSetting.illustrator = phiraInfoData.illustrator;
-                    GlobalSetting.musicPath =
-                        Path.Combine(tempPath, phiraInfoData.music);
-                    GlobalSetting.illustrationPath = Path.Combine(tempPath,
-                        phiraInfoData.illustration);
-                    Main.ApplyPhiraOffset(phiraInfoData);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            
+            if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
                 (GlobalSetting.composer.ToLowerInvariant().Contains("pepoyo") ||
                  GlobalSetting.composer.Contains("ぺぽよ") || GlobalSetting.composer.Contains("ペポヨ")))

@@ -78,7 +78,6 @@ namespace Network.Multiplayer.Managers
 
         private async void AddMessageInternal(string from, string message, MessageType type)
         {
-            Debug.Log("傻逼: " + scrollView.verticalNormalizedPosition);
             bool autoScroll = scrollView.verticalNormalizedPosition < 0.01f ||
                               scrollView.content.sizeDelta.y <= scrollViewTransform.sizeDelta.y;
             GameObject obj = Instantiate(chatMessagePrefab, contentPanel);

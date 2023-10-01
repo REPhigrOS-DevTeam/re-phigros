@@ -16,6 +16,7 @@ using MainCore.Utilities;
 using Network.Chart;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
+using Newtonsoft.Json.Linq;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
@@ -117,18 +118,18 @@ public class MPServerTest : MonoBehaviour
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() =>
         {
-            async void OnGetFileSuccess(string[] paths)
+            async Task OnGetFileSuccess(string[] paths)
             {
                 int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]),
-                    SongType.rep, await GameUtils.GetSongInfo(paths[0]));
+                    SongType.rep, (await GameUtils.GetSongInfo(paths[0])).Item1);
                 if (state == 0) return;
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }
 
             uploadMask.SetActive(true);
-            FileBrowser.ShowLoadDialog(paths =>
+            FileBrowser.ShowLoadDialog(async paths =>
                 {
-                    OnGetFileSuccess(paths);
+                    await OnGetFileSuccess(paths);
                     uploadMask.SetActive(false);
                 }, () => { uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false,
                 PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传");
@@ -194,7 +195,7 @@ public class MPServerTest : MonoBehaviour
     private void OnSongReceived(string id, SongType type, SongInfo info)
     {
         ChatManager.AddMessage("", SocketManager.IsOwner ? "您已更新曲目" : "房主更新了曲目", MessageType.Room);
-        ChatManager.AddMessage("",
+        if (type == SongType.rep) ChatManager.AddMessage("",
             "曲目信息：\n" +
             $" - ID：{id}\n" +
             $" - 歌曲名称：{info.SongName}\n" +
@@ -205,7 +206,7 @@ public class MPServerTest : MonoBehaviour
             $" - 曲目长度：{info.MusicLength:0.##}s\n" +
             $" - [备用]文件夹名称：{info.FolderName}",
             MessageType.Room);
-        OnUpdateSongReceived(id, type, info);
+        OnUpdateSongReceived(id, type, JObject.FromObject(info));
         if (!SocketManager.IsOwner) return;
         bDownloadSong.interactable = false;
         OwnerOperation();
@@ -268,10 +269,19 @@ public class MPServerTest : MonoBehaviour
         tConnectState.text = $"服务器状态：{str}";
     }
 
-    private void OnUpdateSongReceived(string id, SongType type, SongInfo songInfo)
+    private void OnUpdateSongReceived(string id, SongType type, JObject songInfo)
     {
         selectedSongId = id;
         selectedSongType = type;
+        if (type == SongType.rep)
+        {
+            selectedSongInfo = songInfo.ToObject<SongInfo>();
+        }
+        else if (type == SongType.Phizone)
+        {
+            // TODO: 接入PhiZone
+        }
+
         SetDownloaded(false);
         bReady.IsOn = false;
     }
@@ -336,13 +346,13 @@ public class MPServerTest : MonoBehaviour
         string originalPath = PlayerPrefs.GetString("chartFolderPath", Application.persistentDataPath);
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
-        InfoTxtReader infoTxt = null;
-        LchzhInfo lchzhInfo = null;
-        PhiraInfoData phiraInfoData = null;
-        (InfoType type, object info) = await GameUtils.GetInfo(directory);
 
-        GlobalSetting.infoType = type;
-        switch (type)
+        SongInfo songInfo;
+        GameFilePathInfo pathInfo;
+        object obj;
+        (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(directory);
+        
+        switch (GlobalSetting.infoType)
         {
             case InfoType.Empty:
                 GlobalSetting.chartName = "Unknown";
@@ -352,6 +362,10 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.illustrator = "Unknown";
                 try
                 {
+                    GlobalSetting.chartPath =
+                        Path.Combine(directory, Path.GetFileName(Directory.GetFiles(directory)
+                            .Where(s => new List<string> { ".json", ".pec" }.Contains(
+                                Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
                     GlobalSetting.musicPath =
                         Path.Combine(directory, Path.GetFileName(Directory.GetFiles(directory)
                             .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
@@ -370,85 +384,25 @@ public class MPServerTest : MonoBehaviour
                     ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
                     return false;
                 }
-
                 break;
             case InfoType.InfoTxt:
-                infoTxt = (InfoTxtReader)info;
-                break;
             case InfoType.InfoCsv:
-                lchzhInfo = (LchzhInfo)info;
-                break;
             case InfoType.InfoYml:
-                phiraInfoData = (PhiraInfoData)info;
+                GlobalSetting.chartName = songInfo.SongName;
+                GlobalSetting.difficulty = songInfo.SongDifficulty;
+                GlobalSetting.charter = songInfo.SongCharter;
+                GlobalSetting.composer = songInfo.SongComposer;
+                GlobalSetting.illustrator = songInfo.SongIllustrator;
+                GlobalSetting.chartPath = Path.Combine(directory, pathInfo.chart);
+                GlobalSetting.musicPath = Path.Combine(directory, pathInfo.music);
+                GlobalSetting.illustrationPath = Path.Combine(directory, pathInfo.illustration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
-        }
-
-        try
-        {
-            GlobalSetting.chartPath = Path.Combine(directory, type switch
-            {
-                InfoType.Empty => Path.GetFileName(Directory.GetFiles(directory)
-                    .Where(s => new List<string> { ".json", ".pec" }.Contains(
-                        Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]),
-                InfoType.InfoTxt => infoTxt.GetChartFileName(),
-                InfoType.InfoCsv => lchzhInfo.Chart,
-                InfoType.InfoYml => phiraInfoData.chart,
-                _ => throw new ArgumentOutOfRangeException()
-            });
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            PlayerPrefs.SetString("chartFolderPath", originalPath);
-            PlayerPrefs.Save();
-            ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
-            return false;
         }
 
         await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
-        switch (GlobalSetting.infoType)
-        {
-            case InfoType.Empty:
-            case InfoType.RpeJson:
-                break;
-            case InfoType.InfoTxt:
-                GlobalSetting.chartName = infoTxt.GetName();
-                GlobalSetting.difficulty = infoTxt.GetDifficulty();
-                GlobalSetting.charter = infoTxt.GetCharter();
-                GlobalSetting.composer = infoTxt.GetComposer();
-                GlobalSetting.illustrator = "Unknown";
-                GlobalSetting.musicPath = Path.Combine(directory,
-                    infoTxt.GetSongFileName());
-                GlobalSetting.illustrationPath = Path.Combine(directory,
-                    infoTxt.GetIllustrationFileName());
-                break;
-            case InfoType.InfoCsv:
-                GlobalSetting.chartName = lchzhInfo.Name;
-                GlobalSetting.difficulty = lchzhInfo.Level;
-                GlobalSetting.charter = lchzhInfo.Charter;
-                GlobalSetting.composer = lchzhInfo.Artist;
-                GlobalSetting.illustrator = lchzhInfo.Illustrator;
-                GlobalSetting.musicPath =
-                    Path.Combine(directory, lchzhInfo.Music);
-                GlobalSetting.illustrationPath =
-                    Path.Combine(directory, lchzhInfo.Image);
-                break;
-            case InfoType.InfoYml:
-                GlobalSetting.chartName = phiraInfoData.name;
-                GlobalSetting.difficulty = phiraInfoData.level;
-                GlobalSetting.charter = phiraInfoData.charter;
-                GlobalSetting.composer = phiraInfoData.composer;
-                GlobalSetting.illustrator = phiraInfoData.illustrator;
-                GlobalSetting.musicPath =
-                    Path.Combine(directory, phiraInfoData.music);
-                GlobalSetting.illustrationPath = Path.Combine(directory,
-                    phiraInfoData.illustration);
-                Main.ApplyPhiraOffset(phiraInfoData);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
 
         // extra init
         string extraJsonPath = directory + "/extra.json";
