@@ -155,7 +155,7 @@ namespace MainCore.UI
             GameFilePathInfo pathInfo;
             object obj;
             (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
-            
+
             switch (GlobalSetting.infoType)
             {
                 case InfoType.Empty:
@@ -247,15 +247,8 @@ namespace MainCore.UI
             }
         }
 
-        public static List<Dropdown.OptionData> GetFileName(string path, params string[] typeE)
-        {
-            DirectoryInfo root = new DirectoryInfo(path);
-            List<string> types = typeE.Select(type => type.ToLower().Trim()).ToList();
-
-            return (from f in root.GetFiles()
-                where types.Contains(Path.GetExtension(f.FullName).ToLower().Trim())
-                select new Dropdown.OptionData(f.Name.Trim())).ToList();
-        }
+        private static List<Dropdown.OptionData> GetFileName(string path, params string[] typeE) => GameUtils
+            .SelectGivenExtensionsFileNames(path, typeE).Select(str => new Dropdown.OptionData(str)).ToList();
 
         public static List<Dropdown.OptionData> GetFolders(string path)
         {

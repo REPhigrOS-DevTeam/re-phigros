@@ -472,6 +472,11 @@ namespace MainCore.Utilities
 
             return (songInfo, infoType, gameFilePathInfo, infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null); // TODO
         }
+        
+        public static string[] SelectGivenExtensionsFileNames(string directory, params string[] extensions) => Directory
+            .GetFiles(directory).Where(s => extensions.Select(str => str.ToLowerInvariant()).ToList()
+                .Contains(Path.GetExtension(s).ToLowerInvariant()))
+            .Select(Path.GetFileName).ToArray();
     }
 
     public class GameFilePathInfo

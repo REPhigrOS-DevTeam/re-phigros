@@ -195,17 +195,18 @@ public class MPServerTest : MonoBehaviour
     private void OnSongReceived(string id, SongType type, SongInfo info)
     {
         ChatManager.AddMessage("", SocketManager.IsOwner ? "您已更新曲目" : "房主更新了曲目", MessageType.Room);
-        if (type == SongType.rep) ChatManager.AddMessage("",
-            "曲目信息：\n" +
-            $" - ID：{id}\n" +
-            $" - 歌曲名称：{info.SongName}\n" +
-            $" - 作曲家：{info.SongComposer}\n" +
-            $" - 难度：{info.SongDifficulty}\n" +
-            $" - 谱师：{info.SongCharter}\n" +
-            $" - 曲绘绘师：{info.SongIllustrator}\n" +
-            $" - 曲目长度：{info.MusicLength:0.##}s\n" +
-            $" - [备用]文件夹名称：{info.FolderName}",
-            MessageType.Room);
+        if (type == SongType.rep)
+            ChatManager.AddMessage("",
+                "曲目信息：\n" +
+                $" - ID：{id}\n" +
+                $" - 歌曲名称：{info.SongName}\n" +
+                $" - 作曲家：{info.SongComposer}\n" +
+                $" - 难度：{info.SongDifficulty}\n" +
+                $" - 谱师：{info.SongCharter}\n" +
+                $" - 曲绘绘师：{info.SongIllustrator}\n" +
+                $" - 曲目长度：{info.MusicLength:0.##}s\n" +
+                $" - [备用]文件夹名称：{info.FolderName}",
+                MessageType.Room);
         OnUpdateSongReceived(id, type, JObject.FromObject(info));
         if (!SocketManager.IsOwner) return;
         bDownloadSong.interactable = false;
@@ -351,7 +352,7 @@ public class MPServerTest : MonoBehaviour
         GameFilePathInfo pathInfo;
         object obj;
         (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(directory);
-        
+
         switch (GlobalSetting.infoType)
         {
             case InfoType.Empty:
@@ -360,22 +361,15 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.charter = "Unknown";
                 GlobalSetting.composer = "Unknown";
                 GlobalSetting.illustrator = "Unknown";
+
                 try
                 {
-                    GlobalSetting.chartPath =
-                        Path.Combine(directory, Path.GetFileName(Directory.GetFiles(directory)
-                            .Where(s => new List<string> { ".json", ".pec" }.Contains(
-                                Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
-                    GlobalSetting.musicPath =
-                        Path.Combine(directory, Path.GetFileName(Directory.GetFiles(directory)
-                            .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+                    GlobalSetting.chartPath = Path.Combine(directory,
+                        GameUtils.SelectGivenExtensionsFileNames(directory, ".json", ".pec")[0]);
+                    GlobalSetting.musicPath = Path.Combine(directory,
+                        GameUtils.SelectGivenExtensionsFileNames(directory, ".wav", ".ogg", ".mp3")[0]);
                     GlobalSetting.illustrationPath = Path.Combine(directory,
-                        Path.GetFileName(Directory.GetFiles(directory)
-                            .Where(s => new List<string>
-                                    { ".png", ".bmp", ".jpg", ".jpeg" }
-                                .Contains(Path.GetExtension(s).ToLowerInvariant()))
-                            .ToArray()[0]));
+                        GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg")[0]);
                 }
                 catch (ArgumentOutOfRangeException)
                 {
@@ -384,6 +378,7 @@ public class MPServerTest : MonoBehaviour
                     ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
                     return false;
                 }
+
                 break;
             case InfoType.InfoTxt:
             case InfoType.InfoCsv:
