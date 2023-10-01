@@ -43,6 +43,7 @@ public class PhigrosResultManager : MonoBehaviour
         GameObject.Find("ScoreText").GetComponent<Text>().text = score;
 
         Text history = GameObject.Find("History").GetComponent<Text>();
+        Text other = GameObject.Find("Other").GetComponent<Text>();
         bool usePitch = MathF.Round(Mathf.Abs(GlobalSetting.Pitch - 1f), 2) >= 0.01f;
         bool isSlower = usePitch && GlobalSetting.Pitch < 1f;
         if (GlobalSetting.autoPlay)
@@ -52,13 +53,22 @@ public class PhigrosResultManager : MonoBehaviour
             history.text = "枇杷油单推！ --音楽ゲームちゃん";
         else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
             history.text = "夜々は俺の嫁！ --kagari939";
-        else if (isSlower)
-            history.text = $"UNRECORDED   [x{GlobalSetting.Pitch:0.00}]";
         else if (deltaScore > 0)
             history.text =
-                $"NEW BEST   {lastScore.ToString().PadLeft(7, '0')}  +{deltaScore.ToString().PadLeft(7, '0')}{(usePitch ?  $"  [x{GlobalSetting.Pitch:0.00}]" : "")}";
+                $"NEW BEST   {lastScore.ToString().PadLeft(7, '0')}  +{deltaScore.ToString().PadLeft(7, '0')}";
         else
-            history.text = $"{(usePitch ?  $"DT  [x{GlobalSetting.Pitch:0.00}]" : "")}";
+            history.text = "";
+        if (isSlower)
+        {
+            other.text = $"UNRECORDED   [x{GlobalSetting.Pitch:0.00}]";
+        } else if (usePitch)
+        {
+            other.text = $"DT  [x{GlobalSetting.Pitch:0.00}]";
+        }
+        else
+        {
+            other.text = "";
+        }
         GameObject.Find("MaxCombo").GetComponent<Text>().text = GlobalSetting.scoreCounter.maxcombo.ToString();
         GameObject.Find("Difficulty").GetComponent<Text>().text = GlobalSetting.difficulty;
         GameObject.Find("CoverImage").GetComponent<Image>().sprite = GlobalSetting.backgroundImage;

@@ -29,7 +29,7 @@ namespace MainCore.Settings
 #endif
             skinDropdown.onValueChanged.AddListener(OnSkinChanged);
             saveNExit.OnClick.AddListener(SaveNExit);
-            dspEnter.OnClick.AddListener(() => { SceneTransit.Instance.LoadScene("DSPScene"); });
+            dspEnter.OnClick.AddListener(IntoDSP);
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
                 {
@@ -58,6 +58,16 @@ namespace MainCore.Settings
             int oldValue = skinDropdown.value;
             skinDropdown.value = PlayerPrefs.GetInt("skin");
             if (oldValue == skinDropdown.value) OnSkinChanged(skinDropdown.value);
+        }
+
+        private void IntoDSP()
+        {
+            string? qwq = null;
+            if (PlayerPrefs.HasKey("file_path")) qwq = PlayerPrefs.GetString("file_path");
+            broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.Save();
+            if (qwq != null) PlayerPrefs.SetString("file_path", qwq);
+            SceneTransit.Instance.LoadScene("DSPScene");
         }
 
         private void SaveNExit()
