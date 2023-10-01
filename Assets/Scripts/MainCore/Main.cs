@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 namespace MainCore
 {
@@ -107,10 +108,11 @@ namespace MainCore
             GlobalSetting.Playing = false;
 
             audio = gameObject.AddComponent<AudioSource>();
-            audio.pitch = GlobalSetting.Pitch;
             audio.playOnAwake = false;
             audio.clip = music;
-            
+            Debug.Log("音频长度：" + audio.clip.length);
+            audio.pitch = GlobalSetting.Pitch;
+
             GlobalSetting.MusicLength = music.length;
             illustration.sprite = GlobalSetting.backgroundImage;
             GlobalSetting.formatVersion = json.formatVersion;
@@ -165,8 +167,10 @@ namespace MainCore
             {
                 progressManager.OnUpdate();
             }
-
-            if (progressManager.NowRealTime >= audio.clip.length && GlobalSetting.Playing)
+            
+            if (Input.GetKeyDown(KeyCode.Numlock)) Debug.Log(audio.clip.length - progressManager.NowNoDelayRealTime);
+            
+            if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.Playing)
             {
                 progressManager.StopTiming();
                 GlobalSetting.Playing = false;
@@ -174,7 +178,7 @@ namespace MainCore
                 {
                     GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutOut");
                     maskSprite.DOFade(0f, 2f);
-                    StartCoroutine(LoadEnding());
+                    LoadEnding();
                 }
 
                 return;
@@ -206,12 +210,12 @@ namespace MainCore
             if (Input.GetKeyUp(KeyCode.RightArrow))
             {
                 audio.time += 5f * GlobalSetting.Pitch;
-                progressManager.AddDelay(5f);
+                progressManager.AddTime(-5f);
             }
             else if (Input.GetKeyUp(KeyCode.LeftArrow))
             {
                 audio.time += 1f * GlobalSetting.Pitch;
-                progressManager.AddDelay(1f);
+                progressManager.AddTime(-1f);
             }
 #endif
             comboText.text = GlobalSetting.scoreCounter.combo < 3 ? "" : $"{GlobalSetting.scoreCounter.combo}";
@@ -257,6 +261,8 @@ namespace MainCore
         }
 #endif
 
+        private float totalOffset;
+
         private async void StartPlay()
         {
             //GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutIn");
@@ -269,12 +275,13 @@ namespace MainCore
             hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Good);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
-
+            
+            totalOffset = json.offset + GlobalSetting.userOffset;
             maskSprite.DOFade(GlobalSetting.maskAlpha, 3f);
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
-            progressManager.AddStartDelay(json.offset + GlobalSetting.userOffset);
+            progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
-            await UniTask.Delay(4000);
+            await new WaitForSeconds(4f);
             GlobalSetting.Playing = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
@@ -307,14 +314,14 @@ namespace MainCore
             SceneTransit.Instance.Back();
         }
 
-        private IEnumerator LoadEnding()
+        private async void LoadEnding()
         {
             GlobalSetting.IsEnding = true;
             operation = SceneManager.LoadSceneAsync("LevelOver 1");
             operation.allowSceneActivation = false;
-            yield return new WaitForSeconds(2);
+            await new WaitForSeconds(2);
             operation.allowSceneActivation = true;
-            yield return operation;
+            await operation;
             //SceneTransit.Instance.TransitTo("LevelOver 1");
         }
 

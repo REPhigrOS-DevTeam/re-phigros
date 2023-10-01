@@ -9,8 +9,10 @@ namespace MainCore
     public class ProgressManager : MonoBehaviour
     {
         Stopwatch _stopwatch = new();
-
+        
+        public float NowNoDelayRealTime;
         public float NowRealTime;
+        public float NowNoDelayTime;
         public float NowTime;
 
         //下面是dsp!
@@ -66,22 +68,30 @@ namespace MainCore
                 }
             }
 
-            var tempT = _stopwatch.ElapsedMilliseconds / 1000f - delay;
-            NowRealTime = tempT < pauseTime ? pauseTime : tempT;
+            var tempT = _stopwatch.ElapsedMilliseconds / 1000f - offset;
+            NowNoDelayRealTime = tempT < pauseTime ? pauseTime : tempT;
+            NowRealTime = NowNoDelayRealTime - delay;
+            NowNoDelayTime = NowNoDelayRealTime * _pitch.Invoke();
             NowTime = NowRealTime * _pitch.Invoke();
         }
 
         private float pauseTime;
         private float delay;
+        private float offset;
         public void AddStartDelay(float second)
         {
             delay += second;
-            pauseTime = NowRealTime;
+            pauseTime = NowNoDelayRealTime;
         }
 
         public void AddDelay(float second)
         {
             delay += second;
+        }
+
+        public void AddTime(float second)
+        {
+            offset += second;
         }
 
         public void TimeGoBack(float time, TweenCallback callback)
