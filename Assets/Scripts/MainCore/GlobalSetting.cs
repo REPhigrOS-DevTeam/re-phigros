@@ -7,6 +7,32 @@ using Utilities;
 
 namespace MainCore
 {
+    public class JudgeTime
+    {
+        public float bTime = 0f; // time to bad
+        public float gTime = 0f; // time to good
+        public float judgeTime = 0f; // time to miss
+        public float pTime = 0f;
+
+        public JudgeTime()
+        {
+        }
+
+        public JudgeTime(float bTime, float gTime, float judgeTime, float pTime)
+        {
+            this.bTime = bTime;
+            this.gTime = gTime;
+            this.judgeTime = judgeTime;
+            this.pTime = pTime;
+        }
+
+        public static JudgeTime operator *(JudgeTime a, float b) => new(bTime: a.bTime * b, gTime: a.gTime * b,
+            judgeTime: a.judgeTime * b, pTime: a.pTime * b);
+
+        public static JudgeTime operator /(JudgeTime a, float b) => new(bTime: a.bTime / b, gTime: a.gTime / b,
+            judgeTime: a.judgeTime / b, pTime: a.pTime / b);
+    }
+
     public static class GlobalSetting
     {
         public enum YayaMode
@@ -179,7 +205,28 @@ namespace MainCore
             fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
             useCourseMode = PlayerPrefs.GetInt("use_course_mode", 0) == 1;
+            Pitch = PlayerPrefs.GetFloat("music_speed", 1f);
         }
+
+        public static float Pitch = 1.2f;
+
+        private static readonly JudgeTime easyTime = new JudgeTime
+        {
+            bTime = 0.16f,
+            gTime = 0.08f,
+            judgeTime = 0.2f,
+        };
+
+        private static readonly JudgeTime hardTime = new JudgeTime
+        {
+            bTime = 0.08f,
+            gTime = 0.04f,
+            judgeTime = 0.16f,
+        };
+
+        private static JudgeTime _judgeTime;
+
+        public static JudgeTime GetJudgeTime() => _judgeTime ??= (useCourseMode ? hardTime : easyTime) * Pitch;
     }
 
     public enum InfoType

@@ -15,14 +15,6 @@ using Utilities;
 
 namespace MainCore
 {
-    public class JudgeTime
-    {
-        public float bTime; // time to bad
-        public float gTime; // time to good
-        public float judgeTime; // time to miss
-        public float pTime;
-    }
-
     public sealed class JudgeLineMovement : MonoBehaviour
     {
         //Constant fields
@@ -39,19 +31,6 @@ namespace MainCore
         public double JudgeLineDistance = 0; // { get; private set; }
         public float SpeedFactor = 6f; // { get; private set; } = 1;
 
-        private static readonly JudgeTime easyTime = new JudgeTime
-        {
-            bTime = 0.16f,
-            gTime = 0.08f,
-            judgeTime = 0.2f,
-        };
-        private static readonly JudgeTime hardTime = new JudgeTime
-        {
-            bTime = 0.08f,
-            gTime = 0.04f,
-            judgeTime = 0.16f,
-        };
-        public static JudgeTime JudgeTime => GlobalSetting.useCourseMode ? hardTime : easyTime;
         private float alphaVal = 0;
         private NativeArray<float> floorPosArray;
         [NonSerialized] public int ID;
@@ -110,7 +89,7 @@ namespace MainCore
                 sr.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
                 return;
             }
-
+            
             PgrTime = Main.Instance.progressManager.NowTime;
 
             JudgeLineDistance = CalculateNoteHeight_internal(PgrTime);
@@ -174,7 +153,7 @@ namespace MainCore
                     virtualPosYVersion1 += (b.endTime - b.startTime) * b.value;
                 }
             }
-            
+
             transform.localScale = TargetScale;
             for (int i = 0; i < 20; i++)
                 PositionX.Add(0f);
@@ -249,7 +228,7 @@ namespace MainCore
             var flickTime = 9999f;
             var tempNoteList = new List<NoteMovement>();
             var noteDistances = new List<float>();
-            var tolerance = JudgeTime.judgeTime + PgrTime;
+            var tolerance = GlobalSetting.GetJudgeTime().judgeTime + PgrTime;
             for (var j = 0; j < NotesCanBeUpdated.Count; j++)
             {
                 var i = NotesCanBeUpdated[j];

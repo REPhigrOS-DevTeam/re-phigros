@@ -274,7 +274,15 @@ namespace Network.Account
             }
 
             string result = Encoding.UTF8.GetString(data);
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
+            VerifyRequest res;
+            try
+            {
+                res = JsonConvert.DeserializeObject<VerifyRequest>(result);
+            }
+            catch (Exception)
+            {
+                return (StatusCode.ServerInternalError, null);
+            }
             if (res == null || res.status == false)
             {
                 Debug.Log($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
@@ -311,8 +319,16 @@ namespace Network.Account
                 return (StatusCode.Unknown, null);
             }
 
+            VerifyRequest res;
             string result = Encoding.UTF8.GetString(data);
-            var res = JsonConvert.DeserializeObject<VerifyRequest>(result);
+            try
+            {
+                res = JsonConvert.DeserializeObject<VerifyRequest>(result);
+            }
+            catch (Exception)
+            {
+                return (StatusCode.ServerInternalError, null);
+            }
             if (res == null || res.status == false)
             {
                 Debug.Log($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");

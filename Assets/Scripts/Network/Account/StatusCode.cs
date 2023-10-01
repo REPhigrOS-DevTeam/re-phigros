@@ -5,7 +5,7 @@ namespace Network.Account
         // https://account.rephigros.top/docs/code.html
         Unknown = -1, // 出现这个可以吃席了
         OK = 100,
-        InvalidParam = 101, // 一般来说都是你少传参数
+        InvalidParam = 101, // 理论上是客户端少传参数，很多时候需要开席
         ServerInternalError = 102, // 没啥好说的，找CarlSkyCoding去
         IllegalLogin = 2011, // 没有可用登录名额时会触发
         InvalidUsername = 2012, // 用户名不存在之类的

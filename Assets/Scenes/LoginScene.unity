@@ -1468,6 +1468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da8107d26e545864d9539a45c2066d27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  accountInfos: []
   usernameInputField: {fileID: 196611682}
   passwordInputField: {fileID: 718508005}
   accountsDropdown: {fileID: 1125332418}

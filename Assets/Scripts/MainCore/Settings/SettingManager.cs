@@ -54,14 +54,7 @@ namespace MainCore.Settings
                         "枇杷树上挂 粒粒油滴下");
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Poyoroid_sou;
                 });
-            SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 },
-                () =>
-                {
-                    // Debug.Log("启用Shader");
-                    // InGameUIManager.ShowModalWindowWithClose("<size=15>提示</size>", "Extra.json已启用", () => { },
-                    //     "确认");
-                    // GlobalSetting.useShader = true;
-                });
+            // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
             int oldValue = skinDropdown.value;
             skinDropdown.value = PlayerPrefs.GetInt("skin");
             if (oldValue == skinDropdown.value) OnSkinChanged(skinDropdown.value);

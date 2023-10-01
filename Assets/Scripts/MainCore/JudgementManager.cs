@@ -259,9 +259,8 @@ namespace MainCore
                     }
                 }
 
-                if (judgedFlick && note.Note.time > judgedFlickTime) //如果判定了flick且flick在tap前面
+                if (judgedFlick && note.Note.time > judgedFlickTime) //如果判定了flick且flick在tap前面 // TODO: 为啥这个有bug
                 {
-                    Debug.Log("Flick bypassed");
                     fingers[i].ClearTapFlag();
                     continue;
                 }

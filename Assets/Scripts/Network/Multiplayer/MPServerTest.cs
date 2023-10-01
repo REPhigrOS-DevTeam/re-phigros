@@ -32,6 +32,7 @@ public class MPServerTest : MonoBehaviour
 
     private static SongType selectedSongType = SongType.empty;
     private static string selectedSongId = "";
+    private static SongInfo selectedSongInfo = null;
     private static bool downloaded = false;
 
     private int roomId = -1;
@@ -107,7 +108,6 @@ public class MPServerTest : MonoBehaviour
         bDisconnect.onClick.AddListener(Disconnect);
 
         string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        // bLogin.onClick.AddListener(() => GeneralListener(SocketManager.Login, generalErrorMessages[0], generalErrorMessages[1], "已经登录")); // TODO 迁移
         bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
@@ -120,7 +120,7 @@ public class MPServerTest : MonoBehaviour
             async void OnGetFileSuccess(string[] paths)
             {
                 int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]),
-                    SongType.rep);
+                    SongType.rep, await GameUtils.GetSongInfo(paths[0]));
                 if (state == 0) return;
                 ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }
@@ -130,7 +130,7 @@ public class MPServerTest : MonoBehaviour
                 {
                     OnGetFileSuccess(paths);
                     uploadMask.SetActive(false);
-                }, () => {uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false,
+                }, () => { uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false,
                 PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传");
         });
         bDownloadSong.onClick.AddListener(Download);
@@ -153,13 +153,15 @@ public class MPServerTest : MonoBehaviour
         };
         SocketManager.OnGetRoomInfoSucceeded += info =>
         {
-            OnUpdateSongReceived(info.SelectedSongID, Enum.Parse<SongType>(info.SelectedSongType));
+            OnUpdateSongReceived(info.SelectedSongID, Enum.Parse<SongType>(info.SelectedSongType),
+                info.selectedSongInfo);
         };
         SocketManager.OnQuitRoomSucceeded += () =>
         {
             SetButtonState(RoomState.NotInRoom);
             selectedSongId = "";
             selectedSongType = SongType.empty;
+            selectedSongInfo = null;
         };
         SocketManager.OnSendPrepared += clientOperate =>
         {
@@ -189,10 +191,21 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.Reset();
     }
 
-    private void OnSongReceived(string s, SongType type)
+    private void OnSongReceived(string id, SongType type, SongInfo info)
     {
-        ChatManager.AddMessage("", "房主更新了曲目", MessageType.Server);
-        OnUpdateSongReceived(s, type);
+        ChatManager.AddMessage("", SocketManager.IsOwner ? "您已更新曲目" : "房主更新了曲目", MessageType.Room);
+        ChatManager.AddMessage("",
+            "曲目信息：\n" +
+            $" - ID：{id}\n" +
+            $" - 歌曲名称：{info.SongName}\n" +
+            $" - 作曲家：{info.SongComposer}\n" +
+            $" - 难度：{info.SongDifficulty}\n" +
+            $" - 谱师：{info.SongCharter}\n" +
+            $" - 曲绘绘师：{info.SongIllustrator}\n" +
+            $" - 曲目长度：{info.MusicLength:0.##}s\n" +
+            $" - [备用]文件夹名称：{info.FolderName}",
+            MessageType.Room);
+        OnUpdateSongReceived(id, type, info);
         if (!SocketManager.IsOwner) return;
         bDownloadSong.interactable = false;
         OwnerOperation();
@@ -201,7 +214,7 @@ public class MPServerTest : MonoBehaviour
         {
             if (await MoveSong())
             {
-                ChatManager.AddMessage("downloadSucceeded", $"成功上传谱面，id：" + s, MessageType.Server);
+                ChatManager.AddMessage("downloadSucceeded", $"成功上传谱面，id：" + id, MessageType.Server);
                 SetDownloaded(true);
             }
             else
@@ -255,7 +268,7 @@ public class MPServerTest : MonoBehaviour
         tConnectState.text = $"服务器状态：{str}";
     }
 
-    private void OnUpdateSongReceived(string id, SongType type)
+    private void OnUpdateSongReceived(string id, SongType type, SongInfo songInfo)
     {
         selectedSongId = id;
         selectedSongType = type;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace Network.Account.Utils
             PlayerPrefs.SetString(Key, string.Join("\n", accountInfos.Select(info => $"{info.Username}\n{info.VerifyToken}")));
             PlayerPrefs.Save();
         }
-
+        
         public class AccountInfo
         {
             public string Username;

@@ -1,3 +1,4 @@
+using System;
 using LeTai.Asset.TranslucentImage;
 using MainCore;
 using MainCore.Common;
@@ -41,25 +42,30 @@ public class PhigrosResultManager : MonoBehaviour
         GameObject.Find("Accuracy").GetComponent<Text>().text = acc;
         GameObject.Find("ScoreText").GetComponent<Text>().text = score;
 
-        if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
-            GameObject.Find("History").GetComponent<Text>().text = "枇杷油单推！ --音楽ゲームちゃん";
-        else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
-            GameObject.Find("History").GetComponent<Text>().text = "夜々は俺の嫁！ --kagari939";
-        else if (GlobalSetting.autoPlay)
-            GameObject.Find("History").GetComponent<Text>().text =
+        Text history = GameObject.Find("History").GetComponent<Text>();
+        bool usePitch = MathF.Round(Mathf.Abs(GlobalSetting.Pitch - 1f), 2) >= 0.01f;
+        bool isSlower = usePitch && GlobalSetting.Pitch < 1f;
+        if (GlobalSetting.autoPlay)
+            history.text +=
                 GlobalSetting.recordMode ? "RECORD MODE" : "<color=red>AUTO PLAY</color>";
+        else if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
+            history.text = "枇杷油单推！ --音楽ゲームちゃん";
+        else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
+            history.text = "夜々は俺の嫁！ --kagari939";
+        else if (isSlower)
+            history.text = $"UNRECORDED   [x{GlobalSetting.Pitch:0.00}]";
         else if (deltaScore > 0)
-            GameObject.Find("History").GetComponent<Text>().text =
-                $"NEW BEST   {lastScore.ToString().PadLeft(7, '0')}  +" + deltaScore.ToString().PadLeft(7, '0');
+            history.text =
+                $"NEW BEST   {lastScore.ToString().PadLeft(7, '0')}  +{deltaScore.ToString().PadLeft(7, '0')}{(usePitch ?  $"  [x{GlobalSetting.Pitch:0.00}]" : "")}";
         else
-            GameObject.Find("History").GetComponent<Text>().text = "";
+            history.text = $"{(usePitch ?  $"DT  [x{GlobalSetting.Pitch:0.00}]" : "")}";
         GameObject.Find("MaxCombo").GetComponent<Text>().text = GlobalSetting.scoreCounter.maxcombo.ToString();
         GameObject.Find("Difficulty").GetComponent<Text>().text = GlobalSetting.difficulty;
         GameObject.Find("CoverImage").GetComponent<Image>().sprite = GlobalSetting.backgroundImage;
         GameObject.Find("Translucent Image").GetComponent<Image>().sprite = GlobalSetting.backgroundImage;
         GameObject.Find("Early").GetComponent<Text>().text = GlobalSetting.scoreCounter.early.ToString();
         GameObject.Find("Late").GetComponent<Text>().text = GlobalSetting.scoreCounter.late.ToString();
-        if (!GlobalSetting.autoPlay)
+        if (!GlobalSetting.autoPlay && !isSlower)
             SaveManager.SaveScore(GlobalSetting.chart,
                 Mathf.RoundToInt(GlobalSetting.scoreCounter.Score).ToString().PadLeft(7, '0'));
         getRank(GlobalSetting.scoreCounter.Score);
@@ -112,6 +118,7 @@ public class PhigrosResultManager : MonoBehaviour
         {
             SocketManager.EndGame(score, acc);
         }
+
         SceneTransit.Instance.Back();
     }
 

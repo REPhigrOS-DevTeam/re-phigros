@@ -194,7 +194,6 @@ namespace Network.Multiplayer.Data
 
     public class SongInfo
     {
-        [JsonIgnore] public string Id;
         [JsonProperty("FolderName")] public string FolderName;
         [JsonProperty("SongName")] public string SongName;
         [JsonProperty("SongComposer")] public string SongComposer;

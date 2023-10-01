@@ -148,10 +148,10 @@ namespace MainCore
             {
                 temporaryColors[0] =
                     Color.white.SetAlpha(
-                        Mathf.Max(1 - (parentLine.PgrTime - Note.time) / JudgeLineMovement.JudgeTime.bTime, 0) * Note.alpha);
+                        Mathf.Max(1 - (parentLine.PgrTime - Note.time) / GlobalSetting.GetJudgeTime().bTime, 0) * Note.alpha);
             }
 
-            if (parentLine.PgrTime >= Note.time + JudgeLineMovement.JudgeTime.bTime && status == NoteStat.None)
+            if (parentLine.PgrTime >= Note.time + GlobalSetting.GetJudgeTime().bTime && status == NoteStat.None)
             {
                 GlobalSetting.scoreCounter.Add(NoteStat.Miss);
                 status = NoteStat.Miss;
@@ -202,21 +202,21 @@ namespace MainCore
             if (notetype == 1 && f.IsFirstClick)
             {
                 f.ClearTapFlag();
-                if (deltaTime > JudgeLineMovement.JudgeTime.bTime)
+                if (deltaTime > GlobalSetting.GetJudgeTime().bTime)
                 {
                     status = NoteStat.Bad;
                     GlobalSetting.scoreCounter.Add(NoteStat.Bad);
                     Instantiate(badTap, cachedTransform.position, cachedTransform.rotation).transform.localScale =
                         cachedTransform.lossyScale;
                 }
-                else if (deltaTime > JudgeLineMovement.JudgeTime.gTime)
+                else if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Good;
                     GlobalSetting.scoreCounter.Add(NoteStat.Good);
                     GlobalSetting.scoreCounter.early++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
-                else if (deltaTime > -JudgeLineMovement.JudgeTime.gTime)
+                else if (deltaTime > -GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Perfect;
                     GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
@@ -234,12 +234,12 @@ namespace MainCore
                 destroyed = true;
                 return true;
             }
-            else if (notetype == 2 && Mathf.Abs(deltaTime) < JudgeLineMovement.JudgeTime.judgeTime)
+            else if (notetype == 2 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime)
             {
                 status = NoteStat.Perfect;
                 return true;
             }
-            else if (notetype == 4 && Mathf.Abs(deltaTime) < JudgeLineMovement.JudgeTime.judgeTime && f.IsFlick())
+            else if (notetype == 4 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime && f.IsFlick())
             {
                 status = NoteStat.Perfect;
                 return true;

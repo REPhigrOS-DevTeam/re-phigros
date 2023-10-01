@@ -63,7 +63,7 @@ namespace MainCore
             GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
             GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
             GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
-            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => 1.0f);
+            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
 
             InitChart();
 
@@ -107,6 +107,7 @@ namespace MainCore
             GlobalSetting.Playing = false;
 
             audio = gameObject.AddComponent<AudioSource>();
+            audio.pitch = GlobalSetting.Pitch;
             audio.playOnAwake = false;
             audio.clip = music;
             
@@ -155,22 +156,17 @@ namespace MainCore
                 Camera.main.GetComponent<PostProcessLayer>().enabled = false;
             }
 
-            StartCoroutine(StartPlay());
+            StartPlay();
         }
 
         void Update()
         {
-            if (audio.time >= 5f && GlobalSetting.Playing)
-            {
-                playedFlag = true;
-            }
-
             if (GlobalSetting.Playing)
             {
                 progressManager.OnUpdate();
             }
 
-            if (audio.time <= 1f && playedFlag)
+            if (progressManager.NowRealTime >= audio.clip.length && GlobalSetting.Playing)
             {
                 progressManager.StopTiming();
                 GlobalSetting.Playing = false;
@@ -207,19 +203,17 @@ namespace MainCore
             //Camera.main.fieldOfView = 60 * factor;
             //particleCamera.orthographicSize = 5 * factor;
             //particleCamera.fieldOfView = 60 * factor;
-#endif
-
             if (Input.GetKeyUp(KeyCode.RightArrow))
             {
-                audio.time += 5;
+                audio.time += 5f * GlobalSetting.Pitch;
                 progressManager.AddDelay(5f);
             }
             else if (Input.GetKeyUp(KeyCode.LeftArrow))
             {
-                audio.time += 1;
+                audio.time += 1f * GlobalSetting.Pitch;
                 progressManager.AddDelay(1f);
             }
-
+#endif
             comboText.text = GlobalSetting.scoreCounter.combo < 3 ? "" : $"{GlobalSetting.scoreCounter.combo}";
             if (GlobalSetting.scoreCounter.combo < 3)
             {
@@ -263,11 +257,12 @@ namespace MainCore
         }
 #endif
 
-        private IEnumerator StartPlay()
+        private async void StartPlay()
         {
             //GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutIn");
 
-            //We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
+            // We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
+            // 预生成一个HitFX，避免读取prefab时吃硬盘
             var hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Perfect);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
@@ -279,7 +274,7 @@ namespace MainCore
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
             progressManager.AddStartDelay(json.offset + GlobalSetting.userOffset);
             //totalOffset -= .05f; //fixed delay
-            yield return new WaitForSeconds(4);
+            await UniTask.Delay(4000);
             GlobalSetting.Playing = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
@@ -567,7 +562,7 @@ namespace MainCore
                 progressManager.StopTiming();
                 audio.Pause();
                 audio.volume = 0;
-                audio.time -= 3f;
+                audio.time -= 3f * GlobalSetting.Pitch;
                 progressManager.TimeGoBack(3f, () => pauseWindow.TurnOn());
             }
         }

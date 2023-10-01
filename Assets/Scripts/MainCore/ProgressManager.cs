@@ -10,6 +10,7 @@ namespace MainCore
     {
         Stopwatch _stopwatch = new();
 
+        public float NowRealTime;
         public float NowTime;
 
         //下面是dsp!
@@ -66,7 +67,8 @@ namespace MainCore
             }
 
             var tempT = _stopwatch.ElapsedMilliseconds / 1000f - delay;
-            NowTime = (tempT < pauseTime ? pauseTime : tempT) * _pitch.Invoke();
+            NowRealTime = tempT < pauseTime ? pauseTime : tempT;
+            NowTime = NowRealTime * _pitch.Invoke();
         }
 
         private float pauseTime;
@@ -74,7 +76,7 @@ namespace MainCore
         public void AddStartDelay(float second)
         {
             delay += second;
-            pauseTime = NowTime;
+            pauseTime = NowRealTime;
         }
 
         public void AddDelay(float second)

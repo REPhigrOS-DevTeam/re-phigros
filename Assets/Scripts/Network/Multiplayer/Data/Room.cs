@@ -22,6 +22,7 @@ namespace Network.Multiplayer.Data
     public class UpdaeSongActiveReceive : ActiveReceiveData
     {
         [JsonProperty("songId")] public string songId;
+        [JsonProperty("songInfo")] public SongInfo songInfo;
     }
 
     public class RoomInfoReceive : BackReceiveData
@@ -34,6 +35,7 @@ namespace Network.Multiplayer.Data
         [JsonProperty("Room_PlayerList")] public string[] PlayerList;
         [JsonProperty("Room_SongType")] public string SelectedSongType;
         [JsonProperty("Room_SongId")] public string SelectedSongID;
+        [JsonProperty("Room_SongInfo")] public SongInfo selectedSongInfo;
     }
 
     public enum MessageType

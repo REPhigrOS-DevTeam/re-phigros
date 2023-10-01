@@ -29,6 +29,7 @@ namespace Network.Multiplayer.Managers
         private static bool isOwner = false;
         private static string songId = "";
         private static SongType songType = SongType.empty;
+        private static SongInfo songInfo = null;
         private static string tryJoinRoomId = "";
         private static Task taskReceive = null;
         private static JObject[] packs;
@@ -40,7 +41,7 @@ namespace Network.Multiplayer.Managers
         private static bool allGameEnded = true;
         private static bool isOnline = false, enableChart = false;
 
-        public static Action<string, SongType> OnUpdateSongReceived = (_, _) => { };
+        public static Action<string, SongType, SongInfo> OnUpdateSongReceived = (_, _, _) => { };
 
         public static Action<ClientOperate>
             OnSendPrepared = _ => { },
@@ -82,7 +83,7 @@ namespace Network.Multiplayer.Managers
 #endif
             SceneTransit.OnSceneClosing += () =>
             {
-                OnUpdateSongReceived = (_, _) => { };
+                OnUpdateSongReceived = (_, _, _) => { };
                 OnSendPrepared = _ => { };
                 OnBackReceived = _ => { };
                 OnGetRoomInfoSucceeded = _ => { };
@@ -280,7 +281,8 @@ namespace Network.Multiplayer.Managers
             SendDataWithToken pack = GetSendDataWithToken();
             pack.Addition.Add("songId", songId);
             pack.Addition.Add("songType", type.ToString());
-            pack.Addition.Add("songInfo", type == SongType.rep ? JsonConvert.SerializeObject(songInfo, Formatting.None) : null);
+            pack.Addition.Add("songInfo",
+                type == SongType.rep ? JsonConvert.SerializeObject(songInfo, Formatting.None) : null);
             return GeneralSend(ClientOperate.Room_UpdateSong, pack);
         }
 
@@ -467,6 +469,7 @@ namespace Network.Multiplayer.Managers
                         {
                             songId = receive.RoomInfo.SelectedSongID;
                             songType = Enum.Parse<SongType>(receive.RoomInfo.SelectedSongType, true);
+                            songInfo = receive.RoomInfo.selectedSongInfo;
                             OnGetRoomInfoSucceeded.Invoke(receive.RoomInfo);
                         },
                         failedCallback: LocalQuitRoom);
@@ -632,7 +635,8 @@ namespace Network.Multiplayer.Managers
                               JsonConvert.SerializeObject(pack.ToObject<UpdaeSongActiveReceive>(), Formatting.None));
                     songId = pack["songId"].ToString();
                     songType = Enum.Parse<SongType>(pack["songType"].ToString(), true);
-                    OnUpdateSongReceived.Invoke(songId, songType);
+                    songInfo = pack["songInfo"].ToObject<SongInfo>();
+                    OnUpdateSongReceived.Invoke(songId, songType, songInfo);
                     break;
                 case ServerOperate.ServerClosed:
                     Util.QuitApp();
@@ -698,6 +702,7 @@ namespace Network.Multiplayer.Managers
             allGameEnded = true;
             songId = "";
             songType = SongType.empty;
+            songInfo = null;
         }
     }
 }
