@@ -382,7 +382,8 @@ namespace MainCore.Utilities
                     }
                     catch (Exception)
                     {
-                        InGameUIManager.ShowModalWindowWithClose("错误", "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息", () => { }, "确认");
+                        InGameUIManager.ShowModalWindowWithClose("错误", "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息",
+                            () => { }, "确认");
                     }
                 }
                 else
@@ -430,7 +431,8 @@ namespace MainCore.Utilities
                 SongIllustrator = phiraInfoData != null ? phiraInfoData.illustrator :
                     lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
                 MusicLength = musicLength
-            }, infoType, infoType switch {
+            }, infoType, infoType switch
+            {
                 InfoType.Empty => null,
                 InfoType.InfoTxt => infoTxtReader,
                 InfoType.InfoCsv => lchzhInfo,
@@ -439,7 +441,8 @@ namespace MainCore.Utilities
             });
         }
 
-        public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(string directory)
+        public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(
+            string directory)
         {
             (SongInfo songInfo, InfoType infoType, object obj) = await GetSongInfo(directory);
             GameFilePathInfo gameFilePathInfo = new GameFilePathInfo();
@@ -470,13 +473,35 @@ namespace MainCore.Utilities
                     throw new ArgumentOutOfRangeException();
             }
 
-            return (songInfo, infoType, gameFilePathInfo, infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null); // TODO
+            return (songInfo, infoType, gameFilePathInfo,
+                infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null); // TODO
         }
-        
+
         public static string[] SelectGivenExtensionsFileNames(string directory, params string[] extensions) => Directory
             .GetFiles(directory).Where(s => extensions.Select(str => str.ToLowerInvariant()).ToList()
                 .Contains(Path.GetExtension(s).ToLowerInvariant()))
             .Select(Path.GetFileName).ToArray();
+#if false
+        public static string[] SelectGivenExtensionsFileNames1(string directory, params string[] extensions)
+        {
+            var files = Directory.GetFiles(directory);
+            var result = new List<string>();
+
+            foreach (var file in files)
+            {
+                var extension = Path.GetExtension(file).ToLowerInvariant();
+
+                foreach (var ext in extensions)
+                {
+                    if (ext.ToLowerInvariant() != extension) continue;
+                    result.Add(Path.GetFileName(file));
+                    break;
+                }
+            }
+
+            return result.ToArray();
+        }
+#endif
     }
 
     public class GameFilePathInfo
