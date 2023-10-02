@@ -85,7 +85,7 @@ namespace MainCore
         {
             if (GlobalSetting.disableBlur)
             {
-                GameObject.Find("UICamera").GetComponent<TranslucentImageSource>().enabled = false;
+                GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
             }
 
             if (Camera.main.aspect >= aspect)
@@ -210,12 +210,12 @@ namespace MainCore
             if (Input.GetKeyUp(KeyCode.RightArrow))
             {
                 audio.time += 5f * GlobalSetting.Pitch;
-                progressManager.AddTime(-5f);
+                progressManager.AddTime(5f);
             }
             else if (Input.GetKeyUp(KeyCode.LeftArrow))
             {
                 audio.time += 1f * GlobalSetting.Pitch;
-                progressManager.AddTime(-1f);
+                progressManager.AddTime(1f);
             }
 #endif
             comboText.text = GlobalSetting.scoreCounter.combo < 3 ? "" : $"{GlobalSetting.scoreCounter.combo}";
@@ -301,6 +301,7 @@ namespace MainCore
             {
                 playedFlag = true;
                 audio.time = 0;
+                progressManager.AddTime(audio.clip.length);
             });
             if (GlobalSetting.isMultiplayer)
             {
@@ -325,7 +326,7 @@ namespace MainCore
             //SceneTransit.Instance.TransitTo("LevelOver 1");
         }
 
-        public static async Task InitChartAuto(string path, bool showMessage = true)
+        public static async Task InitChartAuto(string path, bool isInternal, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
             if (showMessage) Task.Run(delegate
@@ -342,7 +343,7 @@ namespace MainCore
                     }
                 }
             }, cts.Token);
-            var ch = await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
+            var ch = isInternal ? Resources.Load<TextAsset>(path).text : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
             GlobalSetting.chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))
@@ -569,8 +570,9 @@ namespace MainCore
                 progressManager.StopTiming();
                 audio.Pause();
                 audio.volume = 0;
-                audio.time -= 3f * GlobalSetting.Pitch;
-                progressManager.TimeGoBack(3f, () => pauseWindow.TurnOn());
+                float delta = Mathf.Min(3f, audio.time);
+                audio.time = Mathf.Max(audio.time - 3f, 0f);
+                progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
             }
         }
 

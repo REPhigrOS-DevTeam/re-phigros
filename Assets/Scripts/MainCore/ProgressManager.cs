@@ -68,7 +68,7 @@ namespace MainCore
                 }
             }
 
-            var tempT = _stopwatch.ElapsedMilliseconds / 1000f - offset;
+            var tempT = _stopwatch.ElapsedMilliseconds / 1000f + offset;
             NowNoDelayRealTime = tempT < pauseTime ? pauseTime : tempT;
             NowRealTime = NowNoDelayRealTime - delay;
             NowNoDelayTime = NowNoDelayRealTime * _pitch.Invoke();

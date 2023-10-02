@@ -13,11 +13,6 @@
         {
             "$type": "Unity.Build.Common.ApplicationIdentifier, Unity.Build",
             "PackageName": "com.totorowldox.REPhigros"
-        },
-        {
-            "$type": "Unity.Build.DotsRuntime.IL2CPPSettings, Unity.Build.DotsRuntime",
-            "ScriptDebugging": 0,
-            "WaitForDebugger": false
         }
     ]
 }

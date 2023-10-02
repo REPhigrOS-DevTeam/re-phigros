@@ -8,6 +8,7 @@ using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using Network.Multiplayer.Data;
+using Newtonsoft.Json;
 using UnityEngine;
 using YamlDotNet.Serialization;
 
@@ -453,21 +454,21 @@ namespace MainCore.Utilities
                     break;
                 case InfoType.InfoTxt:
                     InfoTxtReader infoTxtReader = obj as InfoTxtReader;
-                    gameFilePathInfo.chart = infoTxtReader.GetChartFileName();
-                    gameFilePathInfo.music = infoTxtReader.GetSongFileName();
-                    gameFilePathInfo.illustration = infoTxtReader.GetIllustrationFileName();
+                    gameFilePathInfo.Chart = infoTxtReader.GetChartFileName();
+                    gameFilePathInfo.Music = infoTxtReader.GetSongFileName();
+                    gameFilePathInfo.Illustration = infoTxtReader.GetIllustrationFileName();
                     break;
                 case InfoType.InfoCsv:
                     LchzhInfo lchzhInfo = obj as LchzhInfo;
-                    gameFilePathInfo.chart = lchzhInfo.Chart;
-                    gameFilePathInfo.music = lchzhInfo.Music;
-                    gameFilePathInfo.illustration = lchzhInfo.Image;
+                    gameFilePathInfo.Chart = lchzhInfo.Chart;
+                    gameFilePathInfo.Music = lchzhInfo.Music;
+                    gameFilePathInfo.Illustration = lchzhInfo.Image;
                     break;
                 case InfoType.InfoYml:
                     PhiraInfoData phiraInfoData = obj as PhiraInfoData;
-                    gameFilePathInfo.chart = phiraInfoData.chart;
-                    gameFilePathInfo.music = phiraInfoData.music;
-                    gameFilePathInfo.illustration = phiraInfoData.illustration;
+                    gameFilePathInfo.Chart = phiraInfoData.chart;
+                    gameFilePathInfo.Music = phiraInfoData.music;
+                    gameFilePathInfo.Illustration = phiraInfoData.illustration;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -506,9 +507,9 @@ namespace MainCore.Utilities
 
     public class GameFilePathInfo
     {
-        public string chart;
-        public string music;
-        public string illustration;
+        [JsonProperty("Chart")] public string Chart;
+        [JsonProperty("Music")] public string Music;
+        [JsonProperty("Illustration")] public string Illustration;
     }
 
     public class LchzhInfo

@@ -1,0 +1,20 @@
+{
+  "Songs": [
+    {
+      "Info": {
+        "FolderName": "56493618",
+        "SongName": "星界ちゃんと可不ちゃんのおつかい合騒曲",
+        "SongComposer": "南ノ南",
+        "SongDifficulty": "IN Lv.15",
+        "SongCharter": "NEKOYO喵、鳝丝大爹喵",
+        "SongIllustrator": "榊はゆ茶",
+        "MusicLength": 264.888
+      },
+      "Path": {
+        "Chart": "56493618.json",
+        "Music": "56493618.ogg",
+        "Illustration": "56493618.png"
+      }
+    }
+  ]
+}

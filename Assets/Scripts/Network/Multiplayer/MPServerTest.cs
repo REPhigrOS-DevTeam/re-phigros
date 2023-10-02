@@ -388,15 +388,15 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.charter = songInfo.SongCharter;
                 GlobalSetting.composer = songInfo.SongComposer;
                 GlobalSetting.illustrator = songInfo.SongIllustrator;
-                GlobalSetting.chartPath = Path.Combine(directory, pathInfo.chart);
-                GlobalSetting.musicPath = Path.Combine(directory, pathInfo.music);
-                GlobalSetting.illustrationPath = Path.Combine(directory, pathInfo.illustration);
+                GlobalSetting.chartPath = Path.Combine(directory, pathInfo.Chart);
+                GlobalSetting.musicPath = Path.Combine(directory, pathInfo.Music);
+                GlobalSetting.illustrationPath = Path.Combine(directory, pathInfo.Illustration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
+        await Main.InitChartAuto(GlobalSetting.chartPath, false, false).ConfigureAwait(false);
         if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
 
         // extra init
@@ -451,6 +451,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.recordMode = false;
         GlobalSetting.autoPlay = false;
         GlobalSetting.useCourseMode = false;
+        GlobalSetting.Pitch = 1.0f;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();
         SceneTransit.Instance.LoadScene("LoadInto");

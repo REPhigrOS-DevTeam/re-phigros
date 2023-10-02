@@ -235,6 +235,7 @@ namespace MainCore
         InfoTxt,
         RpeJson,
         InfoCsv,
-        InfoYml
+        InfoYml,
+        Internal // 保持这个为最高
     }
 }

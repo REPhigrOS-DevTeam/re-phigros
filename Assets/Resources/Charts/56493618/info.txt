@@ -1,0 +1,9 @@
+#
+Name: 星界ちゃんと可不ちゃんのおつかい合騒曲
+Path: 56493618
+Song: 56493618.ogg
+Picture: 56493618.png
+Chart: 56493618.json
+Level: IN Lv.15
+Composer: 南ノ南
+Charter: NEKOYO喵、鳝丝大爹喵

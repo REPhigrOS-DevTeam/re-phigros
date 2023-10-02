@@ -1235,6 +1235,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 459e14c4b8137f64c946cf347deea833, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  NowNoDelayRealTime: 0
+  NowRealTime: 0
+  NowNoDelayTime: 0
   NowTime: 0
 --- !u!1 &630396804
 GameObject:

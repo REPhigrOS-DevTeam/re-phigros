@@ -178,9 +178,9 @@ namespace MainCore.UI
                     GlobalSetting.charter = songInfo.SongCharter;
                     GlobalSetting.composer = songInfo.SongComposer;
                     GlobalSetting.illustrator = songInfo.SongIllustrator;
-                    GlobalSetting.chartPath = Path.Combine(tempPath, pathInfo.chart);
-                    GlobalSetting.musicPath = Path.Combine(tempPath, pathInfo.music);
-                    GlobalSetting.illustrationPath = Path.Combine(tempPath, pathInfo.illustration);
+                    GlobalSetting.chartPath = Path.Combine(tempPath, pathInfo.Chart);
+                    GlobalSetting.musicPath = Path.Combine(tempPath, pathInfo.Music);
+                    GlobalSetting.illustrationPath = Path.Combine(tempPath, pathInfo.Illustration);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -207,7 +207,7 @@ namespace MainCore.UI
             }
 
             //We load chart from here.
-            await Main.InitChartAuto(GlobalSetting.chartPath).ConfigureAwait(false);
+            await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
             if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
 
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&

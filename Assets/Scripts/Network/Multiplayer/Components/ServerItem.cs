@@ -33,17 +33,20 @@ namespace Network.Multiplayer.Components
             Refresh();
         }
 
+        private const string PingFormat = "Ping: {0}ms, 谱面服务：{1}";
+        private const string ErrorFormat = "<color=red>错误：{0}</color>";
+
         public async void Refresh()
         {
             await UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
                 tServerId.text = "";
-                tServerPing.text = "Ping: -ms, 谱面服务: 未知";
+                tServerPing.text = string.Format(PingFormat, "-", "未知");
                 tServerMotd.text = "正在连接服务器...";
                 if (!General.TryParseHost(serverUrl, out IPEndPoint endPoint, out _))
                 {
-                    tServerMotd.text = "<color=red>错误：地址不合法</color>";
+                    tServerMotd.text = string.Format(ErrorFormat, "地址不合法");
                     return;
                 }
 
@@ -57,7 +60,7 @@ namespace Network.Multiplayer.Components
                 catch (SocketException)
                 {
                     await UniTask.SwitchToMainThread();
-                    tServerMotd.text = "<color=red>错误：无法连接至服务器</color>";
+                    tServerMotd.text = string.Format(ErrorFormat, "无法连接至服务器");
                     return;
                 }
 
@@ -75,7 +78,7 @@ namespace Network.Multiplayer.Components
                     if (stopwatch.ElapsedMilliseconds < 5000) continue;
                     stopwatch.Stop();
                     await UniTask.SwitchToMainThread();
-                    tServerMotd.text = "<color=red>错误：服务器连接超时</color>";
+                    tServerMotd.text = string.Format(ErrorFormat, "服务器连接超时");
                     await UniTask.SwitchToThreadPool();
                     socket.Close();
                     socket = null;
@@ -90,21 +93,21 @@ namespace Network.Multiplayer.Components
                 await UniTask.SwitchToMainThread();
                 if (packs.Length == 0)
                 {
-                    tServerMotd.text = "<color=red>错误：服务器语法错误，请联系服务器管理员与服务器开发者</color>";
+                    tServerMotd.text = string.Format(ErrorFormat, "服务器语法错误，请联系服务器管理员与服务器开发者");
                     return;
                 }
 
                 PingReceiveData data = packs[0].ToObject<PingReceiveData>();
                 if (data is not { Status: true })
                 {
-                    tServerMotd.text = "<color=red>？？？？？？？？？？？？？？？？？？？？？？</color>";
+                    tServerMotd.text = string.Format(ErrorFormat, "？？？？？？？？？？？？？？？？？？？？？？");
                     return;
                 }
 
                 tServerId.text = "@" + data.Name;
                 tServerMotd.text = data.Motd;
-                tServerPing.text =
-                    $"Ping: {receivedTime - currentTime}ms, 谱面服务: {(data.EnableChartUpload ? "在线" : "离线")}";
+                tServerPing.text = string.Format(PingFormat, (receivedTime - currentTime).ToString(),
+                    data.EnableChartUpload ? "在线" : "离线");
                 online = data.IsOnline;
                 chart = data.EnableChartUpload;
             });
