@@ -267,9 +267,9 @@ namespace MainCore
             }
 
             holdCatched = false;
-            for (int i = 0; i < JudgementManager.m_instance.numOfFingers; i++)
+            for (int i = 0; i < JudgementManager.Instance.numOfFingers; i++)
             {
-                var f = JudgementManager.m_instance.fingers[i];
+                var f = JudgementManager.Instance.fingers[i];
                 float dx = parentLine.PositionX[i];
                 if (f.phase != TouchPhase.Canceled &&
                     JudgementManager.NoteInJudgeArea(dx, cachedTransform.localPosition.x, f.IsKeyboard))

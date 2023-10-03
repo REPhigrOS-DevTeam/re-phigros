@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MainCore.Common;
 using UnityEngine;
 
 namespace MainCore
@@ -96,7 +97,7 @@ namespace MainCore
         }
     }
 
-    public class JudgementManager : MonoBehaviour
+    public class JudgementManager : MonoSingleton<JudgementManager>
     {
         public int numOfFingers;
         public Finger[] fingers = new Finger[20];
