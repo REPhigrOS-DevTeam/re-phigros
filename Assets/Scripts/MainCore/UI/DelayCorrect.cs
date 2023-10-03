@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using MainCore.Utilities;
 using UnityEngine;
@@ -32,10 +33,10 @@ namespace MainCore.UI
             effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
             effectManager.PlayParticle();
             sfx = GetComponent<AudioSource>();
-            await Task.Delay(3000);
+            await UniTask.Delay(3000);
             speed = 1400 / beatTime;
-            sfx.PlayScheduled(AudioSettings.dspTime);
-            await Task.Delay((int) (beatTime * 500));
+            if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
+            await UniTask.Delay((int) (beatTime * 500));
             HeartBeat();
         }
 

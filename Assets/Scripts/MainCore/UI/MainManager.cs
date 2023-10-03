@@ -36,7 +36,7 @@ namespace MainCore.UI
                 var currentRes = GlobalSetting.OriginResolution;
                 Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
             }
-
+            
             Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
 
             usernameText.text =

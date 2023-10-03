@@ -83,7 +83,7 @@ namespace MainCore.UI
                 {
                     clickCounter++;
                     if (clickCounter < 15) return;
-                    SceneTransit.Instance.LoadScene(Random.Range(0, 100) < 50 ? "WahtThe" : "About");
+                    SceneTransit.Instance.LoadScene(Random.Range(0, 100) < 50 ? "WahtThe" : "AboutScene");
                 });
             }
 

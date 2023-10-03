@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,18 +59,25 @@ namespace MainCore
         // Start is called before the first frame update
         protected override void OnAwake()
         {
-            GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
-            GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
-            GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
-            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
-
-            InitChart();
-
-            if (GlobalSetting.extraJson != "")
+            try
             {
-                Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
-                uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
-                particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
+                GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
+                GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
+                progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
+
+                InitChart();
+
+                if (GlobalSetting.extraJson != "")
+                {
+                    Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                    uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
+                    particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Main Awake中发生错误" + e.Message + "\n" + e.StackTrace);
             }
 
 
@@ -103,17 +108,17 @@ namespace MainCore
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
+            audio = gameObject.AddComponent<AudioSource>();
+            
             managers.AddComponent<JudgementManager>();
 
             GlobalSetting.Playing = false;
-
-            audio = gameObject.AddComponent<AudioSource>();
+            
             audio.playOnAwake = false;
             audio.clip = music;
-            Debug.Log("音频长度：" + audio.clip.length);
             audio.pitch = GlobalSetting.Pitch;
-
             GlobalSetting.MusicLength = music.length;
+            
             illustration.sprite = GlobalSetting.backgroundImage;
             GlobalSetting.formatVersion = json.formatVersion;
             GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
@@ -168,7 +173,6 @@ namespace MainCore
                 progressManager.OnUpdate();
             }
             
-            if (Input.GetKeyDown(KeyCode.Numlock)) Debug.Log(audio.clip.length - progressManager.NowNoDelayRealTime);
             
             if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.Playing)
             {
