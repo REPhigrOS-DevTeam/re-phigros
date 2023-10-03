@@ -289,7 +289,12 @@ namespace Network.Account
                 return (res?.Code ?? StatusCode.Unknown, null);
             }
 
-            if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
+            if (res.Code != StatusCode.OK)
+            {
+                Debug.Log(result);
+                throw new ArgumentException("吃席");
+            }
+
             Debug.Log($"RePhigros API: Successfully logged in with verifyToken: {ProtectToken(res.verifyToken)}");
             return (StatusCode.OK, new AccountManager.AccountInfo(username, res.verifyToken));
         }

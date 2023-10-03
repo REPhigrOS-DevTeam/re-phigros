@@ -109,6 +109,7 @@ namespace MainCore.UI
                 out Exception exception);
             if (exception != null)
             {
+                Debug.LogException(exception);
                 InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace,
                     () => { }, "确认");
                 return;
@@ -130,6 +131,7 @@ namespace MainCore.UI
                 }
                 catch (Exception e)
                 {
+                    Debug.LogException(e);
                     InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
                         "确认");
                 }
