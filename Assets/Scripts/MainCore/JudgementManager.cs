@@ -98,7 +98,6 @@ namespace MainCore
 
     public class JudgementManager : MonoBehaviour
     {
-        public static JudgementManager m_instance;
         public int numOfFingers;
         public Finger[] fingers = new Finger[20];
         private Array keys;
@@ -109,10 +108,6 @@ namespace MainCore
         // Start is called before the first frame update
         void Start()
         {
-            if (m_instance == null)
-                m_instance = this;
-            else
-                Destroy(this);
             fingers.Initialize();
             for (int i = 0; i < 20; i++)
                 fingers[i] = new Finger();

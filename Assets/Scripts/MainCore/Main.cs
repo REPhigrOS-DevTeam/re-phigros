@@ -59,25 +59,18 @@ namespace MainCore
         // Start is called before the first frame update
         protected override void OnAwake()
         {
-            try
-            {
-                GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
-                GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
-                GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
-                progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
+            GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
+            GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
+            GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
+            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
 
-                InitChart();
+            InitChart();
 
-                if (GlobalSetting.extraJson != "")
-                {
-                    Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
-                    uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
-                    particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
-                }
-            }
-            catch (Exception e)
+            if (GlobalSetting.extraJson != "")
             {
-                Debug.Log("Main Awake中发生错误" + e.Message + "\n" + e.StackTrace);
+                Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
+                particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
             }
 
 
@@ -108,7 +101,7 @@ namespace MainCore
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
-            audio = gameObject.AddComponent<AudioSource>();
+            audio = gameObject.AddComponent<AudioSource>(); // 这段代码留在这里，不要乱动
             
             managers.AddComponent<JudgementManager>();
 
