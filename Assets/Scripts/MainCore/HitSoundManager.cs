@@ -29,7 +29,7 @@ namespace MainCore
 #endif
             DontDestroyOnLoad(gameObject);
         }
-
+        
         //Handle NativeAudio's sounds later to achieve a sync.
         void LateUpdate()
         {
@@ -124,7 +124,7 @@ namespace MainCore
                 }
             }
 #endif
-
+            
             _nativeAudioOptions.volume = _hitSoundVolume;
         }
 
@@ -138,6 +138,40 @@ namespace MainCore
             _audioIndexes = new Dictionary<int, int>();
             _nativeAudioOptions = new NativeSource.PlayOptions();
 
+            await RefreshNativeAudio();
+        }
+
+        private void InitUnityAudio()
+        {
+            _unityAudios = new Dictionary<int, AudioSource[]>();
+            _audioIndexes = new Dictionary<int, int>();
+
+            RefreshUnityAudio();
+        }
+        
+        public void RefreshHitSounds(Skin skin)
+        {
+            string id = skin.ToString();
+            if (!Resources.Load<AudioClip>($"SFX/{id}/click")) id = "Official";
+            AudioClip click = Resources.Load<AudioClip>($"SFX/{id}/click");
+            AudioClip drag = Resources.Load<AudioClip>($"SFX/{id}/drag");
+            AudioClip flick = Resources.Load<AudioClip>($"SFX/{id}/flick");
+            Resources.UnloadUnusedAssets();
+            hitSounds[0] = null;
+            hitSounds[1] = click;
+            hitSounds[2] = drag;
+            hitSounds[3] = click;
+            hitSounds[4] = flick;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            RefreshNativeAudio().Forget();
+#else
+            RefreshUnityAudio();
+#endif
+        }
+        
+        private async UniTask RefreshNativeAudio()
+        {
+            _nativeAudios.Clear();
             for (var i = 0; i < hitSounds.Length; i++)
             {
                 hitSounds[i].LoadAudioData();
@@ -150,10 +184,10 @@ namespace MainCore
             }
         }
 
-        private void InitUnityAudio()
+        private void RefreshUnityAudio()
         {
-            _unityAudios = new Dictionary<int, AudioSource[]>();
-            _audioIndexes = new Dictionary<int, int>();
+            _unityAudios.Clear();
+            _audioIndexes.Clear();
 
             for (var i = 0; i < hitSounds.Length; i++)
             {
@@ -161,6 +195,7 @@ namespace MainCore
                 _audioIndexes.Add(i, 0);
                 for (var j = 0; j < hitSoundsLength[i]; j++)
                 {
+                    if (_unityAudios[i][j]) Destroy(_unityAudios[i][j].gameObject);
                     var obj = new GameObject("Unity Audio - HitSound");
                     obj.transform.SetParent(transform);
                     obj.transform.position = new Vector3(0, 0, -10);

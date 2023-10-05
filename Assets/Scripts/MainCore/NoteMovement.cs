@@ -187,7 +187,7 @@ namespace MainCore
                 0, cachedlocalPosition.z);
             cachedTransform.localPosition = localPosition;
             holdEffect = HitEffectManager.GetInstance()
-                .GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good);
+                .GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
             holdEffect.transform.position = cachedTransform.position;
             holdEffect.PlayParticle();
             cachedTransform.localPosition = cachedlocalPosition;

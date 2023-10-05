@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -29,9 +30,13 @@ namespace MainCore.UI
         async void Start()
         {
             tapTransform = tap.transform;
-            EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect);
-            effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
-            effectManager.PlayParticle();
+            // 预加载
+            foreach (Skin skin in Enum.GetValues(typeof(Skin)))
+            {
+                EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skin);
+                effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
+                effectManager.PlayParticle();
+            }
             sfx = GetComponent<AudioSource>();
             await UniTask.Delay(3000);
             speed = 1400 / beatTime;
@@ -58,7 +63,7 @@ namespace MainCore.UI
                 tapTransform.localPosition = new Vector2(0, -400);
                 EffectManager hitFxObj;
                 //hitFxObj = ObjectPool.GetInstance().GetObj($"HitFX/clickRaw_{HitEffectManager.HitFxType}_{HitFxJudgeType.Perfect}");
-                hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect);
+                hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.Skin);
                 hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.PlayParticle();
                 played = true;

@@ -20,18 +20,15 @@ public class EffectManager : MonoBehaviour
     // Start is called before the first frame update 
     private void Awake()
     {
-        scale = GlobalSetting.globalNoteScale / GetFactor();
+        transform.localScale = new Vector3(0.001f, 0.001f, 1f);
     }
 
-    void Start()
+    public void Enable(Skin skin)
     {
+        scale = GlobalSetting.globalNoteScale / GetFactor(skin);
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
-    }
-
-    public void Enable()
-    {
         RecycleCoroutine = StartCoroutine(RecycleObj());
     }
 
@@ -55,14 +52,15 @@ public class EffectManager : MonoBehaviour
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetFactor()
+    private float GetFactor(Skin skin)
     {
-        return GlobalSetting.Skin switch {
+        return skin switch {
             Skin.Official => 0.215f,
             Skin.Phira => 0.32f,
             Skin.OldOfficial => 0.16f,
             Skin.Sacabam => 0.25f,
             Skin.StarPinkXz => 0.16f,
+            Skin.Ppy => 0.16f,
             _ => throw new ArgumentOutOfRangeException()
         };
     }

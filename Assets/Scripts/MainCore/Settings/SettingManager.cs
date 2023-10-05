@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using Lean.Gui;
 using MainCore.Common;
@@ -56,8 +57,11 @@ namespace MainCore.Settings
                 });
             // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
             int oldValue = skinDropdown.value;
-            skinDropdown.value = PlayerPrefs.GetInt("skin");
+            skinDropdown.value = PlayerPrefs.GetInt("skin", 0);
             if (oldValue == skinDropdown.value) OnSkinChanged(skinDropdown.value);
+#if !RELEASE_VERSION || UNITY_EDITOR
+            skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼", "Pepoyo?" });
+#endif
         }
 
         private void IntoDSP()
@@ -89,8 +93,9 @@ namespace MainCore.Settings
 
         public void OnSkinChanged(int id)
         {
-            GlobalSetting.Skin = (Skin) id;
+            GlobalSetting.Skin = (Skin)id;
             PlayerPrefs.SetInt("skin", id);
+            HitSoundManager.Instance.RefreshHitSounds(GlobalSetting.Skin);
             delayCorrect.OnSkinChanged();
         }
     }

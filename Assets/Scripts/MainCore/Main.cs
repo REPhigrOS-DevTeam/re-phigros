@@ -282,10 +282,10 @@ namespace MainCore
             // We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
             // 预生成一个HitFX，避免读取prefab时吃硬盘
             var hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Perfect);
+                .GetObj(HitFxJudgeType.Perfect, GlobalSetting.Skin);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
             hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Good);
+                .GetObj(HitFxJudgeType.Good, GlobalSetting.Skin);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
             
             totalOffset = json.offset + GlobalSetting.userOffset;

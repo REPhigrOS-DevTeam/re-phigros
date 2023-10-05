@@ -1190,6 +1190,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 9d5a54e1d4fb13742b9a1f99fa9598fc, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
+  - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   particleCount: 0
   colorToDraw: {r: 0, g: 0, b: 0, a: 0}
   button: {fileID: 0}

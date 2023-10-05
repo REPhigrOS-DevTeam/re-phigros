@@ -37,9 +37,9 @@ namespace MainCore
         /// <param name="type"></param>
         /// <param name="judgeType"></param>
         /// <returns></returns>
-        public EffectManager GetObj(HitFxJudgeType judgeType)
+        public EffectManager GetObj(HitFxJudgeType judgeType, Skin skin)
         {
-            string objName = $"clickRaw_{GlobalSetting.Skin}_{judgeType}";
+            string objName = $"clickRaw_{skin}_{judgeType}";
             //结果对象
             EffectManager result = null;
             //判断是否有该名字的对象池
@@ -61,7 +61,7 @@ namespace MainCore
                     //从池中移除该对象
                     pool[objName].Remove(result);
                     objectsInUse[objName].Add(result);
-                    result.Enable();
+                    result.Enable(skin);
                     //返回结果
                     return result;
                 }
@@ -87,7 +87,7 @@ namespace MainCore
             result = Object.Instantiate(prefab);
             //改名（去除 Clone）
             result.name = objName;
-            result.Enable();
+            result.Enable(skin);
             //返回
             return result;
         }
@@ -135,6 +135,7 @@ namespace MainCore
         StarPinkXz,
         OldOfficial,
         Phira,
-        Sacabam
+        Sacabam,
+        Ppy
     }
 }

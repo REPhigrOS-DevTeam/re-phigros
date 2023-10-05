@@ -204,6 +204,7 @@ namespace MainCore
             maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
             fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
+            HitSoundManager.Instance.RefreshHitSounds(Skin);
             useCourseMode = PlayerPrefs.GetInt("use_course_mode", 0) == 1;
             Pitch = PlayerPrefs.GetFloat("music_speed", 1f);
         }

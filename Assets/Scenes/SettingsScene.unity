@@ -11004,6 +11004,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 9d5a54e1d4fb13742b9a1f99fa9598fc, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
+  - {fileID: 2100000, guid: 69d36595800f84340931e98c89edf2a5, type: 2}
   particleCount: 0
   colorToDraw: {r: 0, g: 0, b: 0, a: 0}
   button: {fileID: 0}
@@ -11629,23 +11630,9 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: "\u65E7\u9ED8\u8BA4\u76AE"
       m_Image: {fileID: 0}
-    - m_Text: Phira
-      m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1629454477}
-        m_TargetAssemblyTypeName: MainCore.Settings.SettingManager, Assembly-CSharp
-        m_MethodName: OnSkinChanged
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   m_AlphaFadeSpeed: 0.15
 --- !u!114 &1671652664
 MonoBehaviour:
