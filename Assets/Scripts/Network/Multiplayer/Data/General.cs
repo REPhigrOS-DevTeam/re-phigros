@@ -20,7 +20,7 @@ namespace Network.Multiplayer.Data
 
         public static int Send(this Socket socket, object? value)
         {
-            string messageToSend = JsonConvert.SerializeObject(value);
+            string messageToSend = JsonConvert.SerializeObject(value, Formatting.None);
             Debug.Log("尝试发送" + messageToSend);
             return socket.Send(NoBomUtf8Encoding.GetBytes(messageToSend));
         }

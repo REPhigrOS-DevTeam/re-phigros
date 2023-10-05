@@ -573,16 +573,16 @@ namespace Network.Multiplayer.Managers
 
         private static void ExecuteActivePack(JObject pack)
         {
-            Debug.Log("收到Active包：" + pack);
+            Debug.Log("收到Active包：" + JsonConvert.SerializeObject(pack));
             if (!pack.ContainsKey("operate"))
             {
-                Debug.Log("错误：非法Active包\n" + pack);
+                Debug.Log("错误：非法Active包\n" + JsonConvert.SerializeObject(pack));
                 return;
             }
 
             if (!Enum.TryParse(pack["operate"].ToString(), out ServerOperate serverOperate))
             {
-                Debug.Log("错误：未知的服务器操作\n" + pack);
+                Debug.Log("错误：未知的服务器操作\n" + JsonConvert.SerializeObject(pack));
                 return;
             }
 
