@@ -1741,6 +1741,11 @@ PrefabInstance:
       propertyPath: m_Text
       value: "\u8054\u673A"
       objectReference: {fileID: 0}
+    - target: {fileID: 5152953713206275753, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_Interactable
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5703260545348070100, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
       propertyPath: m_Name

@@ -18,6 +18,12 @@ namespace MainCore.UI
             settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
+#if !RELEASE_VERSION && !UNITY_EDITOR
+            Debug.LogError("测试");
+            multiPlay.interactable = false;
+#else
+            multiPlay.interactable = true;
+#endif
         }
 
         public void Start()
@@ -36,7 +42,7 @@ namespace MainCore.UI
                 var currentRes = GlobalSetting.OriginResolution;
                 Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
             }
-            
+
             Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
 
             usernameText.text =

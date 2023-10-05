@@ -67,17 +67,6 @@ namespace Network.Account
             }
         }
 
-
-        // Start is called before the first frame update
-        void Start()
-        {
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        }
-
         private void GenerateDropdown()
         {
             accountsDropdown.options.Clear();
@@ -156,7 +145,8 @@ namespace Network.Account
                         InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法", () => { }, "确定");
                         break;
                     case StatusCode.InvalidPassword:
-                        InGameUIManager.ShowModalWindowWithClose("错误", "密码错误", () => { passwordInputField.text = ""; }, "确定");
+                        InGameUIManager.ShowModalWindowWithClose("错误", "密码错误", () => { passwordInputField.text = ""; },
+                            "确定");
                         break;
                     case StatusCode.NoPermission:
                         InGameUIManager.ShowModalWindowWithClose("错误", "没有内测权限", () => { }, "确定");
@@ -235,7 +225,7 @@ namespace Network.Account
                 }
             }
         }
-        
+
         private void Finally(AccountManager.AccountInfo info)
         {
             GlobalSetting.username = info.Username;
@@ -283,6 +273,7 @@ namespace Network.Account
             {
                 return (StatusCode.ServerInternalError, null);
             }
+
             if (res == null || res.status == false)
             {
                 Debug.Log($"RePhigros API: Error logging in, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
@@ -334,6 +325,7 @@ namespace Network.Account
             {
                 return (StatusCode.ServerInternalError, null);
             }
+
             if (res == null || res.status == false)
             {
                 Debug.Log($"RePhigros API: Error verifying, with code {(int)(res?.Code ?? StatusCode.Unknown)}");
@@ -353,7 +345,7 @@ namespace Network.Account
 
         private static readonly Regex Regex = new Regex("[^a-zA-Z0-9]");
         private string username, password;
-        
+
         private void CheckUsername(string input)
         {
             if (Regex.IsMatch(input))

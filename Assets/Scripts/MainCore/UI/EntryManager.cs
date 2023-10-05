@@ -12,13 +12,21 @@ namespace MainCore.UI
     {
         // [SerializeField] private Button touchToStart;
         // [SerializeField] private Text touchToStartText;
+        [SerializeField] private GameObject debugText;
+        [SerializeField] private GameObject InGameDebugConsolePrefab;
 
         private bool clicked = false;
 
         private void Awake()
         {
+#if !RELEASE_VERSION && !UNITY_EDITOR
+            debugText.SetActive(true);
+            Instantiate(InGameDebugConsolePrefab);
+#else
+            debugText.SetActive(false);
+#endif
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
-            SocketManager.Init(); 
+            SocketManager.Init();
         }
 
         private async Task<bool> InitAPI()
@@ -86,7 +94,13 @@ namespace MainCore.UI
             }
 
 //#endif
+#if !RELEASE_VERSION && !UNITY_EDITOR
+            GlobalSetting.username = "development";
+            GlobalSetting.verifyToken = "";
+            SceneTransit.Instance.JumpScene("MainScene");
+#else
             if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
+#endif
         }
     }
 }

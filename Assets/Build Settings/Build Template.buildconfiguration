@@ -1,8 +1,6 @@
 {
     "Show": true,
-    "Dependencies": [
-        "GlobalObjectId_V1-0-00000000000000000000000000000000-0-0"
-    ],
+    "Dependencies": [],
     "Components": [
         {
             "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
@@ -87,6 +85,12 @@
             "$type": "Unity.Build.DotsRuntime.IL2CPPSettings, Unity.Build.DotsRuntime",
             "ScriptDebugging": 0,
             "WaitForDebugger": false
+        },
+        {
+            "$type": "Unity.Build.Common.PlayerScriptingDefines, Unity.Build",
+            "Defines": [
+                "RELEASE_VERSION"
+            ]
         }
     ]
 }
