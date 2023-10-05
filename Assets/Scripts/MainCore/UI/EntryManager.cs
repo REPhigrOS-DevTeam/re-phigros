@@ -47,7 +47,6 @@ namespace MainCore.UI
         private void Update()
         {
             if (clicked || Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0)) return;
-            GlobalSetting.OriginResolution = Screen.currentResolution;
             LoadIn();
             // StartCoroutine(CountDown());
             clicked = true;

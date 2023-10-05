@@ -92,8 +92,9 @@ namespace MainCore.UI
 
         private void RefreshGameFolder()
         {
+            Debug.Log("file_path: " + PlayerPrefs.GetString("file_path"));
             infoDropdown.ClearOptions();
-            infoDropdown.AddOptions(GetFolders(PlayerPrefs.GetString("file_path")));
+            infoDropdown.AddOptions(GetFolders(PlayerPrefs.GetString("file_path", Application.persistentDataPath)));
             OnChangeDropdown();
         }
 
@@ -256,6 +257,7 @@ namespace MainCore.UI
         {
             List<Dropdown.OptionData> list = new List<Dropdown.OptionData>();
             DirectoryInfo root = new DirectoryInfo(path);
+            if (!root.Exists) return list;
             foreach (DirectoryInfo f in root.GetDirectories())
             {
 #if UNITY_IPHONE && !UNITY_EDITOR

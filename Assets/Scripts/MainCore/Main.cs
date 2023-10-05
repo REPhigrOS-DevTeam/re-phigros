@@ -86,7 +86,7 @@ namespace MainCore
                 GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
             }
 
-            if (Camera.main.aspect >= aspect)
+            if (Screen.width * 1f/ Screen.height >= aspect)
             {
                 GlobalSetting.screenHeight = Screen.height;
                 GlobalSetting.screenWidth = Screen.height * aspect;
@@ -161,6 +161,21 @@ namespace MainCore
 
         void Update()
         {
+            if (Screen.width * 1f / Screen.height >= aspect)
+            {
+                GlobalSetting.screenHeight = Screen.height;
+                GlobalSetting.screenWidth = Screen.height * aspect;
+                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
+            }
+            else
+            {
+                GlobalSetting.screenHeight = Screen.height;
+                GlobalSetting.screenWidth = Screen.width;
+                GlobalSetting.widthOffset = 0;
+                maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
+            }
+            
             if (GlobalSetting.Playing)
             {
                 progressManager.OnUpdate();

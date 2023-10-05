@@ -16,21 +16,7 @@ namespace MainCore.Utilities
 {
     public static class GameUtils
     {
-        private static float _screenDelta = -10;
-
-        public static float ScreenDelta
-        {
-            get
-            {
-#if UNITY_EDITOR
-                _screenDelta = Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
-#else
-                if (_screenDelta < 0)
-                    _screenDelta = Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
-#endif
-                return _screenDelta;
-            }
-        }
+        public static float ScreenDelta => Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
 
         public static Color SetAlpha(this Color color, float alpha) => new Color(color.r, color.g, color.b, alpha);
 
@@ -38,12 +24,12 @@ namespace MainCore.Utilities
 
         public static Vector2 GetTransformedXY(Vector2 xy)
         {
-            return new Vector2(xy.x * _screenDelta, xy.y);
+            return new Vector2(xy.x * ScreenDelta, xy.y);
         }
 
         public static float GetAspectX(float x)
         {
-            return x * _screenDelta;
+            return x * ScreenDelta;
         }
 
         public static bool ResetDSPBuffer(float pow)

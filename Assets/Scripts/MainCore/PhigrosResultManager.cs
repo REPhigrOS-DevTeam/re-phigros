@@ -103,6 +103,10 @@ public class PhigrosResultManager : MonoBehaviour
 
     private void getRank(float scoreNum)
     {
+        foreach (GameObject o in ranks)
+        {
+            if (o) o.SetActive(false);
+        }
         if (GlobalSetting.lineStat == JudgeLineStat.FC)
         {
             ranks[7].SetActive(true);

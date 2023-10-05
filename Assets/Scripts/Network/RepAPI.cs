@@ -13,17 +13,17 @@ namespace Network
 {
     public static class RepAPI
     {
-        private static readonly string APIBaseOriginal = Encoding.ASCII.GetString(new byte[]
+        private static readonly string HostOriginal = Encoding.ASCII.GetString(new byte[]
         {
-            104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 104, 105, 103, 114, 111, 115, 46, 116,
+            97, 112, 105, 46, 114, 101, 112, 104, 105, 103, 114, 111, 115, 46, 116,
             111, 112
-        }); // https://api.rephigros.top
+        }); // api.rephigros.top
 
-        private static readonly string APIBaseMirror = Encoding.ASCII.GetString(new byte[]
+        private static readonly string HostMirror = Encoding.ASCII.GetString(new byte[]
         {
-            104, 116, 116, 112, 115, 58, 47, 47, 97, 112, 105, 46, 114, 101, 112, 97, 99, 99, 46, 109, 105, 114, 114,
+            97, 112, 105, 46, 114, 101, 112, 97, 99, 99, 46, 109, 105, 114, 114,
             111, 114, 46, 97, 116, 111, 109, 117, 110, 105, 116, 101, 46, 99, 110
-        }); // https://api.repacc.mirror.atomunite.cn
+        }); // api.repacc.mirror.atomunite.cn
 
         private static bool useMirror = false;
         private static bool switched = false;
@@ -35,7 +35,7 @@ namespace Network
         
         public static string GetAPIBase()
         {
-            return useMirror ? APIBaseMirror : APIBaseOriginal;
+            return "https://" + (useMirror ? HostMirror : HostOriginal);
         }
 
         #region AboutManifest

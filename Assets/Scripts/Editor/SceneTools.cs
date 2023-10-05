@@ -13,6 +13,12 @@ namespace Editor
             IntoScene("EntryScene");
         }
         
+        [MenuItem("Scene Tools/Into Login")]
+        private static void IntoLogin()
+        {
+            IntoScene("LoginScene");
+        }
+        
         [MenuItem("Scene Tools/Into Main")]
         private static void IntoMian()
         {
@@ -61,7 +67,6 @@ namespace Editor
             IntoScene("WahtThe");
         }
 
-
         [MenuItem("Scene Tools/Unbuild/Into Loading")]
         private static void IntoLoading()
         {
@@ -73,17 +78,17 @@ namespace Editor
         {
             IntoScene("ResultScene");
         }
-        
-        [MenuItem("Scene Tools/Into Login")]
-        private static void IntoLogin()
-        {
-            IntoScene("LoginScene");
-        }
 
         [MenuItem("Scene Tools/Into Network")]
         private static void IntoNetwork()
         {
             IntoScene("TEST/NetworkTest");
+        }
+        
+        [MenuItem("Scene Tools/Into About")]
+        private static void IntoAbout()
+        {
+            IntoScene("AboutScene");
         }
 
         private static void IntoScene(string name)
