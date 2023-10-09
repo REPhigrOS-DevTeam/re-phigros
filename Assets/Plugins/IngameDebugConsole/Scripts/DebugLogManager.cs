@@ -186,7 +186,7 @@ namespace IngameDebugConsole
 		private bool autoFocusOnCommandInputField = true;
 #endif
 		[SerializeField] 
-		private bool enableCommand = true;
+		public bool enableCommand = true;
 		
 		[Header( "Visuals" )]
 		[SerializeField]

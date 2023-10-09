@@ -12,6 +12,7 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
 using Network.Multiplayer.Data;
+using Newtonsoft.Json;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -206,7 +207,25 @@ namespace MainCore.UI
             var extraJsonPath = tempPath + "/extra.json";
             if (File.Exists(extraJsonPath))
             {
-                GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
+                try
+                {
+                    GlobalSetting.extraEvents =
+                        JsonConvert.DeserializeObject<Extra>(await File.ReadAllTextAsync(extraJsonPath));
+                }
+                catch (Exception)
+                {
+                    GlobalSetting.extraEvents = null;
+                }
+            }
+            else
+            {
+                GlobalSetting.extraEvents = null;
+            }
+
+            if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
+            {
+                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => {}, "确定");
+                await new WaitWhile(() => InGameUIManager.IsActive);
             }
 
             //We load chart from here.

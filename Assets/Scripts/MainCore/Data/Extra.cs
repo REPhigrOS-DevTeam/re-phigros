@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -68,8 +69,9 @@ namespace MainCore.Data
     [Serializable]
     public class Extra
     {
-        public List<Bpm> bpm { get; set; }
-        public List<Effect> effects { get; set; }
+        [JsonProperty("bpm")] public List<Bpm> Bpm { get; set; }
+        [JsonProperty("videos")] public List<JObject> Videos { get; set; }
+        [JsonProperty("effects")] public List<Effect> Effects { get; set; }
     }
 
 

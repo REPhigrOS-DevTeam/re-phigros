@@ -28,9 +28,9 @@ namespace MainCore.PostProcessing
 
         private void Awake()
         {
-            data = JsonConvert.DeserializeObject<Extra>(GlobalSetting.extraJson);
+            data = GlobalSetting.extraEvents;
             Arrangement();
-            foreach (var e in data.effects)
+            foreach (var e in data.Effects)
             {
                 e.shader = e.shader.Substring(e.shader.Replace('\\', '/')
                     .IndexOf("/", StringComparison.InvariantCulture) + 1).FirstToLowerInvariant();
@@ -53,7 +53,7 @@ namespace MainCore.PostProcessing
             }
 
             enabledShaders.Clear();
-            foreach (var e in data.effects)
+            foreach (var e in data.Effects)
             {
                 if (!e.global && IsGlobal)
                 {
@@ -126,7 +126,7 @@ namespace MainCore.PostProcessing
 
         void Arrangement()
         {
-            data.bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+            data.Bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
             {
                 bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
                 if (bpms.Count >= 2)
@@ -134,12 +134,12 @@ namespace MainCore.PostProcessing
                     bpms[^2].end = bpms[^1].start;
                 }
             });
-            data.effects.ForEach(x =>
+            data.Effects.ForEach(x =>
             {
                 x.startTime = RecalcTime(Frac(x.start));
                 x.endTime = RecalcTime(Frac(x.end));
             });
-            data.effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
+            data.Effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
         }
 
         private void LoadShader(string shaderName)

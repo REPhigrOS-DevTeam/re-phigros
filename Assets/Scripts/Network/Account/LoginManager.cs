@@ -89,8 +89,12 @@ namespace Network.Account
             isCreate = true;
         }
 
+        private bool clickLock = false;
+
         private async void OnLogin()
         {
+            if (clickLock) return;
+            clickLock = true;
             await UniTask.SwitchToMainThread();
             if (isCreate)
             {
@@ -224,6 +228,7 @@ namespace Network.Account
                         throw new ArgumentOutOfRangeException();
                 }
             }
+            clickLock = false;
         }
 
         private void Finally(AccountManager.AccountInfo info)

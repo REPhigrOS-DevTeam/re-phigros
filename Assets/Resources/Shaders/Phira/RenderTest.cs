@@ -30,7 +30,7 @@ public class RenderTest : MonoBehaviour
     private void Update()
     {
         enabledShaders.Clear();
-        foreach (var e in data.effects)
+        foreach (var e in data.Effects)
         {
             if (e.startTime > currentTime || e.endTime < currentTime)
             {
@@ -91,7 +91,7 @@ public class RenderTest : MonoBehaviour
 
     void ArrangeTime()
     {
-        data.bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+        data.Bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
         {
             bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
             if (bpms.Count >= 2)
@@ -99,12 +99,12 @@ public class RenderTest : MonoBehaviour
                 bpms[^2].end = bpms[^1].start;
             }
         });
-        data.effects.ForEach(x =>
+        data.Effects.ForEach(x =>
         {
             x.startTime = RecalcTime(Frac(x.start));
             x.endTime = RecalcTime(Frac(x.end));
         });
-        data.effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
+        data.Effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
     }
 
     private void LoadShader(string shaderName)

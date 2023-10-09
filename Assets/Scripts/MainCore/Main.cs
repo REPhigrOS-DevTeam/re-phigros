@@ -66,7 +66,7 @@ namespace MainCore
 
             InitChart();
 
-            if (GlobalSetting.extraJson != "")
+            if (GlobalSetting.extraEvents != null)
             {
                 Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                 uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
@@ -130,8 +130,6 @@ namespace MainCore
 
             GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.chartName;
             GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.difficulty + "  ";
-            GameObject.Find("VersionText").GetComponent<Text>().text =
-                $"RE:Phigros {Application.version} by kagari939\n";
 
             if (GlobalSetting.lineImage != null)
             {

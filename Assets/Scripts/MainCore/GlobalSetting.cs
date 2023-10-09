@@ -71,7 +71,7 @@ namespace MainCore
         public static float screenWidth;
         public static float widthOffset = 0f;
         public static string chart = "";
-        public static string extraJson = "";
+        public static Extra extraEvents = null;
         public static CSVReader lineImage;
         public static bool usingApi = false;
         public static bool isMirror;

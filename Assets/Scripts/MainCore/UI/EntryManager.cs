@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using IngameDebugConsole;
 using MainCore.Common;
 using MainCore.Utilities;
 using Network;
@@ -21,7 +22,7 @@ namespace MainCore.UI
         {
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
-            Instantiate(InGameDebugConsolePrefab);
+            Instantiate(InGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
 #endif

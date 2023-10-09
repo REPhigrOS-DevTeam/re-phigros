@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MainCore;
 using MainCore.Common;
+using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
 using Network.Multiplayer.Components;
@@ -184,9 +185,20 @@ namespace Network.Multiplayer.Managers
                     TextAsset extraJsonObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/extra");
                     if (extraJsonObject != null)
                     {
-                        GlobalSetting.extraJson = extraJsonObject.text;
+                        try
+                        {
+                            GlobalSetting.extraEvents =
+                                JsonConvert.DeserializeObject<Extra>(extraJsonObject.text);
+                        }
+                        catch (Exception)
+                        {
+                            GlobalSetting.extraEvents = null;
+                        }
                     }
-
+                    else
+                    {
+                        GlobalSetting.extraEvents = null;
+                    }
                     TextAsset lineCsvObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/line");
                     GlobalSetting.lineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
                     await UniTask.SwitchToMainThread();

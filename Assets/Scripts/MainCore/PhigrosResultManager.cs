@@ -11,7 +11,6 @@ public class PhigrosResultManager : MonoBehaviour
 {
     public GameObject[] ranks = new GameObject[10];
     public Text playerName;
-    public Text versionText;
 
     // Start is called before the first frame update
     void Start()
@@ -94,8 +93,6 @@ public class PhigrosResultManager : MonoBehaviour
                 ? "RPGR RECORD MODE"
                 : PlayerPrefs.GetString("player_name", "kagari939");
         }
-
-        versionText.text = $"RE:Phigros {Application.version} by kagari939\n";
     }
 
     private string score;

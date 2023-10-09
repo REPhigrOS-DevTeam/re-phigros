@@ -16,6 +16,7 @@ using MainCore.Utilities;
 using Network.Chart;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SimpleFileBrowser;
 using UnityEngine;
@@ -403,7 +404,25 @@ public class MPServerTest : MonoBehaviour
         string extraJsonPath = directory + "/extra.json";
         if (File.Exists(extraJsonPath))
         {
-            GlobalSetting.extraJson = await File.ReadAllTextAsync(extraJsonPath);
+            try
+            {
+                GlobalSetting.extraEvents =
+                    JsonConvert.DeserializeObject<Extra>(await File.ReadAllTextAsync(extraJsonPath));
+            }
+            catch (Exception)
+            {
+                GlobalSetting.extraEvents = null;
+            }
+        }
+        else
+        {
+            GlobalSetting.extraEvents = null;
+        }
+        
+        if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
+        {
+            InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => {}, "确定");
+            await new WaitWhile(() => InGameUIManager.IsActive);
         }
 
         // chart init
