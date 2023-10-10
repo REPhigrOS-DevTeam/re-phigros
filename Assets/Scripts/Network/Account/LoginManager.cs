@@ -240,7 +240,8 @@ namespace Network.Account
                 PlayerPrefs.SetInt("first_start", 1);
                 PlayerPrefs.Save();
                 SceneTransit.Instance.AppendScene("MainScene");
-                SceneTransit.Instance.LoadScene("SettingsScene");
+                SceneTransit.Instance.AppendScene("SettingsScene");
+                SceneTransit.Instance.LoadScene("DSPScene");
             }
             else
             {

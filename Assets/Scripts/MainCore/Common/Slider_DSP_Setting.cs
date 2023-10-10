@@ -12,6 +12,11 @@ namespace MainCore.Common
 
         protected override void OnStart()
         {
+#if UNITY_STANDALONE || UNITY_EDITOR
+            defaultValue = 10;
+#elif UNITY_IPHONE || UNITY_ANDROID
+            defaultValue = 8;
+#endif
             SetValue(GetValue());
             (dataContainer as Slider).onValueChanged.AddListener(OnValueChanged);
         }
@@ -24,18 +29,18 @@ namespace MainCore.Common
 
         public override void SetValue(int value)
         {
-            shower.text = $"{(int) Math.Pow(2, (int) value)}";
+            shower.text = $"{(int)Math.Pow(2, (int)value)}";
             (dataContainer as Slider).value = value;
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetInt(dataTag, (int) (dataContainer as Slider).value);
+            PlayerPrefs.SetInt(dataTag, (int)(dataContainer as Slider).value);
         }
 
         private void OnValueChanged(float val)
         {
-            shower.text = $"{(int) Math.Pow(2, (int) val)}";
+            shower.text = $"{(int)Math.Pow(2, (int)val)}";
             GameUtils.ResetDSPBuffer(val);
         }
     }
