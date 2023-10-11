@@ -97,7 +97,18 @@ namespace MainCore.UI
 #if !RELEASE_VERSION && !UNITY_EDITOR
             GlobalSetting.username = "development";
             GlobalSetting.verifyToken = "";
-            SceneTransit.Instance.JumpScene("MainScene");
+            if (!PlayerPrefs.HasKey("first_start"))
+            {
+                PlayerPrefs.SetInt("first_start", 1);
+                PlayerPrefs.Save();
+                SceneTransit.Instance.AppendScene("MainScene");
+                SceneTransit.Instance.AppendScene("SettingsScene");
+                SceneTransit.Instance.LoadScene("DSPScene");
+            }
+            else
+            {
+                SceneTransit.Instance.JumpScene("MainScene");
+            }
 #else
             if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
 #endif

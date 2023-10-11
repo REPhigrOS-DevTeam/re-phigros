@@ -19,7 +19,6 @@ namespace MainCore.UI
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
 #if !RELEASE_VERSION && !UNITY_EDITOR
-            Debug.LogError("测试");
             multiPlay.interactable = false;
 #else
             multiPlay.interactable = true;
