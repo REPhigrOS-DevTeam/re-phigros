@@ -23,7 +23,7 @@
             "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
             "$version": 1,
             "Platform": "Android",
-            "Configuration": 2
+            "Configuration": 3
         }
     ]
 }

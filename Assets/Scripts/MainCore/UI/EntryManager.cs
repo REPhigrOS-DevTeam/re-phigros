@@ -2,7 +2,6 @@ using System.IO;
 using System.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
-using MainCore.Utilities;
 using Network;
 using Network.Multiplayer.Managers;
 using UnityEngine;
@@ -14,7 +13,7 @@ namespace MainCore.UI
         // [SerializeField] private Button touchToStart;
         // [SerializeField] private Text touchToStartText;
         [SerializeField] private GameObject debugText;
-        [SerializeField] private GameObject InGameDebugConsolePrefab;
+        [SerializeField] private GameObject inGameDebugConsolePrefab;
 
         private bool clicked = false;
 
@@ -22,9 +21,10 @@ namespace MainCore.UI
         {
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
-            Instantiate(InGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
+            Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
+            // if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
 #endif
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();

@@ -24,12 +24,10 @@ namespace MainCore
         public delegate float Pitch();
 
         private OnResolutionError _runtimeError;
-        private Pitch _pitch;
 
-        public void Init(OnResolutionError initError, OnResolutionError runtimeError, Pitch pitch)
+        public void Init(OnResolutionError initError, OnResolutionError runtimeError)
         {
             _runtimeError = runtimeError;
-            _pitch = pitch;
             if (!Stopwatch.IsHighResolution)
             {
                 initError.Invoke();
@@ -58,21 +56,21 @@ namespace MainCore
             if (Math.Abs(lastUpdateDspTime - currentDspTime) > 0.001f)
             {
                 lastUpdateDspTime = currentDspTime;
-                //仅在真正dsp时间更新的时候比对
-                var differenceTime = currentDspTime - startDspTime - _stopwatch.ElapsedMilliseconds / 1000f;
-                if (differenceTime < -0.5f)
-                {
-                    _runtimeError.Invoke();
-
-                    Debug.LogWarning($"当前时差为{differenceTime}ms,Dsp炸啦！！！");
-                }
+                // //仅在真正dsp时间更新的时候比对
+                // var differenceTime = currentDspTime - startDspTime - _stopwatch.ElapsedMilliseconds / 1000f;
+                // if (differenceTime < -0.5f)
+                // {
+                //     Debug.LogWarning($"当前时差为{differenceTime}ms,Dsp炸啦！！！");
+                //
+                //     _runtimeError.Invoke();
+                // }
             }
 
             var tempT = _stopwatch.ElapsedMilliseconds / 1000f + offset;
             NowNoDelayRealTime = tempT < pauseTime ? pauseTime : tempT;
             NowRealTime = NowNoDelayRealTime - delay;
-            NowNoDelayTime = NowNoDelayRealTime * _pitch.Invoke();
-            NowTime = NowRealTime * _pitch.Invoke();
+            NowNoDelayTime = NowNoDelayRealTime * GlobalSetting.Pitch;
+            NowTime = NowRealTime * GlobalSetting.Pitch;
         }
 
         private float pauseTime;

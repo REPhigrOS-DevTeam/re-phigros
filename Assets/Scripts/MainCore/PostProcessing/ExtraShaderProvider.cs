@@ -35,6 +35,7 @@ namespace MainCore.PostProcessing
                 e.shader = e.shader.Substring(e.shader.Replace('\\', '/')
                     .IndexOf("/", StringComparison.InvariantCulture) + 1).FirstToLowerInvariant();
                 LoadShader(e.shader);
+                if (e.vars.Count == 0) return;
                 e.varTypes = new Effect.ExtraPropertyType[e.vars.Count];
                 int i = 0;
                 foreach (var v in e.vars)

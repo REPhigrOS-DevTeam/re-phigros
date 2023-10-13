@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -42,6 +44,8 @@ namespace MainCore
         public Camera particleCamera;
         public PostProcessVolume postProcessVolume;
         public SpriteRenderer maskSprite;
+        public RectTransform videoRoot;
+        private List<VideoItem> VideoItems = new List<VideoItem>();
         private float aspect = 16f / 9f;
 
         private string chart;
@@ -53,7 +57,11 @@ namespace MainCore
 
         private void OnAudioResolutionError()
         {
-            InGameUIManager.ShowModalWindowWithClose("错误", "DSPBuffer数值过小", Quit, "返回");
+            InGameUIManager.ShowModalWindowWithClose("错误", "DSPBuffer数值过小", () =>
+            {
+                Destroy(progressManager);
+                Quit();
+            }, "返回");
         }
 
         // Start is called before the first frame update
@@ -62,21 +70,82 @@ namespace MainCore
             GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
             GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
             GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
-            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => GlobalSetting.Pitch);
+            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
             InitChart();
 
             if (GlobalSetting.extraEvents != null)
             {
-                Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
-                uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
-                particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                if (GlobalSetting.extraEvents.Effects != null)
+                {
+                    Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                    uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
+                    particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                }
+#if UNITY_EDITOR || !RELEASE_VERSION
+                if (GlobalSetting.extraEvents.Videos != null)
+                {
+                    GlobalSetting.extraEvents.Bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+                    {
+                        bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
+                        if (bpms.Count >= 2)
+                        {
+                            bpms[^2].end = bpms[^1].start;
+                        }
+                    });
+                    GlobalSetting.extraEvents.Videos.ForEach(x => { x.realTime = RecalcTime(Frac(x.time)); });
+                    foreach (Video video in GlobalSetting.extraEvents.Videos)
+                    {
+                        var o = new GameObject(video.path);
+                        o.transform.SetParent(videoRoot);
+                        RectTransform rectTransform = o.AddComponent<RectTransform>();
+                        rectTransform.anchorMin = Vector2.zero;
+                        rectTransform.anchorMax = Vector2.one;
+                        rectTransform.sizeDelta = videoRoot.sizeDelta;
+                        rectTransform.localScale = Vector3.one;
+                        VideoItem videoItem = o.AddComponent<VideoItem>();
+                        videoItem.Init(video);
+                        if (videoItem) VideoItems.Add(videoItem);
+                    }
+                }
+#endif
             }
 
 
 #if UNITY_EDITOR
             Mian = this;
 #endif
+        }
+        
+        private static float Frac(int[] frac)
+        {
+            if (frac.Length == 3)
+            {
+                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
+                return frac[0];
+            }
+
+            return frac.Length > 0 ? frac[0] : 0f;
+        }
+
+        private List<BpmEvent> bpms = new();
+
+        private float RecalcTime(float time)
+        {
+            var timePhi = 0f;
+            foreach (var i in bpms)
+            {
+                if (time > i.end)
+                {
+                    timePhi += (i.end - i.start) * (60f / i.bpm);
+                }
+                else if (time >= i.start)
+                {
+                    timePhi += (time - i.start) * (60f / i.bpm);
+                }
+            }
+
+            return timePhi;
         }
 
         void Start()
@@ -86,7 +155,7 @@ namespace MainCore
                 GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
             }
 
-            if (Screen.width * 1f/ Screen.height >= aspect)
+            if (Screen.width * 1f / Screen.height >= aspect)
             {
                 GlobalSetting.screenHeight = Screen.height;
                 GlobalSetting.screenWidth = Screen.height * aspect;
@@ -102,16 +171,16 @@ namespace MainCore
             }
 
             audio = gameObject.AddComponent<AudioSource>(); // 这段代码留在这里，不要乱动
-            
+
             managers.AddComponent<JudgementManager>();
 
             GlobalSetting.Playing = false;
-            
+
             audio.playOnAwake = false;
             audio.clip = music;
             audio.pitch = GlobalSetting.Pitch;
             GlobalSetting.MusicLength = music.length;
-            
+
             illustration.sprite = GlobalSetting.backgroundImage;
             GlobalSetting.formatVersion = json.formatVersion;
             GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
@@ -173,13 +242,13 @@ namespace MainCore
                 GlobalSetting.widthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
-            
+
             if (GlobalSetting.Playing)
             {
                 progressManager.OnUpdate();
             }
-            
-            
+
+
             if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.Playing)
             {
                 progressManager.StopTiming();
@@ -285,7 +354,7 @@ namespace MainCore
             hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Good, GlobalSetting.Skin);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
-            
+
             totalOffset = json.offset + GlobalSetting.userOffset;
             maskSprite.DOFade(GlobalSetting.maskAlpha, 3f);
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
@@ -339,21 +408,24 @@ namespace MainCore
         public static async Task InitChartAuto(string path, bool isInternal, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
-            if (showMessage) Task.Run(delegate
-            {
-                var sec = 0;
-                while (true)
+            if (showMessage)
+                Task.Run(delegate
                 {
-                    PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
-                    Thread.Sleep(1000);
-                    sec++;
-                    if (cts.IsCancellationRequested)
+                    var sec = 0;
+                    while (true)
                     {
-                        cts.Token.ThrowIfCancellationRequested();
+                        PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
+                        Thread.Sleep(1000);
+                        sec++;
+                        if (cts.IsCancellationRequested)
+                        {
+                            cts.Token.ThrowIfCancellationRequested();
+                        }
                     }
-                }
-            }, cts.Token);
-            var ch = isInternal ? Resources.Load<TextAsset>(path).text : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
+                }, cts.Token);
+            var ch = isInternal
+                ? Resources.Load<TextAsset>(path).text
+                : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
             GlobalSetting.chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))
@@ -583,6 +655,10 @@ namespace MainCore
                 float delta = Mathf.Min(3f, audio.time);
                 audio.time = Mathf.Max(audio.time - 3f, 0f);
                 progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
+                foreach (VideoItem item in VideoItems)
+                {
+                    item.Pause(delta);
+                }
             }
         }
 
@@ -595,6 +671,10 @@ namespace MainCore
                 progressManager.ContinueTiming();
                 audio.UnPause();
                 DOTween.To(() => audio.volume, (x) => audio.volume = x, 1f, 2f);
+                foreach (VideoItem item in VideoItems)
+                {
+                    item.Resume();
+                }
                 await Task.Delay(3000);
                 GlobalSetting.Paused = false;
             }
@@ -607,7 +687,7 @@ namespace MainCore
                 return;
             }
 
-            json.offset += (float) f;
+            json.offset += (float)f;
         }
 
 #if UNITY_EDITOR
@@ -615,7 +695,7 @@ namespace MainCore
         public int TEST_COUNT { get; set; }
 #endif
     }
-    
+
     public enum NoteStat
     {
         Perfect,

@@ -1,10 +1,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using MainCore.Data;
+using Newtonsoft.Json;
 using Unimage;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -131,6 +134,15 @@ namespace MainCore.Utilities
         {
             if (str.Length < 1) return str;
             return str.Substring(0, 1).ToLowerInvariant() + str.Substring(1);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Gcd(int a,int b) {
+            while(b>0) {
+                var r = a%b;
+                a=b;
+                b=r;
+            }
+            return a;
         }
     }
 }

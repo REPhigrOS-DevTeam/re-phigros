@@ -2837,7 +2837,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   debugText: {fileID: 668694927}
-  InGameDebugConsolePrefab: {fileID: 132536, guid: 67117722a812a2e46ab8cb8eafbf5f5e,
+  inGameDebugConsolePrefab: {fileID: 132536, guid: 67117722a812a2e46ab8cb8eafbf5f5e,
     type: 3}
 --- !u!4 &1600102576
 Transform:
@@ -2966,7 +2966,6 @@ GameObject:
   - component: {fileID: 1913005380}
   - component: {fileID: 1913005379}
   - component: {fileID: 1913005378}
-  - component: {fileID: 1913005381}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3041,18 +3040,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1913005381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1913005377}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8137a81d6e424749ad8806d809614571, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2005199745
 GameObject:
   m_ObjectHideFlags: 0

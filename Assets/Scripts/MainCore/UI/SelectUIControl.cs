@@ -93,7 +93,6 @@ namespace MainCore.UI
 
         private void RefreshGameFolder()
         {
-            Debug.Log("file_path: " + PlayerPrefs.GetString("file_path"));
             infoDropdown.ClearOptions();
             infoDropdown.AddOptions(GetFolders(PlayerPrefs.GetString("file_path", Application.persistentDataPath)));
             OnChangeDropdown();
@@ -224,7 +223,7 @@ namespace MainCore.UI
 
             if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
             {
-                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => {}, "确定");
+                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金", () => {}, "确定");
                 await new WaitWhile(() => InGameUIManager.IsActive);
             }
 

@@ -32,6 +32,17 @@ namespace MainCore.Data
     }
 
     [Serializable]
+    public class Video
+    {
+        public string path { get; set; }
+        public int[] time { get; set; }
+        public float realTime { get; set; }
+        public string scale { get; set; }
+        public float alpha { get; set; }
+        public float dim { get; set; }
+    }
+
+    [Serializable]
     public class Effect
     {
         public int[] start { get; set; }
@@ -70,10 +81,9 @@ namespace MainCore.Data
     public class Extra
     {
         [JsonProperty("bpm")] public List<Bpm> Bpm { get; set; }
-        [JsonProperty("videos")] public List<JObject> Videos { get; set; }
+        [JsonProperty("videos")] public List<Video> Videos { get; set; }
         [JsonProperty("effects")] public List<Effect> Effects { get; set; }
     }
-
 
     public class ValueConverter : TypeConverter
     {

@@ -530,6 +530,7 @@ namespace MainCore.Utilities
         [CsvHelper.Configuration.Attributes.Name("NoteScale")]
         public string NoteScale { get; set; } = "1.0";
 
+
         [CsvHelper.Configuration.Attributes.Name("GlobalAlpha")]
         public string GlobalAlpha { get; set; } = "0.6";
     }
