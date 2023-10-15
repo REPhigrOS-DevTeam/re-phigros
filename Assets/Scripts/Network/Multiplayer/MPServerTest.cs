@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore;
 using MainCore.Common;
@@ -21,8 +17,6 @@ using Newtonsoft.Json.Linq;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
-using Utilities;
-using YamlDotNet.Serialization;
 
 public class MPServerTest : MonoBehaviour
 {
@@ -31,6 +25,7 @@ public class MPServerTest : MonoBehaviour
     public Button bDisconnect;
     public Button bCreateRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
+    public Toggle isPublicOnCreateRoom;
 
     private static SongType selectedSongType = SongType.empty;
     private static string selectedSongId = "";
@@ -43,7 +38,7 @@ public class MPServerTest : MonoBehaviour
 
     public Text tLoginToken, tRoomId;
 
-    public GameObject loginObj;
+    public GameObject loginObj, createRoomObj;
 
     private static int? unityThreadId;
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
@@ -53,6 +48,8 @@ public class MPServerTest : MonoBehaviour
     private Dictionary<GameObject, RoomState> buttonToState = new();
 
     private static string ownerLocalPath = "";
+
+    private static string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
 
     private void Awake()
     {
@@ -106,11 +103,11 @@ public class MPServerTest : MonoBehaviour
     {
         // Username = RepAPI.Username;
         loginObj.SetActive(true);
+        createRoomObj.SetActive(false);
         tConnectState.text = "服务器状态：未连接";
         bDisconnect.onClick.AddListener(Disconnect);
 
-        string[] generalErrorMessages = { "未连接服务器", "无法发送数据包", "你小子没登录" };
-        bCreateRoom.onClick.AddListener(() => GeneralListener(SocketManager.CreateRoom, generalErrorMessages));
+        bCreateRoom.onClick.AddListener(CreateRoomPrepare);
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
         bReady.onOnLabel = "取消准备";
@@ -151,7 +148,7 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnJoinRoomSucceeded += () =>
         {
             SetButtonState(RoomState.RoomMember);
-            SocketManager.SyncRoom();
+            SocketManager.FetchRoomInfo();
         };
         SocketManager.OnGetRoomInfoSucceeded += info =>
         {
@@ -191,6 +188,24 @@ public class MPServerTest : MonoBehaviour
         }
 
         GlobalSetting.Reset();
+    }
+
+    private int createRoomFlag;
+
+    private async void CreateRoomPrepare()
+    {
+        // () => GeneralListener(SocketManager.CreateRoom, generalErrorMessages)
+        createRoomObj.SetActive(true);
+        createRoomFlag = 0;
+        await UniTask.WaitWhile(() => createRoomFlag == 0);
+        createRoomObj.SetActive(false);
+        if (createRoomFlag < 0) return;
+        GeneralListener(() => SocketManager.CreateRoom(isPublicOnCreateRoom.isOn), generalErrorMessages);
+    }
+
+    public void SetCreateRoomFlag(int flag)
+    {
+        createRoomFlag = flag;
     }
 
     private void OnSongReceived(string id, SongType type, SongInfo info)
@@ -423,7 +438,7 @@ public class MPServerTest : MonoBehaviour
         if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
         {
             InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => { }, "确定");
-            await new WaitWhile(() => InGameUIManager.IsActive);
+            await UniTask.WaitWhile(() => InGameUIManager.IsActive);
         }
 
         // chart init

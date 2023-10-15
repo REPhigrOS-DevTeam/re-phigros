@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.Utilities;
 using RenderHeads.Media.AVProVideo;
@@ -83,10 +84,10 @@ namespace MainCore
          {
              for (videoIndex = 0; videoIndex < videos.Length; videoIndex++)
              {
-                 if (videoIndex > 0) await new WaitWhile(() => videos[videoIndex - 1].realTime + durations[videoIndex - 1] > Main.Instance.progressManager.NowTime);
+                 if (videoIndex > 0) await UniTask.WaitWhile(() => videos[videoIndex - 1].realTime + durations[videoIndex - 1] > Main.Instance.progressManager.NowTime);
                  inVideo = false;
                  mediaDisplayer.color = InvisibleColor;
-                 await new WaitWhile(() => videos[videoIndex].realTime < Main.Instance.progressManager.NowTime || GlobalSetting.Paused);
+                 await UniTask.WaitWhile(() => videos[videoIndex].realTime < Main.Instance.progressManager.NowTime || GlobalSetting.Paused);
                  inVideo = true;
                  mediaDisplayer.color = targetColors[videoIndex];
                  mediaDisplayer.ScaleMode = videos[videoIndex].ScaleMode;

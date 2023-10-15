@@ -3,6 +3,16 @@ using Newtonsoft.Json.Linq;
 
 namespace Network.Multiplayer.Data
 {
+    public class SyncRoomReceive : BackReceiveData
+    {
+        [JsonProperty("RoomList")] public RoomSummary[] List;
+    }
+
+    public class RoomSummary
+    {
+        [JsonProperty("RoomID")] public int Id;
+        [JsonProperty("Owner")] public string Owner;
+    }
     public class CreateRoomReceive : BackReceiveData
     {
         [JsonProperty("RoomID")] public string? RoomId;

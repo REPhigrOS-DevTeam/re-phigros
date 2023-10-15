@@ -49,6 +49,7 @@ namespace Network.Multiplayer.Managers
 
         public static Action<RoomInfo> OnGetRoomInfoSucceeded = _ => { };
 
+        public static Action<RoomSummary[]> OnGetRoomListSucceeded = _ => { };
         public static Action
             OnConnecting = () => { },
             OnConnectSucceeded = () => { },
@@ -198,20 +199,21 @@ namespace Network.Multiplayer.Managers
             }
         }
 
-        public static int CreateRoom()
+        public static int FetchRoomList()
         {
             if (!socket.Connected) return -1; // 未连接
             if (token == "") return -3; // 未登录
-            return GeneralSend(ClientOperate.User_CreateNewRoom,
-                GetSendDataWithToken());
+            return GeneralSend(ClientOperate.Server_Sync);
+        }
+
+        public static int CreateRoom(bool isPublic)
+        {
+            return GeneralSend(ClientOperate.User_CreateNewRoom, ("IsPublic", isPublic));
         }
 
         public static int CloseRoom()
         {
-            if (!socket.Connected) return -1; // 未连接
-            if (token == "") return -3; // 未登录
-            return GeneralSend(ClientOperate.User_CloseRoom,
-                GetSendDataWithToken());
+            return GeneralSend(ClientOperate.User_CloseRoom);
         }
 
         public static int JoinRoom(string roomId)
@@ -219,38 +221,28 @@ namespace Network.Multiplayer.Managers
             if (!socket.Connected) return -1; // 未连接
             if (token == "") return -3; // 未登录
             tryJoinRoomId = roomId;
-            SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("RoomID", roomId);
-            return GeneralSend(ClientOperate.User_JoinRoom, pack);
+            return GeneralSend(ClientOperate.User_JoinRoom, ("RoomID", roomId));
         }
 
-        public static int SyncRoom()
+        public static int FetchRoomInfo()
         {
             if (roomId == "") return -4;
-            return GeneralSend(ClientOperate.Room_Sync, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.Room_Sync);
         }
 
         public static int QuitRoom()
         {
-            if (!socket.Connected) return -1; // 未连接
-            if (token == "") return -3; // 未登录
-            return GeneralSend(ClientOperate.User_QuitRoom, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.User_QuitRoom);
         }
 
         public static int SendRoomMessage(string msg)
         {
-            if (!socket.Connected) return -1; // 未连接
-            if (token == "") return -3; // 未登录
-            SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("Message", msg);
-            return GeneralSend(ClientOperate.Room_SendMessage, pack);
+            return GeneralSend(ClientOperate.Room_SendMessage, ("Message", msg));
         }
 
         public static int StartGame()
         {
-            if (!socket.Connected) return -1; // 未连接
-            if (token == "") return -3; // 未登录
-            return GeneralSend(ClientOperate.Room_GameStart, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.Room_GameStart);
         }
 
         public static void LeaveServer()
@@ -278,31 +270,24 @@ namespace Network.Multiplayer.Managers
         public static int UpdateSong(string songId, SongType type, SongInfo songInfo = null)
         {
             if (type == SongType.empty) return -4; // ????
-            SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("songId", songId);
-            pack.Addition.Add("songType", type.ToString());
-            pack.Addition.Add("songInfo",
-                type == SongType.rep ? songInfo : null);
-            return GeneralSend(ClientOperate.Room_UpdateSong, pack);
+            return GeneralSend(ClientOperate.Room_UpdateSong, ("songId", songId), ("songType", type.ToString()), ("songInfo",
+                type == SongType.rep ? songInfo : null));
         }
 
         public static int Ready()
         {
             if (isReady) return -4;
-            return GeneralSend(ClientOperate.User_Ready, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.User_Ready);
         }
 
         public static int Unready()
         {
             if (!isReady) return -4;
-            return GeneralSend(ClientOperate.User_UnReady, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.User_UnReady);
         }
 
         public static int EndGame(string score, string acc)
         {
-            SendDataWithToken pack = GetSendDataWithToken();
-            pack.Addition.Add("score", score);
-            pack.Addition.Add("acc", acc);
             // 因为sky脑抽所以要改动
             // ClientOperate clientOperate = ClientOperate.Room_UserGameEnd;
             // GeneralSendData value = pack;
@@ -330,28 +315,33 @@ namespace Network.Multiplayer.Managers
             //         return -2; // 无法发送
             //     }
             // }
-            return GeneralSend(ClientOperate.User_GameEnd, pack);
+            return GeneralSend(ClientOperate.User_GameEnd, ("score", score), ("acc", acc));
         }
 
         public static int QuitGame()
         {
-            return GeneralSend(ClientOperate.Room_UserQuitGame, GetSendDataWithToken());
+            return GeneralSend(ClientOperate.Room_UserQuitGame);
         }
 
         #endregion
-
-        private static int GeneralSend(ClientOperate clientOperate, GeneralSendData value)
+        
+        private static int GeneralSend(ClientOperate clientOperate, params (string, object)[] additions)
         {
             lock (threadLock)
             {
                 if (!socket.Connected) return -1; // 未连接
-                if (string.IsNullOrEmpty(token)) return -3; // 未登录
+                if (token == "") return -3; // 未登录
+                var pack = GetSendDataWithToken();
+                foreach ((string, object) tuple in additions)
+                {
+                    pack.Addition.Add(tuple.Item1, tuple.Item2);                    
+                }
                 try
                 {
                     currentClientOperate = clientOperate;
                     OnSendPrepared.Invoke(currentClientOperate);
-                    value.Operate = clientOperate.ToString();
-                    socket.Send(value);
+                    pack.Operate = clientOperate.ToString();
+                    socket.Send(pack);
                     return 0;
                 }
                 catch (SocketException e)
@@ -419,6 +409,13 @@ namespace Network.Multiplayer.Managers
             OnBackReceived.Invoke(clientOperate);
             switch (clientOperate)
             {
+                case ClientOperate.Server_Sync:
+                    DealWithMsg<SyncRoomReceive>(pack, "错误：无法获取房间列表",
+                       succeededCallback: syncRoomReceive =>
+                        {
+                            OnGetRoomListSucceeded.Invoke(syncRoomReceive.List);
+                        });
+                    break;
                 case ClientOperate.User_LoginToServer:
                     DealWithLogin(pack);
                     break;

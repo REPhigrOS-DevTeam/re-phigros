@@ -119,7 +119,7 @@ namespace Network.Multiplayer.Managers
         {
             await Task.Run(async () =>
             {
-                await new WaitUntil(() => Instance != null);
+                await UniTask.WaitUntil(() => Instance != null);
                 lock (threadLock)
                 {
                     foreach (Message message in messages)

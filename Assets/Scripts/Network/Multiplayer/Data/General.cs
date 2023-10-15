@@ -206,8 +206,8 @@ namespace Network.Multiplayer.Data
 
     public enum ClientOperate
     {
-        Server_Sync,
-        User_LoginToServer = 0,
+        Server_Sync = 0,
+        User_LoginToServer,
         User_LeaveServer,
         User_CreateNewRoom,
         User_CloseRoom,
