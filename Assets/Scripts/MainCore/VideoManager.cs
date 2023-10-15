@@ -10,7 +10,7 @@ namespace MainCore
 {
     public class VideoManager : MonoBehaviour
      {
-         private MediaPlayer mediaPlayer;
+         private MediaPlayer[] mediaPlayers;
          private DisplayUGUI mediaDisplayer;
          private bool isInited;
          private static readonly Color InvisibleColor = new(0f, 0f, 0f, 0f);
@@ -30,37 +30,37 @@ namespace MainCore
                  Destroy(gameObject);
                  return;
              }
-             mediaPlayer = Camera.main.gameObject.GetComponent<MediaPlayer>();
-             mediaPlayer.PlaybackRate = GlobalSetting.Pitch;
              mediaDisplayer = gameObject.GetComponent<DisplayUGUI>();
              mediaDisplayer.color = InvisibleColor;
+             mediaDisplayer.CurrentMediaPlayer = null;
              targetColors = new Color[this.videos.Length];
              for (int i = 0; i < targetColors.Length; i++)
              {
-                 float grayscale = 1 - this.videos[i].dim;
+                 float grayscale = Mathf.Clamp01(1 - this.videos[i].dim);
                  targetColors[i] = new Color(grayscale, grayscale, grayscale, this.videos[i].alpha);
+                 Debug.Log(targetColors[i]);
              }
              durations = new double[videos.Length];
-             MediaPlayer addComponent = new GameObject().AddComponent<MediaPlayer>();
-             addComponent.AutoOpen = false;
-             addComponent.AutoStart = false;
-             addComponent.AudioMuted = true;
+             mediaPlayers = new MediaPlayer[videos.Length];
              for (var i = 0; i < this.videos.Length; i++)
              {
                  var video = this.videos[i];
-                 addComponent.OpenMedia(MediaPathType.AbsolutePathOrURL,
+                 var mediaPlayer = mediaPlayers[i] = Camera.main.gameObject.AddComponent<MediaPlayer>();
+                 mediaPlayer.PlaybackRate = GlobalSetting.Pitch;
+                 mediaPlayer.AutoOpen = false;
+                 mediaPlayer.AutoStart = false;
+                 mediaPlayer.AudioMuted = true;
+                 mediaPlayer.OpenMedia(MediaPathType.AbsolutePathOrURL,
                      Path.Combine(GlobalSetting.chartFolderPath, video.path), false);
-                 durations[i] = addComponent.Info.GetDuration();
+                 durations[i] = mediaPlayer.Info.GetDuration();
              }
-             Destroy(addComponent.gameObject);
 
              WaitForPlay();
          }
 
          public void Pause()
          {
-             if (mediaPlayer.Control.IsFinished() || !mediaPlayer.Control.IsPlaying()) return;
-             mediaPlayer.Pause();
+             if (inVideo) mediaPlayers[videoIndex].Pause();
              // StopCoroutine(waitForEnd);
              // if (startTime + duration < time) return;
              // if (mediaPlayer.Control.GetCurrentTime() < time)
@@ -76,25 +76,24 @@ namespace MainCore
              //     DOTween.To(() => mediaPlayer.Control.GetCurrentTime() - originTime, x => mediaPlayer.Control.Seek(originTime + x), time, .5f);
              // }
          }
-         
+
+         private int videoIndex;
+         private bool inVideo = false;
          private async void WaitForPlay()
          {
-             bool loaded = false;
-             mediaPlayer.Events.AddListener((a, b, c) =>
+             for (videoIndex = 0; videoIndex < videos.Length; videoIndex++)
              {
-                 if (b == MediaPlayerEvent.EventType.ReadyToPlay) loaded = true;
-             });
-             for (int i = 0; i < videos.Length; i++)
-             {
-                 var i1 = i;
-                 if (i > 0) await new WaitWhile(() => videos[i1 - 1].realTime + durations[i1 - 1] > Main.Instance.progressManager.NowTime);
+                 if (videoIndex > 0) await new WaitWhile(() => videos[videoIndex - 1].realTime + durations[videoIndex - 1] > Main.Instance.progressManager.NowTime);
+                 inVideo = false;
                  mediaDisplayer.color = InvisibleColor;
-                 mediaPlayer.OpenMedia(MediaPathType.AbsolutePathOrURL, Path.Combine(GlobalSetting.chartFolderPath, videos[0].path), false);
+                 await new WaitWhile(() => videos[videoIndex].realTime < Main.Instance.progressManager.NowTime || GlobalSetting.Paused);
+                 inVideo = true;
+                 mediaDisplayer.color = targetColors[videoIndex];
+                 mediaDisplayer.ScaleMode = videos[videoIndex].ScaleMode;
+                 var mediaPlayer = mediaPlayers[videoIndex];
+                 mediaDisplayer.CurrentMediaPlayer = mediaPlayer;
+                 mediaPlayer.Stop();
                  mediaPlayer.Control.Seek(0);
-                 mediaPlayer.Pause();
-                 await new WaitWhile(() => !loaded || videos[i1].realTime < Main.Instance.progressManager.NowTime || GlobalSetting.Paused);
-                 mediaDisplayer.color = targetColors[i];
-                 mediaDisplayer.ScaleMode = videos[i].ScaleMode;
                  mediaPlayer.Play();
              }
              mediaDisplayer.color = InvisibleColor;
@@ -102,8 +101,7 @@ namespace MainCore
 
          public void Resume()
          {
-             if (mediaPlayer.Control.IsPlaying()) return;
-             mediaPlayer.Play();
+             if (inVideo) mediaPlayers[videoIndex].Play();
          }
 
          public void OnDestroy()

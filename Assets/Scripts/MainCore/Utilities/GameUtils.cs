@@ -32,10 +32,10 @@ namespace MainCore.Utilities
             return x * ScreenDelta;
         }
 
-        public static bool ResetDSPBuffer(float pow)
+        public static bool ResetDSPBuffer(int pow)
         {
             var config = AudioSettings.GetConfiguration();
-            config.dspBufferSize = (int)Math.Pow(2, (int)pow);
+            config.dspBufferSize = (int)Math.Pow(2, pow);
             return AudioSettings.Reset(config);
         }
 

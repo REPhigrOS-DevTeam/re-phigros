@@ -41,7 +41,7 @@ namespace MainCore.Common
         private void OnValueChanged(float val)
         {
             shower.text = $"{(int)Math.Pow(2, (int)val)}";
-            GameUtils.ResetDSPBuffer(val);
+            GameUtils.ResetDSPBuffer((int)val);
         }
     }
 }

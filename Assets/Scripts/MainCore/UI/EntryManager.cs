@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
+using MainCore.Utilities;
 using Network;
 using Network.Multiplayer.Managers;
 using UnityEngine;
@@ -88,6 +89,7 @@ namespace MainCore.UI
         private async void LoadIn()
         {
             Application.targetFrameRate = 120;
+            GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
             if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
             {
                 var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
