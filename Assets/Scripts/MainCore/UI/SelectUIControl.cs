@@ -175,6 +175,7 @@ namespace MainCore.UI
                     break;
                 case InfoType.InfoTxt:
                 case InfoType.InfoCsv:
+                case InfoType.InfoCsvOld:
                 case InfoType.InfoYml:
                     GlobalSetting.chartName = songInfo.SongName;
                     GlobalSetting.difficulty = songInfo.SongDifficulty;
@@ -223,7 +224,8 @@ namespace MainCore.UI
 
             if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
             {
-                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金", () => {}, "确定");
+                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金",
+                    () => { }, "确定");
                 await new WaitWhile(() => InGameUIManager.IsActive);
             }
 

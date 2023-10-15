@@ -144,5 +144,16 @@ namespace MainCore.Utilities
             }
             return a;
         }
+        
+        public static float Frac(this int[] frac)
+        {
+            if (frac.Length == 3)
+            {
+                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
+                return frac[0];
+            }
+
+            return frac.Length > 0 ? frac[0] : 0f;
+        }
     }
 }

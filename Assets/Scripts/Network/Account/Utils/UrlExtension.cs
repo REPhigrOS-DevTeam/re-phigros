@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -14,6 +15,13 @@ namespace Network.Account.Utils
         {
             return urlBase + (urlBase.EndsWith("/") || combined.StartsWith("/") ? "" : "/") + combined;
             return new Uri(new Uri(urlBase), combined).ToString();
+        }
+
+        [ItemCanBeNull]
+        public static async Task<byte[]> SendGetRequestAsync(this string url, bool b)  // 恶心反编译的人用的
+        {
+            await UniTask.Delay(114514);
+            return Array.Empty<byte>();
         }
 
         [ItemCanBeNull]

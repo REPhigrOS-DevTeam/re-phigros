@@ -23,8 +23,9 @@ namespace Network.Account.Utils
 
         public static void SaveAccountList(List<AccountInfo> accountInfos)
         {
-            accountInfos.Reverse();
-            PlayerPrefs.SetString(Key, string.Join("\n", accountInfos.Select(info => $"{info.Username}\n{info.VerifyToken}")));
+            List<AccountInfo> infos = accountInfos.ConvertAll(accountInfo => new AccountInfo(accountInfo.Username, accountInfo.VerifyToken));
+            infos.Reverse();
+            PlayerPrefs.SetString(Key, string.Join("\n", infos.Select(info => $"{info.Username}\n{info.VerifyToken}")));
             PlayerPrefs.Save();
         }
         

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#define DISABLE_NATIVE_AUDIO
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using E7.Native;
@@ -22,14 +23,14 @@ namespace MainCore
 
         protected override void OnAwake()
         {
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             InitNativeAudio().Forget();
 #else
             InitUnityAudio();
 #endif
             DontDestroyOnLoad(gameObject);
         }
-        
+
         //Handle NativeAudio's sounds later to achieve a sync.
         void LateUpdate()
         {
@@ -115,7 +116,7 @@ namespace MainCore
         {
             _hitSoundVolume = GlobalSetting.hitVolume;
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             if (NativeAudio.OnSupportedPlatform)
             {
                 for (var i = 0; i < NativeAudio.GetNativeSourceCount(); i++)
@@ -123,9 +124,9 @@ namespace MainCore
                     NativeAudio.GetNativeSource(i).SetVolume(_hitSoundVolume);
                 }
             }
-#endif
-            
+
             _nativeAudioOptions.volume = _hitSoundVolume;
+#endif
         }
 
         private async UniTaskVoid InitNativeAudio()
@@ -148,7 +149,7 @@ namespace MainCore
 
             RefreshUnityAudio();
         }
-        
+
         public void RefreshHitSounds(Skin skin)
         {
             string id = skin.ToString();
@@ -162,13 +163,13 @@ namespace MainCore
             hitSounds[2] = drag;
             hitSounds[3] = click;
             hitSounds[4] = flick;
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             RefreshNativeAudio().Forget();
 #else
             RefreshUnityAudio();
 #endif
         }
-        
+
         private async UniTask RefreshNativeAudio()
         {
             _nativeAudios.Clear();
@@ -211,9 +212,9 @@ namespace MainCore
         public void Play(int soundIndex, float rewriteVolume = -1)
         {
             var orgVlm = _hitSoundVolume;
-            if (rewriteVolume >= 0 ) _hitSoundVolume = rewriteVolume;
+            if (rewriteVolume >= 0) _hitSoundVolume = rewriteVolume;
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             PlayByNativeAudio(soundIndex);
 #else
             PlayByUnityAudio(soundIndex);

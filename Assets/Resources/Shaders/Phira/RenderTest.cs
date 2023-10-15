@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MainCore.Data;
+using MainCore.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -91,9 +92,9 @@ public class RenderTest : MonoBehaviour
 
     void ArrangeTime()
     {
-        data.Bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+        data.Bpm.OrderBy(x => x.time.Frac()).ToList().ForEach(x =>
         {
-            bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
+            bpms.Add(new BpmEvent(x.bpm, x.time.Frac()));
             if (bpms.Count >= 2)
             {
                 bpms[^2].end = bpms[^1].start;
@@ -101,8 +102,8 @@ public class RenderTest : MonoBehaviour
         });
         data.Effects.ForEach(x =>
         {
-            x.startTime = RecalcTime(Frac(x.start));
-            x.endTime = RecalcTime(Frac(x.end));
+            x.startTime = RecalcTime(x.start.Frac());
+            x.endTime = RecalcTime(x.end.Frac());
         });
         data.Effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
     }
@@ -139,8 +140,8 @@ public class RenderTest : MonoBehaviour
             {
                 if (value.realStartTime == -1)
                 {
-                    value.realStartTime = RecalcTime(Frac(value.startTime));
-                    value.realEndTime = RecalcTime(Frac(value.endTime));
+                    value.realStartTime = RecalcTime(value.startTime.Frac());
+                    value.realEndTime = RecalcTime(value.endTime.Frac());
                 }
 
                 if (value.realStartTime > currentTime || value.realEndTime < currentTime)
@@ -186,17 +187,6 @@ public class RenderTest : MonoBehaviour
         }
 
         return timePhi;
-    }
-
-    private static float Frac(int[] frac)
-    {
-        if (frac.Length == 3)
-        {
-            if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
-            return frac[0];
-        }
-
-        return frac.Length > 0 ? frac[0] : 0f;
     }
 
     private string ArrangeShaderName(string shaderName)

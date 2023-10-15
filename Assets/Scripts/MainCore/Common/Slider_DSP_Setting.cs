@@ -6,7 +6,7 @@ using Utilities;
 
 namespace MainCore.Common
 {
-    public class Slider_DSP_Setting : SettingBase<int>
+    public class Slider_DSP_Setting : SettingBase<Slider, int>
     {
         [SerializeField] private Text shower;
 
@@ -18,7 +18,7 @@ namespace MainCore.Common
             defaultValue = 8;
 #endif
             SetValue(GetValue());
-            (dataContainer as Slider).onValueChanged.AddListener(OnValueChanged);
+            DataContainer.onValueChanged.AddListener(OnValueChanged);
         }
 
 
@@ -29,13 +29,13 @@ namespace MainCore.Common
 
         public override void SetValue(int value)
         {
-            shower.text = $"{(int)Math.Pow(2, (int)value)}";
-            (dataContainer as Slider).value = value;
+            shower.text = $"{(int)Math.Pow(2, value)}";
+            DataContainer.value = value;
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetInt(dataTag, (int)(dataContainer as Slider).value);
+            PlayerPrefs.SetInt(dataTag, (int)DataContainer.value);
         }
 
         private void OnValueChanged(float val)

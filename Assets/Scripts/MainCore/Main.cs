@@ -44,8 +44,7 @@ namespace MainCore
         public Camera particleCamera;
         public PostProcessVolume postProcessVolume;
         public SpriteRenderer maskSprite;
-        public RectTransform videoRoot;
-        private List<VideoItem> VideoItems = new List<VideoItem>();
+        public VideoManager videoManager;
         private float aspect = 16f / 9f;
 
         private string chart;
@@ -85,28 +84,30 @@ namespace MainCore
 #if UNITY_EDITOR || !RELEASE_VERSION
                 if (GlobalSetting.extraEvents.Videos != null)
                 {
-                    GlobalSetting.extraEvents.Bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+                    GlobalSetting.extraEvents.Bpm.OrderBy(x => x.time.Frac()).ToList().ForEach(x =>
                     {
-                        bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
+                        bpms.Add(new BpmEvent(x.bpm, x.time.Frac()));
                         if (bpms.Count >= 2)
                         {
                             bpms[^2].end = bpms[^1].start;
                         }
                     });
-                    GlobalSetting.extraEvents.Videos.ForEach(x => { x.realTime = RecalcTime(Frac(x.time)); });
-                    foreach (Video video in GlobalSetting.extraEvents.Videos)
+                    GlobalSetting.extraEvents.Videos.ForEach(x =>
                     {
-                        var o = new GameObject(video.path);
-                        o.transform.SetParent(videoRoot);
-                        RectTransform rectTransform = o.AddComponent<RectTransform>();
-                        rectTransform.anchorMin = Vector2.zero;
-                        rectTransform.anchorMax = Vector2.one;
-                        rectTransform.sizeDelta = videoRoot.sizeDelta;
-                        rectTransform.localScale = Vector3.one;
-                        VideoItem videoItem = o.AddComponent<VideoItem>();
-                        videoItem.Init(video);
-                        if (videoItem) VideoItems.Add(videoItem);
-                    }
+                        x.realTime = RecalcTime(x.time.Frac());
+                        x.ScaleMode = x.scale switch
+                        {
+                            "cropCenter" => ScaleMode.ScaleAndCrop,
+                            "inside" => ScaleMode.ScaleToFit,
+                            "fit" => ScaleMode.StretchToFill,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
+                    });
+                    videoManager.Init(GlobalSetting.extraEvents.Videos.ToArray());
+                }
+                else
+                {
+                    Destroy(videoManager.gameObject);
                 }
 #endif
             }
@@ -115,17 +116,6 @@ namespace MainCore
 #if UNITY_EDITOR
             Mian = this;
 #endif
-        }
-        
-        private static float Frac(int[] frac)
-        {
-            if (frac.Length == 3)
-            {
-                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
-                return frac[0];
-            }
-
-            return frac.Length > 0 ? frac[0] : 0f;
         }
 
         private List<BpmEvent> bpms = new();
@@ -655,10 +645,7 @@ namespace MainCore
                 float delta = Mathf.Min(3f, audio.time);
                 audio.time = Mathf.Max(audio.time - 3f, 0f);
                 progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
-                foreach (VideoItem item in VideoItems)
-                {
-                    item.Pause(delta);
-                }
+                videoManager.Pause();
             }
         }
 
@@ -671,11 +658,8 @@ namespace MainCore
                 progressManager.ContinueTiming();
                 audio.UnPause();
                 DOTween.To(() => audio.volume, (x) => audio.volume = x, 1f, 2f);
-                foreach (VideoItem item in VideoItems)
-                {
-                    item.Resume();
-                }
                 await Task.Delay(3000);
+                videoManager.Resume();
                 GlobalSetting.Paused = false;
             }
         }

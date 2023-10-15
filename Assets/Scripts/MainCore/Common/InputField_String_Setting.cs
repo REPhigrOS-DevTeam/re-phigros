@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace MainCore.Common
 {
-    public class InputField_String_Setting : SettingBase<string>
+    public class InputField_String_Setting : SettingBase<InputField, string>
     {
         protected override void OnStart()
         {
@@ -17,12 +17,13 @@ namespace MainCore.Common
 
         public override void SetValue(string value)
         {
-            (dataContainer as InputField).text = value;
+            DataContainer.text = value;
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetString(dataTag, (dataContainer as InputField).text);
+            if (!gameObject.activeSelf) Debug.Log("qwq");
+            PlayerPrefs.SetString(dataTag, DataContainer.text);
         }
     }
 }

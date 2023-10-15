@@ -235,6 +235,7 @@ namespace MainCore
         Empty = 0,
         InfoTxt,
         RpeJson,
+        InfoCsvOld,
         InfoCsv,
         InfoYml,
         Internal // 保持这个为最高

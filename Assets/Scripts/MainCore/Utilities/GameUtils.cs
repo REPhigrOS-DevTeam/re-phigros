@@ -341,6 +341,7 @@ namespace MainCore.Utilities
             string phiraInfoPath = directory + "/info.yml";
             PhiraInfoData phiraInfoData = null;
             LchzhInfo lchzhInfo = null;
+            LchzhInfoOld lchzhInfoOld = null;
             InfoTxtReader infoTxtReader = null;
             if (File.Exists(phiraInfoPath))
             {
@@ -351,6 +352,7 @@ namespace MainCore.Utilities
             else
             {
                 string lchzhInfoPath = directory + "/info.csv";
+                bool useLchzh = false;
                 if (File.Exists(lchzhInfoPath))
                 {
                     CsvReader csvReader = new CsvReader(new StreamReader(lchzhInfoPath),
@@ -362,10 +364,26 @@ namespace MainCore.Utilities
                     {
                         lchzhInfo = csvReader.GetRecords<LchzhInfo>().Reverse().ToArray()[0];
                         infoType = InfoType.InfoCsv;
+                        useLchzh = true;
                     }
-                    catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                    catch (Exception ex) when (ex is IndexOutOfRangeException or CsvHelper.MissingFieldException)
                     {
-                        InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                        try
+                        {
+                            lchzhInfoOld = csvReader.GetRecords<LchzhInfoOld>().Reverse().ToArray()[0];
+                            infoType = InfoType.InfoCsvOld;
+                            useLchzh = true;
+                        }
+                        catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
+                        {
+                            InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                        }
+                        catch (Exception)
+                        {
+                            InGameUIManager.ShowModalWindowWithClose("错误",
+                                "该设备无法读取csv文件\n请联系开发者并提供设备品牌、具体型号、系统名称与版本等信息",
+                                () => { }, "确认");
+                        }
                     }
                     catch (Exception)
                     {
@@ -373,7 +391,8 @@ namespace MainCore.Utilities
                             () => { }, "确认");
                     }
                 }
-                else
+
+                if (!useLchzh)
                 {
                     // info init
                     var infoPath = directory + "/info.txt";
@@ -423,6 +442,7 @@ namespace MainCore.Utilities
                 InfoType.Empty => null,
                 InfoType.InfoTxt => infoTxtReader,
                 InfoType.InfoCsv => lchzhInfo,
+                InfoType.InfoCsvOld => lchzhInfoOld,
                 InfoType.InfoYml => phiraInfoData,
                 _ => throw new ArgumentOutOfRangeException()
             });
@@ -450,12 +470,19 @@ namespace MainCore.Utilities
                     gameFilePathInfo.Music = lchzhInfo.Music;
                     gameFilePathInfo.Illustration = lchzhInfo.Image;
                     break;
+                case InfoType.InfoCsvOld:
+                    LchzhInfoOld lchzhInfoOld = obj as LchzhInfoOld;
+                    gameFilePathInfo.Chart = lchzhInfoOld.Chart;
+                    gameFilePathInfo.Music = lchzhInfoOld.Music;
+                    gameFilePathInfo.Illustration = lchzhInfoOld.Image;
+                    break;
                 case InfoType.InfoYml:
                     PhiraInfoData phiraInfoData = obj as PhiraInfoData;
                     gameFilePathInfo.Chart = phiraInfoData.chart;
                     gameFilePathInfo.Music = phiraInfoData.music;
                     gameFilePathInfo.Illustration = phiraInfoData.illustration;
                     break;
+                case InfoType.RpeJson:
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -496,42 +523,5 @@ namespace MainCore.Utilities
         [JsonProperty("Chart")] public string Chart;
         [JsonProperty("Music")] public string Music;
         [JsonProperty("Illustration")] public string Illustration;
-    }
-
-    public class LchzhInfo
-    {
-        [CsvHelper.Configuration.Attributes.Name("Chart")]
-        public string Chart { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Music")]
-        public string Music { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Image")]
-        public string Image { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Name")]
-        public string Name { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Artist")]
-        public string Artist { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Level")]
-        public string Level { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Illustrator")]
-        public string Illustrator { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("Charter")]
-        public string Charter { get; set; }
-
-        [CsvHelper.Configuration.Attributes.Name("AspectRatio")]
-        public string AspectRatio { get; set; } = 16f / 9f + "";
-
-        [CsvHelper.Configuration.Attributes.Name("NoteScale")]
-        public string NoteScale { get; set; } = "1.0";
-
-
-        [CsvHelper.Configuration.Attributes.Name("GlobalAlpha")]
-        public string GlobalAlpha { get; set; } = "0.6";
     }
 }

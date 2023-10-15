@@ -35,11 +35,12 @@ namespace MainCore.Data
     public class Video
     {
         public string path { get; set; }
-        public int[] time { get; set; }
-        public float realTime { get; set; }
-        public string scale { get; set; }
-        public float alpha { get; set; }
-        public float dim { get; set; }
+        public int[] time { get; set; } = Array.Empty<int>();
+        [JsonIgnore] public float realTime { get; set; }
+        public string scale { get; set; } = "cropCenter";
+        public float alpha { get; set; } = 1.0f;
+        public float dim { get; set; } = 0.3f;
+        [JsonIgnore] public ScaleMode ScaleMode { get; set; }
     }
 
     [Serializable]

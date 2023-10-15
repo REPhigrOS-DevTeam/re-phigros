@@ -388,9 +388,9 @@ namespace MainCore.Utilities
             }
 
             //Convert BPM
-            rpeChartData.BPMList.OrderBy(x => Frac(x.startTime)).ToList().ForEach(x =>
+            rpeChartData.BPMList.OrderBy(x => x.startTime.Frac()).ToList().ForEach(x =>
             {
-                bpms.Add(new BpmEvent(x.bpm, Frac(x.startTime)));
+                bpms.Add(new BpmEvent(x.bpm, x.startTime.Frac()));
                 if (bpms.Count >= 2)
                 {
                     bpms[^2].end = bpms[^1].start;
@@ -444,8 +444,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -456,8 +456,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -468,8 +468,8 @@ namespace MainCore.Utilities
                     {
                         start = ToColor(e.start),
                         end = ToColor(e.end),
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -480,8 +480,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easingType = e.easingType
                     });
                 }
@@ -492,8 +492,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType == 0 ? 1 : e.easingType,
                         easingLeft = e.easingLeft,
                         easingRight = e.easingRight
@@ -689,8 +689,8 @@ namespace MainCore.Utilities
                         {
                             value = e.start / 4.5f,
                             endValue = e.end / 4.5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime))
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac())
                         });
                     }
 
@@ -738,8 +738,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 255f,
                             end = e.end / 255f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -755,8 +755,8 @@ namespace MainCore.Utilities
                         {
                             start = -e.start,
                             end = -e.end,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -772,8 +772,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 675f / 2f + .5f,
                             end = e.end / 675f / 2f + .5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -789,8 +789,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 450f / 2f + .5f,
                             end = e.end / 450f / 2f + .5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -809,14 +809,14 @@ namespace MainCore.Utilities
                     if (t.type != 2)
                     {
                         retChart.judgeLineList[i].PushNote(NoteType(t.type), t.above == 1,
-                            RecalcTime(bpms, Frac(t.startTime)), t.positionX / 70.3125f / 1.08f, t.speed,
+                            RecalcTime(bpms, t.startTime.Frac()), t.positionX / 70.3125f / 1.08f, t.speed,
                             0, 0, t.isFake, t.yOffset / 450f / 1.08f, t.size, t.visibleTime, t.alpha / 255f);
                     }
                     else
                     {
                         retChart.judgeLineList[i].PushNote(NoteType(t.type), t.above == 1,
-                            RecalcTime(bpms, Frac(t.startTime)), t.positionX / 70.3125f / 1.08f, t.speed,
-                            0, RecalcTime(bpms, Frac(t.endTime)) - RecalcTime(bpms, Frac(t.startTime)), t.isFake,
+                            RecalcTime(bpms, t.startTime.Frac()), t.positionX / 70.3125f / 1.08f, t.speed,
+                            0, RecalcTime(bpms, t.endTime.Frac()) - RecalcTime(bpms, t.startTime.Frac()), t.isFake,
                             t.yOffset / 450f / 1.08f, t.size, t.visibleTime, t.alpha / 255f);
                     }
                 }
@@ -864,17 +864,6 @@ namespace MainCore.Utilities
             }
 
             return timePhi;
-        }
-
-        private static float Frac(int[] frac)
-        {
-            if (frac.Length == 3)
-            {
-                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
-                return frac[0];
-            }
-
-            return frac.Length > 0 ? frac[0] : 0f;
         }
 
         private static Color ToColor(int[] frac)

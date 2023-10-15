@@ -339,12 +339,15 @@ namespace Network.Account
             }
 
             if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
-            Debug.Log($"RePhigros API: Access granted");
+            Debug.Log($"RePhigros API: Access granted, new token: {res.verifyToken}");
             return (StatusCode.OK, res.verifyToken);
         }
 
         private static string ProtectToken(string token)
         {
+#if UNITY_EDITOR
+            return token;
+#endif
             return token.Substring(0, 7) + string.Concat(Enumerable.Repeat("*", token.Length - 14)) +
                    token.Substring(token.Length - 7);
         }
@@ -374,6 +377,22 @@ namespace Network.Account
             {
                 password = passwordInputField.text;
             }
+        }
+        
+        private async Task<bool> CheckIsBanned(AccountManager.AccountInfo accountInfo)  // 恶心反编译的人用的
+        {
+            var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine("/CheckBanned"))
+            {
+                Query = $"username={accountInfo.Username}&verifytoken={accountInfo.VerifyToken}"
+            };
+            string uri = builder.Uri.ToString();
+            byte[] data = await uri.SendGetRequestAsync(false);
+            if (data == null)
+            {
+                Debug.LogError($"RePhigros API: Unable to connect to server when verifying");
+                return true;
+            }
+            return this;
         }
     }
 }

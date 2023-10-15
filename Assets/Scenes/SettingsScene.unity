@@ -710,7 +710,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 193395790}
   dataTag: record_mode
   defaultValue: 0
 --- !u!114 &193395789
@@ -2015,7 +2014,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 344881386}
   dataTag: mirror
   defaultValue: 0
 --- !u!1001 &347580279
@@ -2260,7 +2258,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24ed9f6c61e41ea86420fe746e0e0cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 347580283}
   dataTag: note_size
   defaultValue: 0.25
 --- !u!114 &347580283 stripped
@@ -2546,7 +2543,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 409478159}
   dataTag: high_light
   defaultValue: 0
 --- !u!114 &409478158
@@ -2837,7 +2833,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 439087086}
   dataTag: laur_kick_mode
   defaultValue: 0
 --- !u!114 &439087085
@@ -3490,18 +3485,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 531983277}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &531983280 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291,
-    type: 3}
-  m_PrefabInstance: {fileID: 531983277}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 531983279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &531983281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3514,7 +3497,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e12889f532d443b981d1503907adfd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 531983280}
   dataTag: refresh_rate
   defaultValue: 120
 --- !u!1 &550212005
@@ -3660,7 +3642,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 559915955}
   dataTag: auto_play
   defaultValue: 0
 --- !u!114 &559915954
@@ -4634,18 +4615,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 754611004}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &754611007 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291,
-    type: 3}
-  m_PrefabInstance: {fileID: 754611004}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 754611006}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &754611008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4658,7 +4627,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca166a7db56a43eeb2078b54eff422d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 754611007}
   dataTag: player_name
   defaultValue: kagari939
 --- !u!1 &759756870
@@ -5090,7 +5058,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 826354404}
   dataTag: post_processing
   defaultValue: 0
 --- !u!1001 &827704011
@@ -5595,6 +5562,10 @@ PrefabInstance:
       value: SquareButton
       objectReference: {fileID: 0}
     - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
+      propertyPath: m_Interactable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -5732,6 +5703,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
+--- !u!114 &854664499 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64,
+    type: 3}
+  m_PrefabInstance: {fileID: 854664498}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &865690937
 GameObject:
   m_ObjectHideFlags: 0
@@ -5788,7 +5771,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 865690941}
   dataTag: half_res
   defaultValue: 0
 --- !u!114 &865690940
@@ -5999,7 +5981,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 894896581}
   dataTag: blur
   defaultValue: 0
 --- !u!114 &894896580
@@ -6738,7 +6719,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24ed9f6c61e41ea86420fe746e0e0cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 946289606}
   dataTag: chart_offset
   defaultValue: 0
 --- !u!1 &952851434
@@ -7573,18 +7553,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 984244262}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &984244265 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291,
-    type: 3}
-  m_PrefabInstance: {fileID: 984244262}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 984244264}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &984244266
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7597,7 +7565,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b3342bca81744f28f9b471ecc8f7ece, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 984244265}
   dataTag: music_speed
   defaultValue: 1
   min: 0
@@ -9601,7 +9568,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24ed9f6c61e41ea86420fe746e0e0cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 1368471872}
   dataTag: hit_volume
   defaultValue: 1
 --- !u!1 &1374177213
@@ -10038,6 +10004,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291, type: 3}
+      propertyPath: m_ReadOnly
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291, type: 3}
       propertyPath: m_InputType
       value: 0
       objectReference: {fileID: 0}
@@ -10192,18 +10162,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1442645355}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1442645358 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 11468188, guid: 4c5368a58301e4892a15a0228d4fb291,
-    type: 3}
-  m_PrefabInstance: {fileID: 1442645355}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1442645357}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1442645359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10216,7 +10174,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca166a7db56a43eeb2078b54eff422d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 1442645358}
   dataTag: file_path
   defaultValue: ${Application.persistentDataPath}
 --- !u!114 &1442645360
@@ -10231,6 +10188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2f6fe8ff37a47e29507b0d021f5220c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  browseButton: {fileID: 854664499}
   enableAllFileSelector: 0
   fileExtensions: []
   pickMode: 1
@@ -10956,7 +10914,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveNExit: {fileID: 1974856735}
   dspEnter: {fileID: 1917447373}
-  dataPath: {fileID: 1442645359}
+  dataPath: {fileID: 1442645360}
   broadCastTarget: {fileID: 2115242766}
   toggles:
   - {fileID: 344881386}
@@ -11373,7 +11331,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 1638067351}
   dataTag: fxaa
   defaultValue: 1
 --- !u!1 &1650154433
@@ -11544,6 +11501,7 @@ GameObject:
   - component: {fileID: 1671652665}
   - component: {fileID: 1671652664}
   - component: {fileID: 1671652663}
+  - component: {fileID: 1671652666}
   m_Layer: 5
   m_Name: NoteSkinDropDown
   m_TagString: Untagged
@@ -11672,6 +11630,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1671652661}
   m_CullTransparentMesh: 0
+--- !u!114 &1671652666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1671652661}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be099bba036942eb9f582c7499fd1906, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dataTag: skin
+  defaultValue: 0
 --- !u!1001 &1733652562
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11902,18 +11874,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1733652562}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1733652565 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 11466182, guid: d2c67c9f8ecea45ad946dc423474b514,
-    type: 3}
-  m_PrefabInstance: {fileID: 1733652562}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1733652564}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1733652566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11926,7 +11886,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f24ed9f6c61e41ea86420fe746e0e0cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 1733652565}
   dataTag: mask_alpha
   defaultValue: 0.5
 --- !u!1 &1735234367
@@ -13451,7 +13410,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45be1d1311b543568abe525ce0e648db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 2003708411}
   dataTag: use_course_mode
   defaultValue: 1
 --- !u!114 &2003708410

@@ -12,7 +12,7 @@ namespace MainCore.Settings
     {
         [SerializeField] private LeanButton saveNExit;
         [SerializeField] private LeanButton dspEnter;
-        [SerializeField] private InputField_String_Setting dataPath;
+        [SerializeField] private InputField_File_Selector dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
         [SerializeField] private Dropdown skinDropdown;
@@ -20,13 +20,14 @@ namespace MainCore.Settings
 
         void Start()
         {
-#if UNITY_IPHONE && !UNITY_EDITOR
-            dataPath.gameObject.SetActive(false);
-#else
-            if (!PlayerPrefs.HasKey("file_path"))
+            if (!PlayerPrefs.HasKey(dataPath.BaseData.DataTag))
             {
-                dataPath.SetValue($"{Application.persistentDataPath}");
+                dataPath.BaseData.SetValue($"{Application.persistentDataPath}");
             }
+#if UNITY_IPHONE && !UNITY_EDITOR
+            dataPath.Lock();
+#elif UNITY_EDITOR
+            dataPath.Lock();
 #endif
             skinDropdown.onValueChanged.AddListener(OnSkinChanged);
             saveNExit.OnClick.AddListener(SaveNExit);
@@ -56,9 +57,7 @@ namespace MainCore.Settings
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Poyoroid_sou;
                 });
             // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
-            int oldValue = skinDropdown.value;
-            skinDropdown.value = PlayerPrefs.GetInt("skin", 0);
-            if (oldValue == skinDropdown.value) OnSkinChanged(skinDropdown.value);
+            OnSkinChanged(skinDropdown.value);
 #if !RELEASE_VERSION || UNITY_EDITOR
             skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼", "Pepoyo?" });
 #endif
@@ -67,10 +66,10 @@ namespace MainCore.Settings
         private void IntoDSP()
         {
             string? qwq = null;
-            if (PlayerPrefs.HasKey("file_path")) qwq = PlayerPrefs.GetString("file_path");
+            if (PlayerPrefs.HasKey(dataPath.BaseData.DataTag)) qwq = PlayerPrefs.GetString(dataPath.BaseData.DataTag);
             broadCastTarget.BroadcastMessage("SaveValue");
             PlayerPrefs.Save();
-            if (qwq != null) PlayerPrefs.SetString("file_path", qwq);
+            if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
             SceneTransit.Instance.LoadScene("DSPScene");
         }
 
@@ -91,10 +90,9 @@ namespace MainCore.Settings
             SceneTransit.Instance.Back();
         }
 
-        public void OnSkinChanged(int id)
+        private void OnSkinChanged(int id)
         {
             GlobalSetting.Skin = (Skin)id;
-            PlayerPrefs.SetInt("skin", id);
             HitSoundManager.Instance.RefreshHitSounds(GlobalSetting.Skin);
             delayCorrect.OnSkinChanged();
         }

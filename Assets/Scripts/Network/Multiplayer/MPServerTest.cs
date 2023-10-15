@@ -383,6 +383,7 @@ public class MPServerTest : MonoBehaviour
                 break;
             case InfoType.InfoTxt:
             case InfoType.InfoCsv:
+            case InfoType.InfoCsvOld:
             case InfoType.InfoYml:
                 GlobalSetting.chartName = songInfo.SongName;
                 GlobalSetting.difficulty = songInfo.SongDifficulty;
@@ -418,10 +419,10 @@ public class MPServerTest : MonoBehaviour
         {
             GlobalSetting.extraEvents = null;
         }
-        
+
         if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
         {
-            InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => {}, "确定");
+            InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => { }, "确定");
             await new WaitWhile(() => InGameUIManager.IsActive);
         }
 

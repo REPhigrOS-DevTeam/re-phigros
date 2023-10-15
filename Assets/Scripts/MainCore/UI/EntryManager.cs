@@ -24,7 +24,10 @@ namespace MainCore.UI
             Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
-            // if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
+#if UNITY_EDITOR
+            // 这个是用来消除Rider的代码提示的
+            if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
+#endif
 #endif
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();
