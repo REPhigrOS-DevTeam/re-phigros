@@ -23,7 +23,7 @@ public class MPServerTest : MonoBehaviour
     public ChatManager chatManager;
 
     public Button bDisconnect;
-    public Button bCreateRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
+    public Button bCreateRoom, bSelectRoom, bCloseRoom, bQuitRoom, bDownloadSong, bStartGame, bUpdateSong;
     public Toggle_Button bReady;
     public Toggle isPublicOnCreateRoom;
 
@@ -31,6 +31,11 @@ public class MPServerTest : MonoBehaviour
     private static string selectedSongId = "";
     private static SongInfo selectedSongInfo = null;
     private static bool downloaded = false;
+
+    public Animator roomListAnimator;
+    public Button bRefreshRoomList;
+    public RectTransform rtRoomList;
+    public GameObject roomListItemPrefab;
 
     private int roomId = -1;
 
@@ -44,6 +49,8 @@ public class MPServerTest : MonoBehaviour
     private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
 
     public GameObject sendMask, downloadMask, uploadMask;
+
+    private RoomSummary[] roomList = null;
 
     private Dictionary<GameObject, RoomState> buttonToState = new();
 
@@ -107,6 +114,14 @@ public class MPServerTest : MonoBehaviour
         tConnectState.text = "服务器状态：未连接";
         bDisconnect.onClick.AddListener(Disconnect);
 
+        bSelectRoom.onClick.AddListener(() => {roomListAnimator.SetTrigger(Enabled);});
+        rtRoomList.gameObject.GetComponent<Button>().onClick.AddListener(() => {roomListAnimator.SetTrigger(Disabled);});
+        bRefreshRoomList.onClick.AddListener(() =>
+        {
+            bRefreshRoomList.interactable = false;
+            GeneralListener(SocketManager.FetchRoomList, generalErrorMessages);
+            bRefreshRoomList.interactable = true;
+        });
         bCreateRoom.onClick.AddListener(CreateRoomPrepare);
         bCloseRoom.onClick.AddListener(() => GeneralListener(SocketManager.CloseRoom, generalErrorMessages));
         bQuitRoom.onClick.AddListener(() => GeneralListener(SocketManager.QuitRoom, generalErrorMessages));
@@ -171,6 +186,19 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnBackReceived += clientOperate => { sendMask.SetActive(false); };
         SocketManager.OnUpdateSongReceived += OnSongReceived;
         SocketManager.OnGameStarted += EnterGame;
+        SocketManager.OnGetRoomListSucceeded += list =>
+        {
+            roomList = list;
+            for (int i = 0; i < rtRoomList.childCount; i++)
+            {
+                Destroy(rtRoomList.GetChild(i).gameObject);
+            }
+            foreach (RoomSummary summary in roomList)
+            {
+                GameObject o = Instantiate(roomListItemPrefab);
+                o.GetComponent<RoomListItem>().Set(this, summary);
+            }
+        };
         sendMask.SetActive(false);
         if (SocketManager.GetToken() != "")
         {
@@ -188,6 +216,19 @@ public class MPServerTest : MonoBehaviour
         }
 
         GlobalSetting.Reset();
+    }
+
+    private void SelectRoom()
+    {
+        roomListAnimator.SetTrigger(Enabled);
+        if (roomList == null) bRefreshRoomList.onClick.Invoke();
+    }
+
+    public void SelectRoom(int id)
+    {
+        if (SocketManager.GetRoomId() != "") return;
+        chatManager.SetText(id.ToString());
+        roomListAnimator.SetTrigger(Disabled);
     }
 
     private int createRoomFlag;
@@ -311,6 +352,8 @@ public class MPServerTest : MonoBehaviour
     }
 
     private PhiraInfoData phiraInfoData;
+    private static readonly int Enabled = Animator.StringToHash("Enabled");
+    private static readonly int Disabled = Animator.StringToHash("Disabled");
 
     private string GetDirectory()
     {

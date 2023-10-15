@@ -164,6 +164,14 @@ namespace Network.Multiplayer.Managers
             ifMessage.text = "";
         }
 
+        public void SetText(string text)
+        {
+            lock (threadLock)
+            {
+                ifMessage.text = text;
+            }
+        }
+
         private async void JoinRoom()
         {
             if (ifMessage.text.StartsWith("hadoutest:", true, CultureInfo.InvariantCulture) && internalCharts != null)
