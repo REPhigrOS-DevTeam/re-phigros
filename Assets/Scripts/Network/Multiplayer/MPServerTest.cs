@@ -115,7 +115,7 @@ public class MPServerTest : MonoBehaviour
         bDisconnect.onClick.AddListener(Disconnect);
 
         bSelectRoom.onClick.AddListener(() => {roomListAnimator.SetTrigger(Enabled);});
-        rtRoomList.gameObject.GetComponent<Button>().onClick.AddListener(() => {roomListAnimator.SetTrigger(Disabled);});
+        roomListAnimator.gameObject.GetComponent<Button>().onClick.AddListener(() => {roomListAnimator.SetTrigger(Disabled);});
         bRefreshRoomList.onClick.AddListener(() =>
         {
             bRefreshRoomList.interactable = false;

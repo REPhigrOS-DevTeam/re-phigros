@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using MainCore.Data;
 using MainCore.Utilities;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Utilities;
@@ -16,12 +15,12 @@ namespace MainCore.PostProcessing
         private List<BpmEvent> bpms = new();
 
         private Extra data;
-        private List<string> enabledShaders = new();
-        private Dictionary<string, Material> materials = new();
+        private List<int> enabledShaders = new();
         private List<string> notExistShader = new();
 
         private List<string> shaderNames = new();
         private Dictionary<string, Shader> shaders = new();
+        private Material[] totalMaterials;
         private float currentTime => Main.Instance.progressManager.NowTime;
 
         public bool IsGlobal { get; set; }
@@ -30,18 +29,20 @@ namespace MainCore.PostProcessing
         {
             data = GlobalSetting.extraEvents;
             Arrangement();
-            foreach (var e in data.Effects)
+            totalMaterials = new Material[data.Effects.Count];
+            for (var i = 0; i < data.Effects.Count; i++)
             {
+                var e = data.Effects[i];
                 e.shader = e.shader.Substring(e.shader.Replace('\\', '/')
                     .IndexOf("/", StringComparison.InvariantCulture) + 1).FirstToLowerInvariant();
-                LoadShader(e.shader);
+                LoadShader(i, e.shader);
                 if (e.vars.Count == 0) return;
                 e.varTypes = new Effect.ExtraPropertyType[e.vars.Count];
-                int i = 0;
+                int j = 0;
                 foreach (var v in e.vars)
                 {
-                    e.varTypes[i] = PreloadProperty(e.shader, v.Key, v.Value);
-                    i++;
+                    e.varTypes[j] = PreloadProperty(e.shader, v.Key, v.Value);
+                    j++;
                 }
             }
         }
@@ -54,8 +55,9 @@ namespace MainCore.PostProcessing
             }
 
             enabledShaders.Clear();
-            foreach (var e in data.Effects)
+            for (var i = 0; i < data.Effects.Count; i++)
             {
+                var e = data.Effects[i];
                 if (!e.global && IsGlobal)
                 {
                     continue;
@@ -66,12 +68,12 @@ namespace MainCore.PostProcessing
                     continue;
                 }
 
-                enabledShaders.Add(e.shader);
-                int i = 0;
+                enabledShaders.Add(i);
+                int j = 0;
                 foreach (var v in e.vars)
                 {
-                    AnalyzeProperty(materials[e.shader], v.Key, v.Value, e.varTypes[i]);
-                    i++;
+                    AnalyzeProperty(totalMaterials[i], v.Key, v.Value, e.varTypes[j]);
+                    j++;
                 }
             }
         }
@@ -93,17 +95,17 @@ namespace MainCore.PostProcessing
 
             Graphics.Blit(source, tempSrc); //blit the source into the tempSrc;
 
-            for (int i = 0; i < enabledShaders.Count; i++)
+            for (int j = 0; j < enabledShaders.Count; j++)
             {
                 //for all the materials;
-                if ((float) i % 2.0f == 0.0f)
+                if ((float) j % 2.0f == 0.0f)
                 {
                     //if i is even blit from src to dst, if not then dst to src.
-                    Graphics.Blit(tempSrc, tempDst, materials[enabledShaders[i]]);
+                    Graphics.Blit(tempSrc, tempDst, totalMaterials[enabledShaders[j]]);
                 }
                 else
                 {
-                    Graphics.Blit(tempDst, tempSrc, materials[enabledShaders[i]]);
+                    Graphics.Blit(tempDst, tempSrc, totalMaterials[enabledShaders[j]]);
                 }
             }
 
@@ -143,10 +145,17 @@ namespace MainCore.PostProcessing
             data.Effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
         }
 
-        private void LoadShader(string shaderName)
+        private void LoadShader(int id, string shaderName)
         {
-            if (materials.ContainsKey(shaderName) || notExistShader.Contains(shaderName))
+            if (shaders.ContainsKey(shaderName))
             {
+                totalMaterials[id] = Instantiate(new Material(shaders[shaderName]));
+                return;
+            }
+
+            if (notExistShader.Contains(shaderName))
+            {
+                totalMaterials[id] = null;
                 return;
             }
 
@@ -159,13 +168,13 @@ namespace MainCore.PostProcessing
             if (shader != null)
             {
                 shaderNames.Add(shaderName);
-                materials.Add(shaderName, new Material(shader));
+                totalMaterials[id] = new Material(shader);
                 Debug.Log($"Loading shader succeeded: {shaderName}.");
                 return;
             }
-
-
+            
             notExistShader.Add(shaderName);
+            totalMaterials[id] = null;
             Debug.LogError($"Error loading shader : {shaderName}, maybe not builtin shaders.");
         }
 
