@@ -81,7 +81,7 @@ namespace MainCore
                     uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
                     particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                 }
-#if UNITY_EDITOR || !RELEASE_VERSION
+#if (UNITY_EDITOR || !RELEASE_VERSION) && false // BUG: 为啥放不了
                 if (GlobalSetting.extraEvents.Videos != null)
                 {
                     GlobalSetting.extraEvents.Bpm.OrderBy(x => x.time.Frac()).ToList().ForEach(x =>
@@ -109,6 +109,8 @@ namespace MainCore
                 {
                     Destroy(videoManager.gameObject);
                 }
+#else
+                Destroy(videoManager.gameObject);
 #endif
             }
 
