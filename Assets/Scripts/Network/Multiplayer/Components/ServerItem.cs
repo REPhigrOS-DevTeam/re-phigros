@@ -23,13 +23,16 @@ namespace Network.Multiplayer.Components
         private string serverUrl;
         private bool online = true, chart;
         private Socket socket;
+        private bool isInternal;
 
-        public void Init(int id, ServerManager serverManager, string serverUrl, string customName)
+        public void Init(int id, ServerManager serverManager, string serverUrl, string customName, bool isInternal)
         {
             this.id = id;
             this.serverManager = serverManager;
             this.serverUrl = serverUrl;
-            serverName.text = customName;
+            this.isInternal = isInternal;
+            serverName.text = isInternal ? "等待响应..." : customName;
+            tServerId.text = isInternal ? "内置服务器" : "等待响应...";
             Refresh();
         }
 
@@ -41,7 +44,7 @@ namespace Network.Multiplayer.Components
             await UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                tServerId.text = "";
+                if (!isInternal) tServerId.text = "";
                 tServerPing.text = string.Format(PingFormat, "-", "未知");
                 tServerMotd.text = "正在连接服务器...";
                 if (!General.TryParseHost(serverUrl, out IPEndPoint endPoint, out _))
@@ -104,7 +107,14 @@ namespace Network.Multiplayer.Components
                     return;
                 }
 
-                tServerId.text = "@" + data.Name;
+                if (isInternal)
+                {
+                    serverName.text = data.Name;
+                }
+                else
+                {
+                    tServerId.text = "@" + data.Name;
+                }
                 tServerMotd.text = data.Motd;
                 tServerPing.text = string.Format(PingFormat, (receivedTime - currentTime).ToString(),
                     data.EnableChartUpload ? "在线" : "离线");
@@ -115,7 +125,7 @@ namespace Network.Multiplayer.Components
 
         public void OnClicked()
         {
-            serverManager.UpdateSelectedServer(id);
+            serverManager.UpdateSelectedServer(id, isInternal);
         }
 
         public (string, bool, bool) GetInfo()

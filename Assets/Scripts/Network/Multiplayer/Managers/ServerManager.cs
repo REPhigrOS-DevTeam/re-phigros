@@ -13,7 +13,7 @@ namespace Network.Multiplayer.Managers
 {
     public class ServerManager : MonoBehaviour
     {
-        private ServerList serverList;
+        private ServerList internalServerList, externalServerList;
         [SerializeField] private RectTransform contentPanel;
         [SerializeField] private GameObject serverItemPrefab;
         [SerializeField] private GameObject[] contents;
@@ -23,8 +23,9 @@ namespace Network.Multiplayer.Managers
         [SerializeField] private GameObject serverConnectStatePanel;
         [SerializeField] private GameObject serverConnectStateButtonPanel;
         [SerializeField] private GameObject serverConnectStateFailedButton;
-        private List<ServerItem> items = new List<ServerItem>();
+        private List<ServerItem> internalItems = new List<ServerItem>(), externalItems = new List<ServerItem>();
         private int selectedServerId = -1;
+        private bool selectedServerIsInternal = false;
 
         private void Awake()
         {
@@ -44,14 +45,20 @@ namespace Network.Multiplayer.Managers
 
         private void Start()
         {
-            serverList =
+            internalServerList =
+                JsonConvert.DeserializeObject<ServerList>(Resources.Load<TextAsset>("ServerList").text);
+            externalServerList =
                 JsonConvert.DeserializeObject<ServerList>(PlayerPrefs.GetString("server_list", "{\"Servers\": []}"));
             if (SocketManager.GetToken() == "") RefreshServerList();
         }
 
         public void RefreshServerStatus()
         {
-            foreach (ServerItem item in items)
+            foreach (ServerItem item in internalItems)
+            {
+                item.Refresh();
+            }
+            foreach (ServerItem item in externalItems)
             {
                 item.Refresh();
             }
@@ -63,35 +70,51 @@ namespace Network.Multiplayer.Managers
             {
                 Destroy(contentPanel.GetChild(i).gameObject);
             }
-            items.Clear();
+            internalItems.Clear();
+            externalItems.Clear();
 
-            for (var i = 0; i < serverList.servers.Count; i++)
+            for (int i = 0; i < internalServerList.servers.Count; i++)
             {
-                var server = serverList.servers[i];
+                var server = internalServerList.servers[i];
                 GameObject item = Instantiate(serverItemPrefab, contentPanel);
                 ServerItem serverItem = item.GetComponent<ServerItem>();
-                items.Add(serverItem);
-                serverItem.Init(i, this, server.url, server.customName);
-                serverItem.SetSelectState(selectedServerId == i);
+                internalItems.Add(serverItem);
+                serverItem.Init(i, this, server.url, server.customName, true);
+                serverItem.SetSelectState(selectedServerId == i && selectedServerIsInternal);
+            }
+            for (var i = 0; i < externalServerList.servers.Count; i++)
+            {
+                var server = externalServerList.servers[i];
+                GameObject item = Instantiate(serverItemPrefab, contentPanel);
+                ServerItem serverItem = item.GetComponent<ServerItem>();
+                externalItems.Add(serverItem);
+                serverItem.Init(i, this, server.url, server.customName, false);
+                serverItem.SetSelectState(selectedServerId == i && !selectedServerIsInternal);
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(contentPanel);
         }
 
-        public void UpdateSelectedServer(int id)
+        public void UpdateSelectedServer(int id, bool isInternal)
         {
-            if (selectedServerId == id)
+            if (selectedServerId == id && selectedServerIsInternal == isInternal)
             {
-                var (url, online, chart) = items[id].GetInfo();
+                var (url, online, chart) = (isInternal ? internalItems : externalItems)[id].GetInfo();
                 Task.Run(() => Connect(url, online, chart));
                 return;
             }
-
+            
             selectedServerId = id;
-            for (var i = 0; i < items.Count; i++)
+            selectedServerIsInternal = isInternal;
+            for (int i = 0; i < internalItems.Count; i++)
             {
-                var item = items[i];
-                item.SetSelectState(i == id);
+                var item = internalItems[i];
+                item.SetSelectState(i == selectedServerId && selectedServerIsInternal);
+            }
+            for (var i = 0; i < externalItems.Count; i++)
+            {
+                var item = externalItems[i];
+                item.SetSelectState(i == selectedServerId && !selectedServerIsInternal);
             }
         }
 
@@ -191,12 +214,12 @@ namespace Network.Multiplayer.Managers
 
         public void AddServer()
         {
-            serverList.servers.Add(new Server
+            externalServerList.servers.Add(new Server
             {
                 customName = ifName.text,
                 url = ifUrl.text
             });
-            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(serverList));
+            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(externalServerList));
             PlayerPrefs.Save();
             RefreshServerList();
         }
@@ -213,8 +236,8 @@ namespace Network.Multiplayer.Managers
         public void OnStartEdit()
         {
             if (selectedServerId < 0) return;
-            ifName1.text = serverList.servers[selectedServerId].customName;
-            ifUrl1.text = serverList.servers[selectedServerId].url;
+            ifName1.text = externalServerList.servers[selectedServerId].customName;
+            ifUrl1.text = externalServerList.servers[selectedServerId].url;
         }
 
         public void CleanField1()
@@ -226,14 +249,14 @@ namespace Network.Multiplayer.Managers
         public void EditServer()
         {
             if (selectedServerId < 0) return;
-            serverList.servers = serverList.servers.Select((server, i) =>
+            externalServerList.servers = externalServerList.servers.Select((server, i) =>
             {
                 if (i != selectedServerId) return server;
                 server.customName = ifName1.text;
                 server.url = ifUrl1.text;
                 return server;
             }).ToList();
-            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(serverList));
+            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(externalServerList));
             PlayerPrefs.Save();
             RefreshServerList();
         }
@@ -248,9 +271,9 @@ namespace Network.Multiplayer.Managers
         public void DeleteServer()
         {
             if (selectedServerId < 0) return;
-            serverList.servers.RemoveAt(selectedServerId);
+            externalServerList.servers.RemoveAt(selectedServerId);
             selectedServerId = -1;
-            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(serverList));
+            PlayerPrefs.SetString("server_list", JsonConvert.SerializeObject(externalServerList));
             PlayerPrefs.Save();
             RefreshServerList();
         }

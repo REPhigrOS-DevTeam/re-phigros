@@ -319,7 +319,7 @@ public class MPServerTest : MonoBehaviour
         selectedSongId = "";
         selectedSongType = SongType.empty;
         SocketManager.Disconnect();
-        SceneTransit.Instance.Back();
+        SceneTransit.Instance.JumpScene("NetworkTest");
     }
 
     public void UpdateConnectState(string str)
