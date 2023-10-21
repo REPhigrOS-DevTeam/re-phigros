@@ -10,7 +10,7 @@ public class MediaLauncher : MonoBehaviour
     {
         if (!displayUGUI || !displayUGUI.Player) return;
 #if UNITY_EDITOR || !RELEASE_VERSION
-        displayUGUI.color = displayUGUI.color.SetAlpha(1f);
+        displayUGUI.SetAlpha(1f);
         displayUGUI.Player.Play();
 #else
         displayUGUI.color = displayUGUI.color.SetAlpha(0f);

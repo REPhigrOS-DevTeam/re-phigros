@@ -10,6 +10,7 @@ using MainCore.Data;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 using YamlDotNet.Serialization;
 
 namespace MainCore.Utilities
@@ -17,6 +18,13 @@ namespace MainCore.Utilities
     public static class GameUtils
     {
         public static float ScreenDelta => Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
+        public static void SetAlpha(this SpriteRenderer spriteRenderer, float alpha)
+        {
+            Color color = spriteRenderer.color;
+            spriteRenderer.color = new Color(color.r, color.g, color.b, alpha);
+        }
+
+        public static void SetAlpha(this Graphic graphic, float alpha) => graphic.color = new Color(graphic.color.r, graphic.color.g, graphic.color.b, alpha);
 
         public static Color SetAlpha(this Color color, float alpha) => new Color(color.r, color.g, color.b, alpha);
 

@@ -12,7 +12,7 @@ namespace MainCore.Common
 
         public override bool GetValue()
         {
-            return PlayerPrefs.GetInt(dataTag, 0) == 1;
+            return PlayerPrefsExtension.GetBoolean(dataTag, defaultValue);
         }
 
         public override void SetValue(bool value)
@@ -22,7 +22,7 @@ namespace MainCore.Common
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetInt(dataTag, DataContainer.On ? 1 : 0);
+            PlayerPrefsExtension.SetBoolean(dataTag, DataContainer.On);
         }
     }
 }

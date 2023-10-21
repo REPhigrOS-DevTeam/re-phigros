@@ -4,7 +4,6 @@ using UnityEngine.UI;
 
 namespace MainCore.Common
 {
-    [RequireComponent(typeof(InputField_String_Setting))]
     public class InputField_File_Selector : MonoBehaviour
     {
         [SerializeField] private Button browseButton;
@@ -43,7 +42,7 @@ namespace MainCore.Common
             Destroy(inputFieldStringSetting);
             browseButton.interactable = false;
             InputField inputField = gameObject.GetComponent<InputField>().GetComponent<InputField>();
-            inputField.readOnly = true;
+            inputField.interactable = false;
             inputField.text = "已禁用";
         }
     }

@@ -12,12 +12,16 @@ namespace MainCore.UI
         [SerializeField] private Button singlePlay, multiPlay;
         [SerializeField] private Text usernameText;
         [SerializeField] private RectTransform avatarBackGround;
+        [SerializeField] private Button openCharaPreview, closeCharaPreview;
+        [SerializeField] private DatuPreviewFadeInOut datuPreviewFadeInOut;
 
         private void Awake()
         {
             settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
+            openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
+            closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
 #if !RELEASE_VERSION && !UNITY_EDITOR
             multiPlay.interactable = false;
 #else
@@ -25,6 +29,8 @@ namespace MainCore.UI
 #endif
         }
 
+        private const int Offset1 = 234 + 5 + 42,
+            Offset2 = 5 + 42 + 11;
         public void Start()
         {
             if (PlayerPrefs.GetInt("half_res", 0) == 1)
@@ -46,7 +52,11 @@ namespace MainCore.UI
 
             usernameText.text =
                 $"{PlayerPrefs.GetString("player_name", "kagari939")}\n<size=55>@{GlobalSetting.username}</size>";
-            avatarBackGround.sizeDelta = new Vector2(234 + 5 + 42 + usernameText.preferredWidth, 240f);
+            avatarBackGround.sizeDelta = new Vector2(Offset1 + usernameText.preferredWidth, 240f);
+            RectTransform rectTransform = avatarBackGround.parent as RectTransform;
+            rectTransform.anchoredPosition =
+                new Vector2(-454f - avatarBackGround.sizeDelta.x / 2f - avatarBackGround.anchoredPosition.x + Offset2,
+                    rectTransform.anchoredPosition.y);
         }
     }
 }

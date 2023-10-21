@@ -45,7 +45,7 @@ public class EffectSplash : MonoBehaviour
 
     private void OnEnable()
     {
-        sr.color = sr.color.SetAlpha(1);
+        sr.SetAlpha(1);
         sr.DOFade(0, .5f);
         t = 0;
         spd = Random.Range(0f, 1f) * 80f + 185f;

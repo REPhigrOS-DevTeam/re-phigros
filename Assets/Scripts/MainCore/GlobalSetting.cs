@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using CsvHelper;
+using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
@@ -185,27 +186,24 @@ namespace MainCore
 
         public static void ReadUserSettings()
         {
-            highLight = PlayerPrefs.GetInt("high_light", 0) == 1; //highlightToggle.isOn;
+            highLight = PlayerPrefsExtension.GetBoolean("high_light", false); //highlightToggle.isOn;
             userOffset =
                 PlayerPrefs.GetFloat("chart_offset", 0) /
                 1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
-            autoPlay = PlayerPrefs.GetInt("auto_play", 0) ==
-                       1; //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
-            isMirror = PlayerPrefs.GetInt("mirror", 0) ==
-                       1; //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
-            disableBlur = PlayerPrefs.GetInt("blur", 0) == 1;
+            autoPlay = PlayerPrefsExtension.GetBoolean("auto_play", false); //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
+            isMirror = PlayerPrefsExtension.GetBoolean("mirror", false); //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
+            disableBlur = PlayerPrefsExtension.GetBoolean("blur", false);
             is3D = false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
             postProcessing =
-                PlayerPrefs.GetInt("post_processing", 0) ==
-                1; //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
+                PlayerPrefsExtension.GetBoolean("post_processing", false); //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
             globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
-            recordMode = PlayerPrefs.GetInt("record_mode", 0) == 1;
+            recordMode = PlayerPrefsExtension.GetBoolean("record_mode", false);
             hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
             maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
-            fxaaEnabled = PlayerPrefs.GetInt("fxaa", 0) == 1;
+            fxaaEnabled = PlayerPrefsExtension.GetBoolean("fxaa", false);
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
             HitSoundManager.Instance.RefreshHitSounds(Skin);
-            useCourseMode = PlayerPrefs.GetInt("use_course_mode", 0) == 1;
+            useCourseMode = PlayerPrefsExtension.GetBoolean("use_course_mode", false);
             Pitch = PlayerPrefs.GetFloat("music_speed", 1f);
         }
 

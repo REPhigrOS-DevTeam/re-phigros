@@ -113,7 +113,7 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
         cancelButton.onClick.RemoveAllListeners();
         alternateButton.onClick.RemoveAllListeners();
         modalWindow.rectTransform.anchoredPosition = new Vector2(modalWindow.rectTransform.anchoredPosition.x, -800);
-        backPanel.color.SetAlpha(0);
+        backPanel.SetAlpha(0);
         modalWindow.rectTransform.localScale = new Vector3(0, 0);
         backPanel.gameObject.SetActive(false);
         IsActive = false;

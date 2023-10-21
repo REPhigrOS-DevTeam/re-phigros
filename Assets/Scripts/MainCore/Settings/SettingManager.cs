@@ -26,8 +26,6 @@ namespace MainCore.Settings
             }
 #if UNITY_IPHONE && !UNITY_EDITOR
             dataPath.Lock();
-#elif UNITY_EDITOR
-            dataPath.Lock();
 #endif
             skinDropdown.onValueChanged.AddListener(OnSkinChanged);
             saveNExit.OnClick.AddListener(SaveNExit);
@@ -80,12 +78,13 @@ namespace MainCore.Settings
 #if UNITY_IPHONE && !UNITY_EDITOR
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
             PlayerPrefs.Save();
-#endif
+
             if (!Directory.Exists(PlayerPrefs.GetString("file_path", Application.persistentDataPath)))
             {
                 InGameUIManager.ShowModalWindowWithClose("故意的是吧", "你这文件夹都不存在啊", () => { }, "确认");
                 return;
             }
+#endif
 
             SceneTransit.Instance.Back();
         }

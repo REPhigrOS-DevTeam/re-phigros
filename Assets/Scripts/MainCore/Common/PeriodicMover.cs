@@ -26,4 +26,9 @@ public class PeriodicMover : MonoBehaviour
     {
         transform.position = originPosition + new Vector3(0f, amplitude * Mathf.Sin(2 * Mathf.PI * stopwatch.ElapsedMilliseconds / 1000f / period), 0f);
     }
+
+    private void OnDisable()
+    {
+        transform.position = originPosition;
+    }
 }
