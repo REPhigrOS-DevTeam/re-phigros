@@ -56,7 +56,7 @@ namespace MainCore.Utilities
                 unimageProcessor.Load(data);
                 Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
                 return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f));
+                    new Vector2(0.5f, 0.5f), 100f, 1);
             }
             catch (Exception e)
             {

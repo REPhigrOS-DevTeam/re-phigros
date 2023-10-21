@@ -5503,6 +5503,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: VersionText
       objectReference: {fileID: 0}
+    - target: {fileID: 7310390997171621134, guid: 89aa6f2af8504a44690684146048e2eb,
+        type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7310390997171621135, guid: 89aa6f2af8504a44690684146048e2eb,
         type: 3}
       propertyPath: m_Pivot.x

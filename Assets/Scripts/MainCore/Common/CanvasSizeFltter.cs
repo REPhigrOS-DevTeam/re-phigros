@@ -14,7 +14,7 @@ public class CanvasSizeFltter : MonoBehaviour
     {
         canvasScaler = gameObject.GetComponent<CanvasScaler>();
         canvasScaler.matchWidthOrHeight =
-            Screen.width * 1f / Screen.height <= canvasScaler.referenceResolution.GetRatio() ? 0 : 1;
+            Screen.width * 1f / Screen.height > canvasScaler.referenceResolution.GetRatio() ? 1 : 0;
     }
 
 #if UNITY_EDITOR
@@ -22,7 +22,7 @@ public class CanvasSizeFltter : MonoBehaviour
     void Update()
     {
         canvasScaler.matchWidthOrHeight =
-            Screen.width * 1f / Screen.height <= canvasScaler.referenceResolution.GetRatio() ? 0 : 1;
+            Screen.width * 1f / Screen.height > canvasScaler.referenceResolution.GetRatio() ? 1 : 0;
     }
 #endif
 }
