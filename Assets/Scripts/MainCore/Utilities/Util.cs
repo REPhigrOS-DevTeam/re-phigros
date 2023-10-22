@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
+using MainCore.UI;
 using Newtonsoft.Json;
 using Unimage;
 using UnityEngine;
@@ -47,14 +48,19 @@ namespace MainCore.Utilities
             return type.IsSubclassOf(type1) || type == type1;
         }
 
+        public static Texture2D ReadFileAsTexture(byte[] data)
+        {
+            using UnimageProcessor unimageProcessor = new UnimageProcessor();
+            unimageProcessor.Load(data);
+            return unimageProcessor.GetTexture(noLongerReadable: false);
+        }
+
         public static Sprite ReadFileAsSprite(byte[] data, out Exception exception)
         {
             try
             {
                 exception = null;
-                using UnimageProcessor unimageProcessor = new UnimageProcessor();
-                unimageProcessor.Load(data);
-                Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
+                Texture2D texture = ReadFileAsTexture(data);
                 return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
                     new Vector2(0.5f, 0.5f), 100f, 1);
             }
@@ -154,6 +160,58 @@ namespace MainCore.Utilities
             }
 
             return frac.Length > 0 ? frac[0] : 0f;
+        }
+
+        public static Sprite ReadSprite(byte[] data, Vector2 pivot, float pixelsPerUnit = 100f)
+        {
+            return ReadSprite(ReadFileAsTexture(data), pivot, pixelsPerUnit);
+        }
+
+        public static Sprite ReadSprite(Texture2D texture2D, Vector2 pivot, float pixelsPerUnit = 100f)
+        {
+            return Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), pivot, pixelsPerUnit, 1);
+        }
+
+        public static CharacterImage GetCharacterImage(string packagePath, Action onFileInvalidFound = null, Action onFormatInvalidFound = null)
+        {
+            string tmpDirPath = Application.temporaryCachePath + "/tmpCharaImage";
+            if (Directory.Exists(tmpDirPath)) Directory.Delete(tmpDirPath, true);
+            Directory.CreateDirectory(tmpDirPath);
+            try
+            {
+                ZipUtils.UnZip(packagePath, tmpDirPath);
+            }
+            catch (Exception)
+            {
+                onFileInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.txt"))
+            {
+                onFormatInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            string[] lines = File.ReadAllLines(tmpDirPath + "/index.txt");
+            if (lines.Length < 3)
+            {
+                onFormatInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            if (!float.TryParse(lines[0], out float pixelsPerUnit) || !float.TryParse(lines[1], out float pivotX) || !float.TryParse(lines[2], out float pivotY))
+            {
+                onFormatInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+            Directory.Delete(tmpDirPath, true);
+            
+            return new CharacterImage()
+            {
+                TextureData = File.ReadAllBytes(tmpDirPath + "/chara"),
+                Pivot = new Vector2(pivotX, pivotY),
+                PixelsPerUnit = pixelsPerUnit
+            };
         }
     }
 }

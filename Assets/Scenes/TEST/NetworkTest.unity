@@ -4650,7 +4650,7 @@ GameObject:
   - component: {fileID: 802731862}
   - component: {fileID: 802731861}
   m_Layer: 5
-  m_Name: Text (Legacy)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4709,7 +4709,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u51C6\u5907"
+  m_Text: 
 --- !u!222 &802731862
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10481,6 +10481,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onOnLabel: 
   onOffLabel: 
+  onOnSprite: {fileID: 0}
+  onOffSprite: {fileID: 0}
+  mode: 1
 --- !u!1 &1820776192
 GameObject:
   m_ObjectHideFlags: 0

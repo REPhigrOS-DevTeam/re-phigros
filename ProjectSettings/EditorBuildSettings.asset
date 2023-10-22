@@ -47,4 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AboutScene.unity
     guid: c099d178b8c4df549b58eadda1e262ba
+  - enabled: 1
+    path: Assets/Scenes/CharacterAdjustScene.unity
+    guid: cd01a74094628da45aff6b2bd0be8bb7
   m_configObjects: {}

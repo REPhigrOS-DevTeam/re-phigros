@@ -90,6 +90,12 @@ namespace Editor
         {
             IntoScene("AboutScene");
         }
+        
+        [MenuItem("Scene Tools/Into Character Adjust")]
+        private static void IntoCharacterAdjust()
+        {
+            IntoScene("CharacterAdjustScene");
+        }
 
         private static void IntoScene(string name)
         {

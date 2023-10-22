@@ -1599,10 +1599,6 @@ MonoBehaviour:
   settings: {fileID: 672864878}
   singlePlay: {fileID: 5570851866020097710}
   multiPlay: {fileID: 1723654891}
-  usernameText: {fileID: 1654292570}
-  displayNameText: {fileID: 1001600892}
-  avatarBackGround: {fileID: 1371551873}
-  nameSplitLine: {fileID: 446111221}
   openCharaPreview: {fileID: 1342453552}
   closeCharaPreview: {fileID: 1117646252}
   datuPreviewFadeInOut: {fileID: 896993762}
@@ -1790,7 +1786,7 @@ RectTransform:
   m_GameObject: {fileID: 992230559}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 0}
+  m_LocalScale: {x: 1.15625, y: 1.15625, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 39988684}
@@ -1814,7 +1810,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.98, g: 0.98, b: 0.98, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2030,7 +2026,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amplitude: 0.1
   period: 5
-  targetResolution: {x: 1920, y: 1080}
 --- !u!1 &1117646248
 GameObject:
   m_ObjectHideFlags: 0
@@ -2166,7 +2161,7 @@ GameObject:
   - component: {fileID: 1152902555}
   - component: {fileID: 1152902554}
   m_Layer: 5
-  m_Name: Canvas (1)
+  m_Name: BannerCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2742,6 +2737,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1576498213}
+  - component: {fileID: 1576498214}
   m_Layer: 5
   m_Name: AvatarMainObj
   m_TagString: Untagged
@@ -2775,6 +2771,22 @@ RectTransform:
   m_AnchoredPosition: {x: -710, y: -361.1}
   m_SizeDelta: {x: 120, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1576498214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576498212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcba44d587211b941b5756413f4805d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  usernameText: {fileID: 1654292570}
+  displayNameText: {fileID: 1001600892}
+  avatarBackGround: {fileID: 1371551873}
+  nameSplitLine: {fileID: 446111221}
 --- !u!1 &1654292568
 GameObject:
   m_ObjectHideFlags: 0

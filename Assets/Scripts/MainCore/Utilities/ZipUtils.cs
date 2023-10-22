@@ -49,9 +49,7 @@ namespace MainCore.Utilities
             }
 
             using ZipInputStream zipfiles = new ZipInputStream(stream);
-            ZipEntry theEntry;
-
-            while ((theEntry = zipfiles.GetNextEntry()) != null)
+            while (zipfiles.GetNextEntry() is { } theEntry)
             {
                 theEntry.IsUnicodeText = true;
                 string directoryName = "";
@@ -69,7 +67,7 @@ namespace MainCore.Utilities
                 if ((!File.Exists(TargetDirectory + directoryName + fileName) || !OverWrite) &&
                     (File.Exists(TargetDirectory + directoryName + fileName))) continue;
                 using FileStream streamWriter = File.Create(TargetDirectory + directoryName + fileName);
-                int size = 2048;
+                int size;
                 byte[] data = new byte[2048];
                 while (true)
                 {
@@ -80,8 +78,6 @@ namespace MainCore.Utilities
                     else
                         break;
                 }
-
-                streamWriter.Close();
             }
 
             zipfiles.Close();
