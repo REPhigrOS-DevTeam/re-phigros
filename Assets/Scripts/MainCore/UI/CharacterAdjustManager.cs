@@ -37,10 +37,21 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void Start()
     {
-        spriteRenderer.sprite = defaultCharacter;
-        ifPpu.Value = defaultCharacter.pixelsPerUnit;
-        ifPivotX.Value = defaultCharacter.pivot.x;
-        ifPivotY.Value = defaultCharacter.pivot.y;
+        if (PlayerPrefs.HasKey("character"))
+        {
+            string[] strings = PlayerPrefs.GetString("character").Split("\n");
+            ifPpu.Value = float.Parse(strings[0]);
+            ifPivotX.Value = float.Parse(strings[1]);
+            ifPivotY.Value = float.Parse(strings[2]);
+            spriteRenderer.sprite = Util.ReadSprite(Convert.FromBase64String(strings[3]), new Vector2(ifPivotX.Value, ifPivotY.Value), ifPpu.Value);
+        }
+        else
+        {
+            spriteRenderer.sprite = defaultCharacter;
+            ifPpu.Value = defaultCharacter.pixelsPerUnit;
+            ifPivotX.Value = defaultCharacter.pivot.x;
+            ifPivotY.Value = defaultCharacter.pivot.y;
+        }
         panelSwitch.IsOn = true;
         SetInput(false);
     }
@@ -55,7 +66,10 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void ExportCharacterPackage()
     {
-        if (!characterTexture) return;
+        if (!characterTexture)
+        {
+            characterTexture = defaultCharacter.texture;
+        };
         FileBrowser.SetFilters(false, ".charapkg");
         FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
             false, PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "保存到...", "确定");

@@ -6,9 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using MainCore.Data;
 using MainCore.UI;
-using Newtonsoft.Json;
 using Unimage;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -204,11 +202,13 @@ namespace MainCore.Utilities
                 onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
             }
+
+            byte[] textureData = File.ReadAllBytes(tmpDirPath + "/chara");
             Directory.Delete(tmpDirPath, true);
             
             return new CharacterImage()
             {
-                TextureData = File.ReadAllBytes(tmpDirPath + "/chara"),
+                TextureData = textureData,
                 Pivot = new Vector2(pivotX, pivotY),
                 PixelsPerUnit = pixelsPerUnit
             };
