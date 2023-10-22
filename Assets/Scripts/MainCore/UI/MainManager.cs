@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using MainCore.Common;
 using MainCore.Utilities;
 using SimpleFileBrowser;
@@ -13,9 +12,10 @@ namespace MainCore.UI
     {
         [SerializeField] private Button settings;
         [SerializeField] private Button singlePlay, multiPlay;
+        [SerializeField] private GameObject characterSelectionObj;
         [SerializeField] private Button openCharaPreview, closeCharaPreview;
         [SerializeField] private DatuPreviewFadeInOut datuPreviewFadeInOut;
-        [SerializeField] private Button selectCharacter;
+        [SerializeField] private Button openCharacterSelections, deleteCharacter, selectCharacter, editCharacter;
         [SerializeField] private SpriteRenderer character;
         [SerializeField] private Sprite defaultCharacter;
 
@@ -26,7 +26,16 @@ namespace MainCore.UI
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
+            openCharacterSelections.onClick.AddListener(OpenCharacterSelections);
+            deleteCharacter.onClick.AddListener(() =>
+            {
+                PlayerPrefs.DeleteKey("character");
+                PlayerPrefs.Save();
+            });
+            deleteCharacter.onClick.AddListener(CloseCharacterSelections);
             selectCharacter.onClick.AddListener(ImportCharacterPackage);
+            selectCharacter.onClick.AddListener(CloseCharacterSelections);
+            editCharacter.onClick.AddListener(() => SceneTransit.Instance.LoadScene("CharacterAdjustScene"));
 #if !RELEASE_VERSION && !UNITY_EDITOR
             multiPlay.interactable = false;
 #else
@@ -64,7 +73,21 @@ namespace MainCore.UI
             {
                 character.sprite = defaultCharacter;
             }
+            CloseCharacterSelections();
+            datuPreviewFadeInOut.FadeOut(0f);
         }
+
+        private void CloseCharacterSelections()
+        {
+            characterSelectionObj.SetActive(false);
+        }
+
+        private void OpenCharacterSelections()
+        {
+            characterSelectionObj.SetActive(true);
+            deleteCharacter.interactable = PlayerPrefs.HasKey("character");
+        }
+        
 
         private void ImportCharacterPackage()
         {

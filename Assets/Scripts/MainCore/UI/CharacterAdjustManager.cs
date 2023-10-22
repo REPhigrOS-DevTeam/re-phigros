@@ -174,4 +174,9 @@ public class CharacterAdjustManager : MonoBehaviour
         characterTexture = texture;
         OnValueChanged();
     }
+
+    public void Back()
+    {
+        SceneTransit.Instance.Back();
+    }
 }
