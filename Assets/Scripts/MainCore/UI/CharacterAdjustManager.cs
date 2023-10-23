@@ -53,7 +53,7 @@ public class CharacterAdjustManager : MonoBehaviour
             ifPivotY.Value = defaultCharacter.pivot.y;
         }
         panelSwitch.IsOn = true;
-        SetInput(false);
+        SetInput(PlayerPrefs.HasKey("character"));
     }
 
     private void SetInput(bool isOn)
