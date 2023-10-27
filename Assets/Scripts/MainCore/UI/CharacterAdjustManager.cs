@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Text;
@@ -43,7 +44,8 @@ public class CharacterAdjustManager : MonoBehaviour
             ifPpu.Value = float.Parse(strings[0]);
             ifPivotX.Value = float.Parse(strings[1]);
             ifPivotY.Value = float.Parse(strings[2]);
-            spriteRenderer.sprite = Util.ReadSprite(Convert.FromBase64String(strings[3]), new Vector2(ifPivotX.Value, ifPivotY.Value), ifPpu.Value);
+            spriteRenderer.sprite = Util.ReadSprite(Convert.FromBase64String(strings[3]),
+                new Vector2(ifPivotX.Value, ifPivotY.Value), ifPpu.Value);
         }
         else
         {
@@ -52,6 +54,7 @@ public class CharacterAdjustManager : MonoBehaviour
             ifPivotX.Value = defaultCharacter.pivot.x;
             ifPivotY.Value = defaultCharacter.pivot.y;
         }
+
         panelSwitch.IsOn = true;
         SetInput(PlayerPrefs.HasKey("character"));
     }
@@ -69,7 +72,9 @@ public class CharacterAdjustManager : MonoBehaviour
         if (!characterTexture)
         {
             characterTexture = defaultCharacter.texture;
-        };
+        }
+
+        ;
         FileBrowser.SetFilters(false, ".charapkg");
         FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
             false, PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "保存到...", "确定");
@@ -180,3 +185,4 @@ public class CharacterAdjustManager : MonoBehaviour
         SceneTransit.Instance.Back();
     }
 }
+#endif
