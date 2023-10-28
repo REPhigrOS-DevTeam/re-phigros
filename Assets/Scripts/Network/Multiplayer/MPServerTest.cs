@@ -375,7 +375,7 @@ public class MPServerTest : MonoBehaviour
     {
         string directory = GetDirectory();
 
-        ZipUtils.Unzip(await ChartHandler.Download(selectedSongId), directory);
+        ZipUtils.UnZip(await ChartHandler.Download(selectedSongId), directory);
 
         // 如果出现了zip里是单个根文件夹的情况就把文件夹里的东西移出来
         string[] entries = Directory.GetFileSystemEntries(directory);

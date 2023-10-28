@@ -1,5 +1,6 @@
 using System;
 using MainCore.Common;
+using MainCore.Data;
 using MainCore.Utilities;
 using SimpleFileBrowser;
 using Unimage;
@@ -26,15 +27,16 @@ namespace MainCore.UI
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
-            openCharacterSelections.onClick.AddListener(OpenCharacterSelections);
+            // openCharacterSelections.onClick.AddListener(OpenCharacterSelections);
+            openCharacterSelections.onClick.AddListener(OpenCharacterSelector);
             deleteCharacter.onClick.AddListener(() =>
             {
                 PlayerPrefs.DeleteKey("character");
                 PlayerPrefs.Save();
             });
-            deleteCharacter.onClick.AddListener(CloseCharacterSelections);
+            deleteCharacter.onClick.AddListener(CloseCharacterOptions);
             selectCharacter.onClick.AddListener(ImportCharacterPackage);
-            selectCharacter.onClick.AddListener(CloseCharacterSelections);
+            selectCharacter.onClick.AddListener(CloseCharacterOptions);
             editCharacter.onClick.AddListener(() => SceneTransit.Instance.LoadScene("CharacterAdjustScene"));
 #if !RELEASE_VERSION && !UNITY_EDITOR
             multiPlay.interactable = false;
@@ -73,21 +75,27 @@ namespace MainCore.UI
             {
                 character.sprite = defaultCharacter;
             }
-            CloseCharacterSelections();
+            CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
         }
 
-        private void CloseCharacterSelections()
+        private void CloseCharacterOptions()
         {
+            return;
             characterSelectionObj.SetActive(false);
         }
 
-        private void OpenCharacterSelections()
+        private void OpenCharacterOptions()
         {
+            return; // TODO: 停止开放
             characterSelectionObj.SetActive(true);
             deleteCharacter.interactable = PlayerPrefs.HasKey("character");
         }
-        
+
+        private void OpenCharacterSelector()
+        {
+            
+        }
 
         private void ImportCharacterPackage()
         {
@@ -126,15 +134,9 @@ namespace MainCore.UI
 
     public class CharacterImage
     {
-        public float PixelsPerUnit;
-        public Vector2 Pivot;
+        public ExternalCharacterInfo Info;
         public byte[] TextureData;
         public Texture2D Texture => Util.ReadFileAsTexture(TextureData);
-        public Sprite Sprite => Util.ReadSprite(Texture, Pivot, PixelsPerUnit);
-
-        public override string ToString()
-        {
-            return string.Join("\n", PixelsPerUnit, Pivot.x, Pivot.y, Convert.ToBase64String(TextureData));
-        }
+        public Sprite Sprite => Util.ReadSprite(Texture, Info.Pivot, Info.PixelsPerUnit);
     }
 }

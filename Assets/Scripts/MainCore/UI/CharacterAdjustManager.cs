@@ -5,8 +5,10 @@ using System.Text;
 using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
+using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
+using Newtonsoft.Json;
 using SimpleFileBrowser;
 using Unimage;
 using UnityEngine;
@@ -38,14 +40,13 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void Start()
     {
-        if (PlayerPrefs.HasKey("character"))
+        if (PlayerPrefs.HasKey("customCharacter"))
         {
-            string[] strings = PlayerPrefs.GetString("character").Split("\n");
-            ifPpu.Value = float.Parse(strings[0]);
-            ifPivotX.Value = float.Parse(strings[1]);
-            ifPivotY.Value = float.Parse(strings[2]);
-            spriteRenderer.sprite = Util.ReadSprite(Convert.FromBase64String(strings[3]),
-                new Vector2(ifPivotX.Value, ifPivotY.Value), ifPpu.Value);
+            CharacterImage characterImage = Util.GetCharacterImage(Convert.FromBase64String(PlayerPrefs.GetString("customCharacter")));
+            ifPpu.Value = characterImage.Info.PixelsPerUnit;
+            ifPivotX.Value = characterImage.Info.PivotX;
+            ifPivotY.Value = characterImage.Info.PivotY;
+            spriteRenderer.sprite = characterImage.Sprite;
         }
         else
         {
@@ -56,7 +57,7 @@ public class CharacterAdjustManager : MonoBehaviour
         }
 
         panelSwitch.IsOn = true;
-        SetInput(PlayerPrefs.HasKey("character"));
+        SetInput(PlayerPrefs.HasKey("customCharacter"));
     }
 
     private void SetInput(bool isOn)
@@ -73,8 +74,7 @@ public class CharacterAdjustManager : MonoBehaviour
         {
             characterTexture = defaultCharacter.texture;
         }
-
-        ;
+        
         FileBrowser.SetFilters(false, ".charapkg");
         FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
             false, PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "保存到...", "确定");
@@ -84,14 +84,20 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         try
         {
-            using FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-            using ZipOutputStream zipOutputStream =
+            using MemoryStream fileStream = new MemoryStream();
+            ZipOutputStream zipOutputStream =
                 new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
             Crc32 crc32 = new Crc32();
             DateTime now = DateTime.Now;
+            ExternalCharacterInfo externalCharacterInfo = new ExternalCharacterInfo
+            {
+                Id = "", // TODO
+                PixelsPerUnit = ifPpu.Value,
+                PivotX = ifPivotX.Value,
+                PivotY = ifPivotY.Value,
+            };
             PutEntry("chara", characterTextureData);
-            PutEntry("index.txt",
-                new UTF8Encoding(false).GetBytes(string.Join("\n", ifPpu.Value, ifPivotX.Value, ifPivotY.Value)));
+            PutEntry("index.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None)));
 
             void PutEntry(string name, byte[] data)
             {
@@ -107,6 +113,9 @@ public class CharacterAdjustManager : MonoBehaviour
                 zipOutputStream.PutNextEntry(zipEntry);
                 zipOutputStream.Write(data, 0, data.Length);
             }
+            zipOutputStream.Close();
+            using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            stream.Write(FileEncryptor.Encrypt(fileStream.ToArray()));
         }
         catch (Exception e)
         {
@@ -153,9 +162,9 @@ public class CharacterAdjustManager : MonoBehaviour
                     CharacterImage characterImage = Util.GetCharacterImage(path);
                     data = characterImage.TextureData;
                     texture = characterImage.Texture;
-                    ifPpu.Value = characterImage.PixelsPerUnit;
-                    ifPivotX.Value = characterImage.Pivot.x;
-                    ifPivotY.Value = characterImage.Pivot.y;
+                    ifPpu.Value = characterImage.Info.PixelsPerUnit;
+                    ifPivotX.Value = characterImage.Info.PivotX;
+                    ifPivotY.Value = characterImage.Info.PivotY;
                 }
                 catch (ArgumentException)
                 {

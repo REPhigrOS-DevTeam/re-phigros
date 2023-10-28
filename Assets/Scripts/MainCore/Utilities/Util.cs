@@ -6,12 +6,15 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using MainCore.Data;
 using MainCore.UI;
+using Newtonsoft.Json;
 using Unimage;
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
 using UnityEditor;
+
 #else
 using UnityEngine;
 #endif
@@ -139,21 +142,25 @@ namespace MainCore.Utilities
             if (str.Length < 1) return str;
             return str.Substring(0, 1).ToLowerInvariant() + str.Substring(1);
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Gcd(int a,int b) {
-            while(b>0) {
-                var r = a%b;
-                a=b;
-                b=r;
+        public static int Gcd(int a, int b)
+        {
+            while (b > 0)
+            {
+                var r = a % b;
+                a = b;
+                b = r;
             }
+
             return a;
         }
-        
+
         public static float Frac(this int[] frac)
         {
             if (frac.Length == 3)
             {
-                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
+                if (frac.Length == 3) return frac[0] + (float)frac[1] / frac[2];
                 return frac[0];
             }
 
@@ -170,34 +177,73 @@ namespace MainCore.Utilities
             return Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), pivot, pixelsPerUnit, 1);
         }
 
-        public static CharacterImage GetCharacterImage(string packagePath, Action onFileInvalidFound = null, Action onFormatInvalidFound = null)
+        public static CharacterImage GetCharacterImage(string packagePath, Action onFileInvalidFound = null,
+            Action onFormatInvalidFound = null)
+        {
+            byte[] pkgData;
+            try
+            {
+                pkgData = File.ReadAllBytes(packagePath);
+            }
+            catch (IOException)
+            {
+                onFileInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            return GetCharacterImage(pkgData, onFileInvalidFound, onFormatInvalidFound);
+        }
+
+        public static CharacterImage GetCharacterImage(byte[] data, Action onFileInvalidFound = null,
+            Action onFormatInvalidFound = null)
         {
             string tmpDirPath = Application.temporaryCachePath + "/tmpCharaImage";
             if (Directory.Exists(tmpDirPath)) Directory.Delete(tmpDirPath, true);
             Directory.CreateDirectory(tmpDirPath);
+            byte[] decryptedPkgData;
             try
             {
-                ZipUtils.UnZip(packagePath, tmpDirPath);
+                decryptedPkgData = FileEncryptor.Decrypt(data);
+            }
+            catch (IOException)
+            {
+                onFileInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+            catch (Exception)
+            {
+                onFormatInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            try
+            {
+                ZipUtils.UnZip(decryptedPkgData, tmpDirPath);
             }
             catch (Exception)
             {
                 onFileInvalidFound?.Invoke();
                 throw new ArgumentException();
             }
-            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.txt"))
+
+            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.json"))
             {
                 onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
             }
 
-            string[] lines = File.ReadAllLines(tmpDirPath + "/index.txt");
-            if (lines.Length < 3)
+            ExternalCharacterInfo externalCharacterInfo;
+            try
             {
-                onFormatInvalidFound?.Invoke();
+                externalCharacterInfo =
+                    JsonConvert.DeserializeObject<ExternalCharacterInfo>(File.ReadAllText(tmpDirPath + "/index.json"));
+            }
+            catch (IOException)
+            {
+                onFileInvalidFound?.Invoke();
                 throw new ArgumentException();
             }
-
-            if (!float.TryParse(lines[0], out float pixelsPerUnit) || !float.TryParse(lines[1], out float pivotX) || !float.TryParse(lines[2], out float pivotY))
+            catch (Exception)
             {
                 onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
@@ -205,12 +251,11 @@ namespace MainCore.Utilities
 
             byte[] textureData = File.ReadAllBytes(tmpDirPath + "/chara");
             Directory.Delete(tmpDirPath, true);
-            
-            return new CharacterImage()
+
+            return new CharacterImage
             {
                 TextureData = textureData,
-                Pivot = new Vector2(pivotX, pivotY),
-                PixelsPerUnit = pixelsPerUnit
+                Info = externalCharacterInfo
             };
         }
     }

@@ -204,6 +204,7 @@ namespace MainCore
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
             HitSoundManager.Instance.RefreshHitSounds(Skin);
             useCourseMode = PlayerPrefsExtension.GetBoolean("use_course_mode", false);
+            _judgeTime = null;
             Pitch = PlayerPrefs.GetFloat("music_speed", 1f);
         }
 
