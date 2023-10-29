@@ -200,10 +200,34 @@ namespace MainCore.Utilities
             string tmpDirPath = Application.temporaryCachePath + "/tmpCharaImage";
             if (Directory.Exists(tmpDirPath)) Directory.Delete(tmpDirPath, true);
             Directory.CreateDirectory(tmpDirPath);
-            byte[] decryptedPkgData;
+
             try
             {
-                decryptedPkgData = FileEncryptor.Decrypt(data);
+                ZipUtils.UnZip(data, tmpDirPath);
+            }
+            catch (Exception)
+            {
+                onFileInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.json") || !File.Exists(tmpDirPath + "/hash"))
+            {
+                onFormatInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+
+            string configStr;
+            byte[] textureData = File.ReadAllBytes(tmpDirPath + "/chara");
+
+            try
+            {
+                byte[] configData = File.ReadAllBytes(tmpDirPath + "/index.json");
+                byte[] bytes = File.ReadAllBytes(tmpDirPath + "/hash");
+                var decrypt = FileEncryptor.Decrypt(bytes);
+                if (decrypt.Length != 64) throw new ArgumentException();
+                if (!decrypt.Take(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(textureData)) || !decrypt.Skip(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(configData))) throw new ArgumentException();
+                configStr = Encoding.UTF8.GetString(configData);
             }
             catch (IOException)
             {
@@ -211,22 +235,6 @@ namespace MainCore.Utilities
                 throw new ArgumentException();
             }
             catch (Exception)
-            {
-                onFormatInvalidFound?.Invoke();
-                throw new ArgumentException();
-            }
-
-            try
-            {
-                ZipUtils.UnZip(decryptedPkgData, tmpDirPath);
-            }
-            catch (Exception)
-            {
-                onFileInvalidFound?.Invoke();
-                throw new ArgumentException();
-            }
-
-            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.json"))
             {
                 onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
@@ -236,7 +244,7 @@ namespace MainCore.Utilities
             try
             {
                 externalCharacterInfo =
-                    JsonConvert.DeserializeObject<ExternalCharacterInfo>(File.ReadAllText(tmpDirPath + "/index.json"));
+                    JsonConvert.DeserializeObject<ExternalCharacterInfo>(configStr);
             }
             catch (IOException)
             {
@@ -249,7 +257,6 @@ namespace MainCore.Utilities
                 throw new ArgumentException();
             }
 
-            byte[] textureData = File.ReadAllBytes(tmpDirPath + "/chara");
             Directory.Delete(tmpDirPath, true);
 
             return new CharacterImage

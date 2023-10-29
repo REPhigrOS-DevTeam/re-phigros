@@ -27,8 +27,11 @@ namespace MainCore.UI
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
-            // openCharacterSelections.onClick.AddListener(OpenCharacterSelections);
+#if UNITY_EDITOR
+            openCharacterSelections.onClick.AddListener(OpenCharacterOptions);
+#else
             openCharacterSelections.onClick.AddListener(OpenCharacterSelector);
+#endif
             deleteCharacter.onClick.AddListener(() =>
             {
                 PlayerPrefs.DeleteKey("character");
@@ -75,26 +78,24 @@ namespace MainCore.UI
             {
                 character.sprite = defaultCharacter;
             }
+
             CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
         }
 
         private void CloseCharacterOptions()
         {
-            return;
             characterSelectionObj.SetActive(false);
         }
 
         private void OpenCharacterOptions()
         {
-            return; // TODO: 停止开放
             characterSelectionObj.SetActive(true);
             deleteCharacter.interactable = PlayerPrefs.HasKey("character");
         }
 
         private void OpenCharacterSelector()
         {
-            
         }
 
         private void ImportCharacterPackage()

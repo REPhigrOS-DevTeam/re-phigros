@@ -29,6 +29,7 @@ namespace MainCore.Common
             {
                 if (float.TryParse(str, out float f))
                 {
+                    Debug.Log(f);
                     switch (clampMode)
                     {
                         case ClampMode.None:
@@ -36,11 +37,11 @@ namespace MainCore.Common
                             break;
                         case ClampMode.Left:
                             if (canEqual) lastValue = Mathf.Max(f, min);
-                            else if (f > lastValue) lastValue = f;
+                            else if (f > min) lastValue = f;
                             break;
                         case ClampMode.Right:
                             if (canEqual) lastValue = Mathf.Min(f, max);
-                            else if (f < lastValue) lastValue = f;
+                            else if (f < max) lastValue = f;
                             break;
                         case ClampMode.Both:
                             if (canEqual) lastValue = Mathf.Clamp(f, min, max);

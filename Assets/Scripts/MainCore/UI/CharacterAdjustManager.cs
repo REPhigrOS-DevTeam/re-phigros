@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip;
@@ -84,8 +86,8 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         try
         {
-            using MemoryStream fileStream = new MemoryStream();
-            ZipOutputStream zipOutputStream =
+            using FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            using ZipOutputStream zipOutputStream =
                 new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
             Crc32 crc32 = new Crc32();
             DateTime now = DateTime.Now;
@@ -96,8 +98,16 @@ public class CharacterAdjustManager : MonoBehaviour
                 PivotX = ifPivotX.Value,
                 PivotY = ifPivotY.Value,
             };
+            byte[] configData = new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None));
             PutEntry("chara", characterTextureData);
-            PutEntry("index.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None)));
+            PutEntry("index.json", configData);
+            byte[] imageHash = FileEncryptor.ComputeSha256(characterTextureData);
+            byte[] configHash = FileEncryptor.ComputeSha256(configData);
+            List<byte> hashList = new List<byte>();
+            hashList.AddRange(imageHash);
+            hashList.AddRange(configHash);
+            byte[] encryptedHash = FileEncryptor.Encrypt(hashList.ToArray());
+            PutEntry("hash", encryptedHash);
 
             void PutEntry(string name, byte[] data)
             {
@@ -113,9 +123,6 @@ public class CharacterAdjustManager : MonoBehaviour
                 zipOutputStream.PutNextEntry(zipEntry);
                 zipOutputStream.Write(data, 0, data.Length);
             }
-            zipOutputStream.Close();
-            using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-            stream.Write(FileEncryptor.Encrypt(fileStream.ToArray()));
         }
         catch (Exception e)
         {
