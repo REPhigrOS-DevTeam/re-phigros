@@ -1,79 +1,43 @@
 using System;
-using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace MainCore.Utilities
 {
     public static class FileEncryptor
     {
-        private const string Key = "12345678123456781234567812345678";
-        private const string Iv = "1234567812345678";
+        // Padding: PKCS#1 v1.5
+#if UNITY_EDITOR
+        private const string PrivateKey =
+            "<RSAKeyValue><Modulus>rAPKb6vGiLTY2QHCnIMxtvoHcAp2Pbk+8x8wkFMBpX5LRouQFf1/bTW4mW6AZokVmzFrYQXnG2sbHr9z+GkEe8Fc7KfiSTDenxwJLJL9CHnEdXBDxR3ykyRiuN472hiJ78E+kddxoomk9Js6rYZ0YIBhoq5kr9qfYOR9D9tDQfs=</Modulus><Exponent>AQAB</Exponent><P>s8NHGPPhua0Ou455htOPI3c2UO61dVhd3bMOKk7+ymWGSmYzz733nM9NSDke1GLKY6Bd0EbLSlc2XuOi4rhpgQ==</P><Q>9PdRitqU6tFd0wNd4+aU7IOtgsZfGV/c/8VYwJDjHxxVJshXDb3qRASL1Y0lgGMJ5qirl/fUgbG/XRaGGycRew==</Q><DP>BZ4UmrMEWskNrM7G/W+fCXywNdc/1Grug/8Ucj4FuE1z5N9MvzEwi7XutFMUo45yxKo+REPyFmCjUlPKw0sAAQ==</DP><DQ>4lNWTVniWImTjBACQTuawGJwfvDUkFcXkmA8vb2fefDtY2WZuKKMvMcOgwFjcpkOXsPbtg5Nkn4s9c6HnLKd3Q==</DQ><InverseQ>QgAM+VTi2wrv0KFY92pgHGHHkecIXtylK29vXzBUX+fzGiphh7VlXSz9Rb9JuR9mjkl0AZYA+gGdSwIHmkNWsQ==</InverseQ><D>kLp7yCuKVpl63lM50AAegyqpuV5EEDjduydh7/y3JOw3H7rrV2U7osKReB7eT+dFU5doFnEl+w7J+bvyMm8Bwk0Zv4DSwNM1WTNn1TGT3qUXYLmN4QYRfBbmrl8I4a+Ip7aZVZVYbWpczjlnCd8wUm5tkgDQo6/yZWTnhqF9gwE=</D></RSAKeyValue>";
 
+#endif
+        private const string PublicKey =
+            "<RSAKeyValue><Modulus>rAPKb6vGiLTY2QHCnIMxtvoHcAp2Pbk+8x8wkFMBpX5LRouQFf1/bTW4mW6AZokVmzFrYQXnG2sbHr9z+GkEe8Fc7KfiSTDenxwJLJL9CHnEdXBDxR3ykyRiuN472hiJ78E+kddxoomk9Js6rYZ0YIBhoq5kr9qfYOR9D9tDQfs=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue>";
+
+#if UNITY_EDITOR
         public static byte[] Encrypt(byte[] data)
         {
             if (data == null || data.Length <= 0)
                 throw new ArgumentNullException(nameof(data));
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException(nameof(Key));
-            if (Iv == null || Iv.Length <= 0)
-                throw new ArgumentNullException(nameof(Iv));
+            if (PrivateKey == null || PrivateKey.Length <= 0)
+                throw new ArgumentNullException(nameof(PrivateKey));
 
-            byte[] encrypted;
-            using (Aes aesAlg = Aes.Create())
-            {
-                aesAlg.KeySize = 256;
-                aesAlg.Mode = CipherMode.CBC;
-                aesAlg.Padding = PaddingMode.PKCS7;
-                aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-                aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
-                ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-                using (MemoryStream msEncrypt = new MemoryStream())
-                {
-                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (BufferedStream bfStream = new BufferedStream(csEncrypt))
-                        {
-                            bfStream.Write(data, 0, data.Length);
-                        }
-
-                        encrypted = msEncrypt.ToArray();
-                    }
-                }
-            }
-
-            return encrypted;
+            using RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(PrivateKey);
+            return rsa.Encrypt(data, false);
         }
+#endif
 
         public static byte[] Decrypt(byte[] cipherText)
         {
             if (cipherText == null || cipherText.Length <= 0)
                 throw new ArgumentNullException(nameof(cipherText));
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException(nameof(Key));
-            if (Iv == null || Iv.Length <= 0)
-                throw new ArgumentNullException(nameof(Iv));
+            if (PublicKey == null || PublicKey.Length <= 0)
+                throw new ArgumentNullException(nameof(PublicKey));
 
-            string plaintext = null;
-            using Aes aesAlg = Aes.Create();
-            aesAlg.KeySize = 256;
-            aesAlg.Mode = CipherMode.CBC;
-            aesAlg.Padding = PaddingMode.PKCS7;
-            aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-            aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
-            ICryptoTransform descriptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-            using MemoryStream msDecrypt = new MemoryStream(cipherText);
-            using CryptoStream csDecrypt = new CryptoStream(msDecrypt, descriptor, CryptoStreamMode.Read);
-            using BufferedStream bfStream = new BufferedStream(csDecrypt);
-            using MemoryStream memoryStream = new MemoryStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = bfStream.Read(buffer)) > 0)
-            {
-                memoryStream.Write(buffer, 0, length);
-            }
-
-            return memoryStream.ToArray();
+            using RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(PublicKey);
+            return rsa.Decrypt(cipherText, false);
         }
     }
 }
