@@ -41,6 +41,11 @@ namespace Network.Multiplayer.Managers
                 gameObject.SetActive(false);
                 mpServerTest.UpdateConnectState("登录成功");
             };
+            SocketManager.OnLoginFailed += () =>
+            {
+                mpServerTest.UpdateConnectState(serverConnectState.text = "登录失败");
+                serverConnectStateFailedButton.SetActive(true);
+            };
         }
 
         private void Start()

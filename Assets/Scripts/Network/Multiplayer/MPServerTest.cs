@@ -33,7 +33,7 @@ public class MPServerTest : MonoBehaviour
     private static bool downloaded = false;
 
     public Animator roomListAnimator;
-    public Button bRefreshRoomList;
+    public Button bRefreshRoomList, bCloseRoomList;
     public RectTransform rtRoomList;
     public GameObject roomListItemPrefab;
 
@@ -65,6 +65,7 @@ public class MPServerTest : MonoBehaviour
         buttonToState = new()
         {
             { bCreateRoom.gameObject, RoomState.NotInRoom },
+            { bSelectRoom.gameObject, RoomState.NotInRoom},
             { bCloseRoom.gameObject, RoomState.RoomOwner },
             { bQuitRoom.gameObject, RoomState.RoomMember },
             { bDownloadSong.gameObject, RoomState.RoomMember | RoomState.RoomOwner },
@@ -115,8 +116,7 @@ public class MPServerTest : MonoBehaviour
         bDisconnect.onClick.AddListener(Disconnect);
 
         bSelectRoom.onClick.AddListener(() => { roomListAnimator.SetTrigger(Enabled); });
-        roomListAnimator.gameObject.GetComponent<Button>().onClick
-            .AddListener(() => { roomListAnimator.SetTrigger(Disabled); });
+        bCloseRoomList.onClick.AddListener(() => { roomListAnimator.SetTrigger(Disabled); });
         bRefreshRoomList.onClick.AddListener(() =>
         {
             bRefreshRoomList.interactable = false;
@@ -197,7 +197,7 @@ public class MPServerTest : MonoBehaviour
 
             foreach (RoomSummary summary in roomList)
             {
-                GameObject o = Instantiate(roomListItemPrefab);
+                GameObject o = Instantiate(roomListItemPrefab, rtRoomList);
                 o.GetComponent<RoomListItem>().Set(this, summary);
             }
         };
@@ -230,6 +230,7 @@ public class MPServerTest : MonoBehaviour
     {
         if (SocketManager.GetRoomId() != "") return;
         chatManager.SetText(id.ToString());
+        chatManager.Invoke();
         roomListAnimator.SetTrigger(Disabled);
     }
 

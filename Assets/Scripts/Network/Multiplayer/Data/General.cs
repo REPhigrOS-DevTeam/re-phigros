@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using JetBrains.Annotations;
 using MainCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -185,7 +186,7 @@ namespace Network.Multiplayer.Data
     public class BackReceiveData : GeneralReceiveData
     {
         [JsonProperty("Status")] public bool Status;
-        [JsonProperty("msg")] public string Message;
+        [JsonProperty("msg")] [CanBeNull] public string Message;
     }
 
     public class ActiveReceiveData : GeneralReceiveData

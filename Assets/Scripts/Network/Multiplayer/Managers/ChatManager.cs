@@ -172,6 +172,11 @@ namespace Network.Multiplayer.Managers
             }
         }
 
+        public void Invoke()
+        {
+            bSend.onClick.Invoke();
+        }
+
         private async void JoinRoom()
         {
             if (ifMessage.text.StartsWith("hadoutest:", true, CultureInfo.InvariantCulture) && internalCharts != null)

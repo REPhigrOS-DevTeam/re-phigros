@@ -56,6 +56,7 @@ namespace Network.Multiplayer.Managers
             OnConnectFailed = () => { },
             OnDisconnect = () => { },
             OnLoginSucceeded = () => { },
+            OnLoginFailed = () => { },
             OnCreateRoomSucceeded = () => { },
             OnCloseRoomSucceeded = () => { },
             OnJoinRoomSucceeded = () => { },
@@ -516,6 +517,7 @@ namespace Network.Multiplayer.Managers
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n" + received.Message, () => { }, "确认");
                 Debug.Log("错误：无法完成操作\n" + serializeObject);
+                OnLoginFailed.Invoke();
             }
             else
             {
@@ -524,6 +526,7 @@ namespace Network.Multiplayer.Managers
                     InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n返回包体有误\n" + serializeObject,
                         () => { }, "确认");
                     Debug.Log("返回的数据有误：\n" + received.Message);
+                    OnLoginFailed.Invoke();
                     return;
                 }
 
@@ -549,7 +552,7 @@ namespace Network.Multiplayer.Managers
             {
                 if (failedCallback == null)
                 {
-                    ChatManager.AddMessage("Server", errorMessage + "——" + received.Message, MessageType.Error);
+                    ChatManager.AddMessage("Server", errorMessage + (received.Message == null ? "" : "——" + received.Message), MessageType.Error);
                     Debug.Log("错误：无法完成操作\n" + serializeObject);
                 }
                 else failedCallback.Invoke();
@@ -559,12 +562,12 @@ namespace Network.Multiplayer.Managers
                 if (checkData != null && !checkData.Invoke(received))
                 {
                     ChatManager.AddMessage("Server", errorMessage + "\n返回包体有误\n" + serializeObject, MessageType.Error);
-                    Debug.Log("返回的数据有误：\n" + received.Message);
+                    if (received.Message != null) Debug.Log("返回的数据有误：\n" + received.Message);
                     return;
                 }
 
                 succeededCallback?.Invoke(received);
-                if (printOnSuccess) ChatManager.AddMessage("Server", received.Message, MessageType.Server);
+                if (printOnSuccess && received.Message != null) ChatManager.AddMessage("Server", received.Message, MessageType.Server);
             }
         }
 
