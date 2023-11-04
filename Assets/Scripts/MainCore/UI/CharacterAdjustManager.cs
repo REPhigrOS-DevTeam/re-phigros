@@ -87,11 +87,8 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         try
         {
-            using MemoryStream memoryStream = new MemoryStream();
-            using ZipOutputStream zipOutputStream =
-                new ZipOutputStream(memoryStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
-            Crc32 crc32 = new Crc32();
-            DateTime now = DateTime.Now;
+            string tmpPkgPath = Application.temporaryCachePath + "/tmpCharaPkg.zip";
+            if (File.Exists(tmpPkgPath)) File.Delete(tmpPkgPath);
             ExternalCharacterInfo externalCharacterInfo = new ExternalCharacterInfo
             {
                 Id = "", // TODO
@@ -101,6 +98,10 @@ public class CharacterAdjustManager : MonoBehaviour
             };
             byte[] configData =
                 new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None));
+            FileStream fileStream = new FileStream(tmpPkgPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            ZipOutputStream zipOutputStream = new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
+            Crc32 crc32 = new Crc32();
+            DateTime now = DateTime.Now;
             PutEntry("chara", characterTextureData);
             PutEntry("index.json", configData);
             byte[] imageHash = FileEncryptor.ComputeSha256(characterTextureData);
@@ -125,9 +126,12 @@ public class CharacterAdjustManager : MonoBehaviour
                 };
                 zipOutputStream.PutNextEntry(zipEntry);
                 zipOutputStream.Write(data, 0, data.Length);
-            }        
-            using FileStream fileStream1 = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-            FileEncryptor.EncryptToStream(memoryStream, fileStream1);
+            }
+            
+            zipOutputStream.Close();
+            fileStream.Close();
+            File.WriteAllBytes(path, FileEncryptor.Encrypt(File.ReadAllBytes(tmpPkgPath)));
+            // File.Delete(tmpPkgPath);
         }
         catch (IOException e)
         {

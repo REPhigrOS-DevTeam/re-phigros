@@ -9,7 +9,7 @@ namespace MainCore.Utilities
     public static class FileEncryptor
     {
         private const string License = "都看到这里了，那我建议你不要把这玩意儿的加解密方式发出去，毕竟反编译程序本身已经违反tos，你要发出去有人利用了指不定有人违法或直接触犯刑法";
-        private const string Key = "(写完你游就去死……)";
+        private const string Key = "(写完你游就去死……？)";
         private const string Iv = "想死（哭）.";
 #if UNITY_EDITOR
         private const string RsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -71,27 +71,14 @@ namespace MainCore.Utilities
             if (data == null || data.Length <= 0)
                 throw new ArgumentNullException(nameof(data));
 
-            using MemoryStream msEncrypt = new MemoryStream();
-            EncryptToStream(new MemoryStream(data), msEncrypt);
-            byte[] encrypted = msEncrypt.ToArray();
-
-            return encrypted;
-        }
-
-        public static void EncryptToStream(Stream src, Stream dest)
-        {
-            if (!src.CanRead || !dest.CanWrite)
-                throw new ArgumentException();
             using Aes aesAlg = Aes.Create();
             aesAlg.KeySize = 256;
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
             aesAlg.Key = Encoding.UTF8.GetBytes(Key);
             aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
-            ICryptoTransform encryptor = aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV);
-            using CryptoStream csEncrypt = new CryptoStream(dest, encryptor, CryptoStreamMode.Write);
-            using BufferedStream bfStream = new BufferedStream(csEncrypt);
-            src.CopyTo(bfStream);
+            ICryptoTransform encryptor = aesAlg.CreateEncryptor();
+            return encryptor.TransformFinalBlock(data, 0, data.Length);
         }
 
         public static byte[] Decrypt(byte[] cipherText)
@@ -99,26 +86,14 @@ namespace MainCore.Utilities
             if (cipherText == null || cipherText.Length <= 0)
                 throw new ArgumentNullException(nameof(cipherText));
 
-            string plaintext = null;
             using Aes aesAlg = Aes.Create();
             aesAlg.KeySize = 256;
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
             aesAlg.Key = Encoding.UTF8.GetBytes(Key);
             aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
-            ICryptoTransform descriptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
-            using MemoryStream msDecrypt = new MemoryStream(cipherText);
-            using CryptoStream csDecrypt = new CryptoStream(msDecrypt, descriptor, CryptoStreamMode.Read);
-            using BufferedStream bfStream = new BufferedStream(csDecrypt);
-            using MemoryStream memoryStream = new MemoryStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = bfStream.Read(buffer)) > 0)
-            {
-                memoryStream.Write(buffer, 0, length);
-            }
-
-            return memoryStream.ToArray();
+            ICryptoTransform descriptor = aesAlg.CreateDecryptor();
+            return descriptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
         }
 
         public static byte[] ComputeSha256(byte[] data)

@@ -21,3 +21,6 @@
 **永远不要**直接commit到`master`分支。
 
 **永远不要**尝试在未提出pull request的情况下merge一个分支。
+
+## 其他
+RPGREncryptHelper.exe: 用于外部加密、解密角色package的程序，里面存有RSA私钥，不要泄露。源码在另一个仓库
