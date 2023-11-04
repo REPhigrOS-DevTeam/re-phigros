@@ -131,7 +131,7 @@ public class CharacterAdjustManager : MonoBehaviour
             zipOutputStream.Close();
             fileStream.Close();
             File.WriteAllBytes(path, FileEncryptor.Encrypt(File.ReadAllBytes(tmpPkgPath)));
-            // File.Delete(tmpPkgPath);
+            File.Delete(tmpPkgPath);
         }
         catch (IOException e)
         {
