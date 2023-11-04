@@ -73,11 +73,8 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void ExportCharacterPackage()
     {
-        if (!characterTexture)
-        {
-            characterTexture = defaultCharacter.texture;
-        }
-        
+        if (characterTextureData == null) return;
+
         FileBrowser.SetFilters(false, ".charapkg");
         FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
             false, Util.DataPath, null, "保存到...", "确定");

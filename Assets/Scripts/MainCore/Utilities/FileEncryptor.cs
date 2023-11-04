@@ -1,16 +1,16 @@
 using System;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using MainCore.Utilities.RSA;
+using UnityEngine;
 
 namespace MainCore.Utilities
 {
     public static class FileEncryptor
     {
         private const string License = "都看到这里了，那我建议你不要把这玩意儿的加解密方式发出去，毕竟反编译程序本身已经违反tos，你要发出去有人利用了指不定有人违法或直接触犯刑法";
-        private const string Key = "(写完你游就去死……？)";
-        private const string Iv = "想死（哭）.";
+        private static readonly byte[] Key = {40, 229, 134, 153, 229, 174, 140, 228, 189, 160, 230, 184, 184, 229, 176, 177, 229, 142, 187, 230, 173, 187, 226, 128, 166, 226, 128, 166, 239, 188, 159, 41};
+        private static readonly byte[] Iv = {230, 131, 179, 230, 173, 187, 239, 188, 136, 229, 147, 173, 239, 188, 137, 46};
 #if UNITY_EDITOR
         private const string RsaPrivateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
                                              "MIIEowIBAAKCAQEA0/mi8SNlvvVvDX67MRyTxIoIWwLyqb/mZLlxxGZeQHI4e7Gh\n" +
@@ -49,7 +49,7 @@ namespace MainCore.Utilities
                                             "Az6rUtjvHmjB6MvG/DAcP/ro5RXOwSTSK9r/MhJi8ZvpGCxSsCnsKhgXXIb9Iarc\n" +
                                             "7wIDAQAB\n" +
                                             "-----END PUBLIC KEY-----\n";
-
+        
 #if UNITY_EDITOR
         public static byte[] RsaEncrypt(byte[] data)
         {
@@ -75,8 +75,8 @@ namespace MainCore.Utilities
             aesAlg.KeySize = 256;
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
-            aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-            aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
+            aesAlg.Key = Key;
+            aesAlg.IV = Iv;
             ICryptoTransform encryptor = aesAlg.CreateEncryptor();
             return encryptor.TransformFinalBlock(data, 0, data.Length);
         }
@@ -90,8 +90,8 @@ namespace MainCore.Utilities
             aesAlg.KeySize = 256;
             aesAlg.Mode = CipherMode.CBC;
             aesAlg.Padding = PaddingMode.PKCS7;
-            aesAlg.Key = Encoding.UTF8.GetBytes(Key);
-            aesAlg.IV = Encoding.UTF8.GetBytes(Iv);
+            aesAlg.Key = Key;
+            aesAlg.IV = Iv;
             ICryptoTransform descriptor = aesAlg.CreateDecryptor();
             return descriptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
         }
