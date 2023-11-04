@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -183,11 +184,16 @@ namespace MainCore.Utilities
             byte[] pkgData;
             try
             {
-                pkgData = File.ReadAllBytes(packagePath);
+                pkgData = FileEncryptor.Decrypt(File.ReadAllBytes(packagePath));
             }
             catch (IOException)
             {
                 onFileInvalidFound?.Invoke();
+                throw new ArgumentException();
+            }
+            catch (Exception)
+            {
+                onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
             }
 
@@ -224,7 +230,7 @@ namespace MainCore.Utilities
             {
                 byte[] configData = File.ReadAllBytes(tmpDirPath + "/index.json");
                 byte[] bytes = File.ReadAllBytes(tmpDirPath + "/hash");
-                var decrypt = FileEncryptor.Decrypt(bytes);
+                var decrypt = FileEncryptor.RsaDecrypt(bytes);
                 if (decrypt.Length != 64) throw new ArgumentException();
                 if (!decrypt.Take(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(textureData)) || !decrypt.Skip(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(configData))) throw new ArgumentException();
                 configStr = Encoding.UTF8.GetString(configData);
@@ -265,5 +271,58 @@ namespace MainCore.Utilities
                 Info = externalCharacterInfo
             };
         }
+        
+        public static IEnumerable<long> IndexOfByBoyerMooreHorspool(this byte[] source, byte[] pattern, int start = 0)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (pattern == null)
+            {
+                throw new ArgumentNullException(nameof(pattern));
+            }
+
+            long valueLength = source.LongLength;
+            long patternLength = pattern.LongLength;
+
+            if ((valueLength == 0) || (patternLength == 0) || (patternLength > valueLength))
+            {
+                yield break;
+            }
+
+            var badCharacters = new long[256];
+
+            for (var i = 0; i < 256; i++)
+            {
+                badCharacters[i] = patternLength;
+            }
+
+            var lastPatternByte = patternLength - 1;
+
+            for (long i = 0; i < lastPatternByte; i++)
+            {
+                badCharacters[pattern[i]] = lastPatternByte - i;
+            }
+
+            long index = start;
+
+            while (index <= valueLength - patternLength)
+            {
+                for (var i = lastPatternByte; source[index + i] == pattern[i]; i--)
+                {
+                    if (i == 0)
+                    {
+                        yield return index;
+                        break;
+                    }
+                }
+
+                index += badCharacters[source[index + lastPatternByte]];
+            }
+        }
+
+        public static string DataPath => PlayerPrefs.GetString("file_path", Application.persistentDataPath);
     }
 }

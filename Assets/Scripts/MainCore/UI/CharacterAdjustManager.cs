@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using ICSharpCode.SharpZipLib.Checksum;
@@ -54,8 +55,8 @@ public class CharacterAdjustManager : MonoBehaviour
         {
             spriteRenderer.sprite = defaultCharacter;
             ifPpu.Value = defaultCharacter.pixelsPerUnit;
-            ifPivotX.Value = defaultCharacter.pivot.x;
-            ifPivotY.Value = defaultCharacter.pivot.y;
+            ifPivotX.Value = defaultCharacter.pivot.x / defaultCharacter.texture.width;
+            ifPivotY.Value = defaultCharacter.pivot.y / defaultCharacter.texture.height;
         }
 
         panelSwitch.IsOn = true;
@@ -79,16 +80,16 @@ public class CharacterAdjustManager : MonoBehaviour
         
         FileBrowser.SetFilters(false, ".charapkg");
         FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
-            false, PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "保存到...", "确定");
+            false, Util.DataPath, null, "保存到...", "确定");
     }
 
     private void OnExportPathSelected(string path)
     {
         try
         {
-            using FileStream fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            using MemoryStream memoryStream = new MemoryStream();
             using ZipOutputStream zipOutputStream =
-                new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
+                new ZipOutputStream(memoryStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
             Crc32 crc32 = new Crc32();
             DateTime now = DateTime.Now;
             ExternalCharacterInfo externalCharacterInfo = new ExternalCharacterInfo
@@ -98,7 +99,8 @@ public class CharacterAdjustManager : MonoBehaviour
                 PivotX = ifPivotX.Value,
                 PivotY = ifPivotY.Value,
             };
-            byte[] configData = new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None));
+            byte[] configData =
+                new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None));
             PutEntry("chara", characterTextureData);
             PutEntry("index.json", configData);
             byte[] imageHash = FileEncryptor.ComputeSha256(characterTextureData);
@@ -106,8 +108,9 @@ public class CharacterAdjustManager : MonoBehaviour
             List<byte> hashList = new List<byte>();
             hashList.AddRange(imageHash);
             hashList.AddRange(configHash);
-            byte[] encryptedHash = FileEncryptor.Encrypt(hashList.ToArray());
+            byte[] encryptedHash = FileEncryptor.RsaEncrypt(hashList.ToArray());
             PutEntry("hash", encryptedHash);
+            InGameUIManager.ShowModalWindowWithClose("提示", "成功导出", () => { }, "确认");
 
             void PutEntry(string name, byte[] data)
             {
@@ -122,7 +125,14 @@ public class CharacterAdjustManager : MonoBehaviour
                 };
                 zipOutputStream.PutNextEntry(zipEntry);
                 zipOutputStream.Write(data, 0, data.Length);
-            }
+            }        
+            using FileStream fileStream1 = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            FileEncryptor.EncryptToStream(memoryStream, fileStream1);
+        }
+        catch (IOException e)
+        {
+            InGameUIManager.ShowModalWindowWithClose("错误", "请检查要覆盖的输出文件是否被占用", () => { }, "确定");
+            Debug.LogException(e);
         }
         catch (Exception e)
         {
@@ -139,13 +149,13 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void SelectImage()
     {
-        FileBrowser.SetFilters(false, ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tga", ".gif", ".charapkg");
+        FileBrowser.SetFilters(false, ".png", ".charapkg");
         FileBrowser.ShowLoadDialog(paths =>
             {
                 SetInput(true);
                 OnImageSelected(paths[0]);
             }, () => { }, FileBrowser.PickMode.Files, false,
-            PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择人物...", "确定");
+            Util.DataPath, null, "选择人物...", "确定");
     }
 
     private void OnImageSelected(string path)
@@ -157,6 +167,15 @@ public class CharacterAdjustManager : MonoBehaviour
             if (!path.EndsWith(".charapkg"))
             {
                 data = File.ReadAllBytes(path);
+                // 对png文件头和文件尾进行校验，只截取png部分，防止png头尾前后数据注入造成传播奇怪的文件或hash冲突（虽然sha256冲突不起来）
+                long[] headers = data.IndexOfByBoyerMooreHorspool(new byte[] { 0x89, 0x50, 0x4E, 0x47 }).ToArray();
+                long[] ends = data.IndexOfByBoyerMooreHorspool(new byte[] { 0xAE, 0x42, 0x60, 0x82 }).ToArray();
+                if (headers.Length + ends.Length > 2)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "立绘文件不合法", () => { }, "确定");
+                    return;
+                }
+                data = data.Skip((int)headers[0]).Take((int)(ends[0] - headers[0] + 4L)).ToArray(); // 检查完毕
                 texture = Util.ReadFileAsTexture(data);
                 ifPpu.Reset();
                 ifPivotX.Reset();

@@ -35,7 +35,7 @@ namespace Network
         
         public static string GetAPIBase()
         {
-            return "https://" + (useMirror ? HostMirror : HostOriginal);
+            return $"https://{(useMirror ? HostMirror : HostOriginal)}";
         }
 
         #region AboutManifest
@@ -109,7 +109,7 @@ namespace Network
 
             loginUrl = manifest.apiURL.userlogin;
             verifyUrl = manifest.apiURL.userverify;
-            ChartUrlBase = $"http://{manifest.apiURL.chartIp}:{manifest.apiURL.chartPort}/api";
+            ChartUrlBase = $"{manifest.protocol}://{manifest.apiURL.chartIp}:{manifest.apiURL.chartPort}/api";
             Debug.Log("RePhigros API: Manifest got.");
             return true;
         }

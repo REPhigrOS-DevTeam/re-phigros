@@ -114,8 +114,9 @@ public class MPServerTest : MonoBehaviour
         tConnectState.text = "服务器状态：未连接";
         bDisconnect.onClick.AddListener(Disconnect);
 
-        bSelectRoom.onClick.AddListener(() => {roomListAnimator.SetTrigger(Enabled);});
-        roomListAnimator.gameObject.GetComponent<Button>().onClick.AddListener(() => {roomListAnimator.SetTrigger(Disabled);});
+        bSelectRoom.onClick.AddListener(() => { roomListAnimator.SetTrigger(Enabled); });
+        roomListAnimator.gameObject.GetComponent<Button>().onClick
+            .AddListener(() => { roomListAnimator.SetTrigger(Disabled); });
         bRefreshRoomList.onClick.AddListener(() =>
         {
             bRefreshRoomList.interactable = false;
@@ -144,8 +145,8 @@ public class MPServerTest : MonoBehaviour
                 {
                     await OnGetFileSuccess(paths);
                     uploadMask.SetActive(false);
-                }, () => { uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false,
-                PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择谱面...", "上传");
+                }, () => { uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false, Util.DataPath, null,
+                "选择谱面...", "上传");
         });
         bDownloadSong.onClick.AddListener(Download);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };
@@ -193,6 +194,7 @@ public class MPServerTest : MonoBehaviour
             {
                 Destroy(rtRoomList.GetChild(i).gameObject);
             }
+
             foreach (RoomSummary summary in roomList)
             {
                 GameObject o = Instantiate(roomListItemPrefab);

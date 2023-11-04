@@ -2,6 +2,7 @@ using System;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
+using Newtonsoft.Json;
 using SimpleFileBrowser;
 using Unimage;
 using UnityEngine;
@@ -16,7 +17,7 @@ namespace MainCore.UI
         [SerializeField] private GameObject characterSelectionObj;
         [SerializeField] private Button openCharaPreview, closeCharaPreview;
         [SerializeField] private DatuPreviewFadeInOut datuPreviewFadeInOut;
-        [SerializeField] private Button openCharacterSelections, deleteCharacter, selectCharacter, editCharacter;
+        [SerializeField] private Button openCharacterSelections, deleteCharacter, selectCharacter, editCharacter, closeCharacterSelections;
         [SerializeField] private SpriteRenderer character;
         [SerializeField] private Sprite defaultCharacter;
 
@@ -29,17 +30,19 @@ namespace MainCore.UI
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
 #if UNITY_EDITOR
             openCharacterSelections.onClick.AddListener(OpenCharacterOptions);
-#else
+#elif false
             openCharacterSelections.onClick.AddListener(OpenCharacterSelector);
 #endif
             deleteCharacter.onClick.AddListener(() =>
             {
+                character.sprite = defaultCharacter;
                 PlayerPrefs.DeleteKey("character");
                 PlayerPrefs.Save();
             });
             deleteCharacter.onClick.AddListener(CloseCharacterOptions);
             selectCharacter.onClick.AddListener(ImportCharacterPackage);
             selectCharacter.onClick.AddListener(CloseCharacterOptions);
+            closeCharacterSelections.onClick.AddListener(CloseCharacterOptions);
             editCharacter.onClick.AddListener(() => SceneTransit.Instance.LoadScene("CharacterAdjustScene"));
 #if !RELEASE_VERSION && !UNITY_EDITOR
             multiPlay.interactable = false;
@@ -71,8 +74,8 @@ namespace MainCore.UI
             if (PlayerPrefs.HasKey("character"))
             {
                 string[] strings = PlayerPrefs.GetString("character").Split("\n");
-                character.sprite = Util.ReadSprite(Convert.FromBase64String(strings[3]),
-                    new Vector2(float.Parse(strings[1]), float.Parse(strings[2])), float.Parse(strings[0]));
+                ExternalCharacterInfo externalCharacterInfo = JsonConvert.DeserializeObject<ExternalCharacterInfo>(strings[0]);
+                character.sprite = Util.ReadSprite(Convert.FromBase64String(strings[1]), externalCharacterInfo.Pivot, externalCharacterInfo.PixelsPerUnit);
             }
             else
             {
@@ -90,8 +93,8 @@ namespace MainCore.UI
 
         private void OpenCharacterOptions()
         {
-            characterSelectionObj.SetActive(true);
             deleteCharacter.interactable = PlayerPrefs.HasKey("character");
+            characterSelectionObj.SetActive(true);
         }
 
         private void OpenCharacterSelector()
@@ -106,7 +109,7 @@ namespace MainCore.UI
                     Sprite sprite = OnSelectedCharacterPackage(paths[0]);
                     if (sprite) character.sprite = sprite;
                 }, () => { }, FileBrowser.PickMode.Files, false,
-                PlayerPrefs.GetString("file_path", Application.persistentDataPath), null, "选择立绘包...", "确定");
+                Util.DataPath, null, "选择立绘包...", "确定");
         }
 
         private Sprite OnSelectedCharacterPackage(string path)
@@ -139,5 +142,9 @@ namespace MainCore.UI
         public byte[] TextureData;
         public Texture2D Texture => Util.ReadFileAsTexture(TextureData);
         public Sprite Sprite => Util.ReadSprite(Texture, Info.Pivot, Info.PixelsPerUnit);
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(Info, Formatting.None) + "\n" + Convert.ToBase64String(TextureData);
+        }
     }
 }

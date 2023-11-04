@@ -94,7 +94,7 @@ namespace MainCore.UI
         private void RefreshGameFolder()
         {
             infoDropdown.ClearOptions();
-            infoDropdown.AddOptions(GetFolders(PlayerPrefs.GetString("file_path", Application.persistentDataPath)));
+            infoDropdown.AddOptions(GetFolders(Util.DataPath));
             OnChangeDropdown();
         }
 
@@ -337,8 +337,8 @@ namespace MainCore.UI
         public void UnzipPez()
         {
             FileBrowser.SetFilters(false, ".pez");
-            FileBrowser.ShowLoadDialog(OnLoadPezSucceeded, () => { }, FileBrowser.PickMode.Files, false,
-                PlayerPrefs.GetString("file_path", Application.persistentDataPath), "", "选择Pez...", "确定");
+            FileBrowser.ShowLoadDialog(OnLoadPezSucceeded, () => { }, FileBrowser.PickMode.Files, false, Util.DataPath,
+                "", "选择Pez...", "确定");
         }
 
         private void OnLoadPezSucceeded(string[] paths)

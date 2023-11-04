@@ -29,7 +29,6 @@ namespace MainCore.Common
             {
                 if (float.TryParse(str, out float f))
                 {
-                    Debug.Log(f);
                     switch (clampMode)
                     {
                         case ClampMode.None:
