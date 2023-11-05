@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
@@ -24,15 +25,21 @@ namespace MainCore.UI
             editCharacter,
             closeCharacterSelections;
 
-        [SerializeField] private SpriteRenderer character;
+        [SerializeField] private SpriteRenderer character, datuCharacter;
         [SerializeField] private Sprite defaultCharacter;
+
+        private static CharacterImage characterImage;
 
         private void Awake()
         {
             settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
-            openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
+            openCharaPreview.onClick.AddListener(() =>
+            {
+                datuPreviewFadeInOut.FadeIn(0.15f, 0.05f);
+                datuCharacter.sprite = character.sprite;
+            });
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
             openCharacterSelections.onClick.AddListener(OpenCharacterOptions);
 #if false
@@ -40,6 +47,7 @@ namespace MainCore.UI
 #endif
             deleteCharacter.onClick.AddListener(() =>
             {
+                characterImage = null;
                 character.sprite = defaultCharacter;
                 PlayerPrefs.DeleteKey("character");
                 PlayerPrefs.Save();
@@ -83,18 +91,51 @@ namespace MainCore.UI
 
             Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
 
-            if (PlayerPrefs.HasKey("character"))
+            if (characterImage == null && PlayerPrefs.HasKey("character"))
             {
-                string[] strings = PlayerPrefs.GetString("character").Split("\n");
-                ExternalCharacterInfo externalCharacterInfo =
-                    JsonConvert.DeserializeObject<ExternalCharacterInfo>(strings[0]);
-                character.sprite = Util.ReadSprite(Convert.FromBase64String(strings[1]), externalCharacterInfo.Pivot,
-                    externalCharacterInfo.PixelsPerUnit);
+                try
+                {
+                    string[] strings = PlayerPrefs.GetString("character").Split("\n");
+                    if (strings.Length == 3)
+                    {
+                        byte[] infoData = Encoding.UTF8.GetBytes(strings[0]);
+                        byte[] imageData = Convert.FromBase64String(strings[1]);
+                        byte[] hashData = Convert.FromBase64String(strings[2]);
+
+                        if (Util.ValidateFileHash(hashData, imageData, infoData))
+                        {
+                            characterImage = new CharacterImage
+                            {
+                                TextureData = imageData,
+                                InfoData = infoData,
+                                HashData = hashData,
+                                Info = JsonConvert.DeserializeObject<ExternalCharacterInfo>(strings[0])
+                            };
+                            if (characterImage.Info == null) throw new NullReferenceException();
+                        }
+                        else
+                        {
+                            PlayerPrefs.DeleteKey("character");
+                            PlayerPrefs.Save();
+                        }
+                    }
+                    else
+                    {
+                        PlayerPrefs.DeleteKey("character");
+                        PlayerPrefs.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+#if UNITY_EDITOR
+                    Debug.LogError("无法读取自定义角色");
+                    Debug.LogException(ex);
+#endif
+                    PlayerPrefs.DeleteKey("character");
+                    PlayerPrefs.Save();
+                }
             }
-            else
-            {
-                character.sprite = defaultCharacter;
-            }
+            character.sprite = characterImage == null ? character.sprite = defaultCharacter : characterImage.Sprite;
 
             CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
@@ -116,7 +157,7 @@ namespace MainCore.UI
 
         private void OpenCharacterOptions()
         {
-            deleteCharacter.interactable = PlayerPrefs.HasKey("character");
+            deleteCharacter.interactable = characterImage != null;
             characterSelectionObj.SetActive(true);
         }
 
@@ -139,7 +180,7 @@ namespace MainCore.UI
         {
             try
             {
-                CharacterImage characterImage = Util.GetCharacterImage(path,
+                characterImage = Util.GetCharacterImage(path,
                     () => InGameUIManager.ShowModalWindowWithClose("错误", "文件不合法", () => { }, "确定"),
                     () => InGameUIManager.ShowModalWindowWithClose("错误", "文件格式不正确", () => { }, "确定"));
                 Sprite readSprite = characterImage.Sprite;
@@ -161,14 +202,16 @@ namespace MainCore.UI
 
     public class CharacterImage
     {
-        public ExternalCharacterInfo Info;
+        public byte[] InfoData;
         public byte[] TextureData;
+        public byte[] HashData;
+        public ExternalCharacterInfo Info;
         public Texture2D Texture => Util.ReadFileAsTexture(TextureData);
         public Sprite Sprite => Util.ReadSprite(Texture, Info.Pivot, Info.PixelsPerUnit);
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(Info, Formatting.None) + "\n" + Convert.ToBase64String(TextureData);
+            return Encoding.UTF8.GetString(InfoData) + "\n" + Convert.ToBase64String(TextureData) + "\n" + Convert.ToBase64String(HashData);
         }
     }
 }

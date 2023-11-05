@@ -217,7 +217,8 @@ namespace MainCore.Utilities
                 throw new ArgumentException();
             }
 
-            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.json") || !File.Exists(tmpDirPath + "/hash"))
+            if (!File.Exists(tmpDirPath + "/chara") || !File.Exists(tmpDirPath + "/index.json") ||
+                !File.Exists(tmpDirPath + "/hash"))
             {
                 onFormatInvalidFound?.Invoke();
                 throw new ArgumentException();
@@ -225,14 +226,11 @@ namespace MainCore.Utilities
 
             string configStr;
             byte[] textureData = File.ReadAllBytes(tmpDirPath + "/chara");
-
+            byte[] configData = File.ReadAllBytes(tmpDirPath + "/index.json");
+            byte[] hashData = File.ReadAllBytes(tmpDirPath + "/hash");
             try
             {
-                byte[] configData = File.ReadAllBytes(tmpDirPath + "/index.json");
-                byte[] bytes = File.ReadAllBytes(tmpDirPath + "/hash");
-                var decrypt = FileEncryptor.RsaDecrypt(bytes);
-                if (decrypt.Length != 64) throw new ArgumentException();
-                if (!decrypt.Take(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(textureData)) || !decrypt.Skip(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(configData))) throw new ArgumentException();
+                if (!ValidateFileHash(hashData, textureData, configData)) throw new ArgumentException();
                 configStr = Encoding.UTF8.GetString(configData);
             }
             catch (IOException)
@@ -268,10 +266,20 @@ namespace MainCore.Utilities
             return new CharacterImage
             {
                 TextureData = textureData,
+                InfoData = configData,
+                HashData = hashData,
                 Info = externalCharacterInfo
             };
         }
-        
+
+        public static bool ValidateFileHash(byte[] hashData, byte[] imageData, byte[] configData)
+        {
+            byte[] decrypt = FileEncryptor.RsaDecrypt(hashData);
+            if (decrypt.Length != 64) throw new ArgumentException();
+            return decrypt.Take(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(imageData)) &&
+                   decrypt.Skip(32).ToArray().SequenceEqual(FileEncryptor.ComputeSha256(configData));
+        }
+
         public static IEnumerable<long> IndexOfByBoyerMooreHorspool(this byte[] source, byte[] pattern, int start = 0)
         {
             if (source == null)

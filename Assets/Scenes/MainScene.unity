@@ -1641,6 +1641,7 @@ MonoBehaviour:
   editCharacter: {fileID: 2016363107}
   closeCharacterSelections: {fileID: 1441882872}
   character: {fileID: 1082714883}
+  datuCharacter: {fileID: 1935391728}
   defaultCharacter: {fileID: 21300000, guid: 21299b5ac56f0ac45afc09cdbf21f6bb, type: 3}
 --- !u!1 &969174457
 GameObject:
