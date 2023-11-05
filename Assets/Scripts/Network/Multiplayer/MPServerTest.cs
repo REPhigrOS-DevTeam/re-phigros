@@ -120,7 +120,7 @@ public class MPServerTest : MonoBehaviour
         bRefreshRoomList.onClick.AddListener(() =>
         {
             bRefreshRoomList.interactable = false;
-            GeneralListener(SocketManager.FetchRoomList, generalErrorMessages);
+            GeneralListener(SocketManager.FetchServerInfo, generalErrorMessages);
             bRefreshRoomList.interactable = true;
         });
         bCreateRoom.onClick.AddListener(CreateRoomPrepare);
@@ -214,6 +214,7 @@ public class MPServerTest : MonoBehaviour
         }
         else
         {
+            loginObj.SetActive(true);
             SetButtonState(RoomState.NotInRoom);
         }
 

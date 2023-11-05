@@ -43,7 +43,6 @@ namespace Network
         private static Manifest manifest;
         public static string loginUrl { get; private set; }
         public static string verifyUrl { get; private set; }
-        public static string ChartUrlBase { get; private set; }
 
         #endregion
 
@@ -109,7 +108,6 @@ namespace Network
 
             loginUrl = manifest.apiURL.userlogin;
             verifyUrl = manifest.apiURL.userverify;
-            ChartUrlBase = $"{manifest.protocol}://{manifest.apiURL.chartIp}:{manifest.apiURL.chartPort}/api";
             Debug.Log("RePhigros API: Manifest got.");
             return true;
         }

@@ -26,6 +26,7 @@ namespace Network.Multiplayer.Managers
         private static string token = "";
         private static string serverId = "";
         private static string roomId = "";
+        private static string chartServer = "";
         private static bool isOwner = false;
         private static string songId = "";
         private static SongType songType = SongType.empty;
@@ -66,6 +67,8 @@ namespace Network.Multiplayer.Managers
             OnGameStarted = () => { },
             OnSendMessageSucceeded = () => { },
             OnGetRoomSongIdSucceeded = () => { };
+
+        public static string ChartUrlBase => chartServer;
 
         public static Action OnGetRoomInfoFailed = () => { };
 
@@ -200,7 +203,7 @@ namespace Network.Multiplayer.Managers
             }
         }
 
-        public static int FetchRoomList()
+        public static int FetchServerInfo()
         {
             if (!socket.Connected) return -1; // 未连接
             if (token == "") return -3; // 未登录
@@ -411,9 +414,10 @@ namespace Network.Multiplayer.Managers
             switch (clientOperate)
             {
                 case ClientOperate.Server_Sync:
-                    DealWithMsg<SyncRoomReceive>(pack, "错误：无法获取房间列表",
+                    DealWithMsg<SyncServerReceive>(pack, "错误：无法获取房间列表",
                        succeededCallback: syncRoomReceive =>
                         {
+                            chartServer = enableChart ? syncRoomReceive.ChartServerUrl : "";
                             OnGetRoomListSucceeded.Invoke(syncRoomReceive.List);
                         });
                     break;
@@ -708,6 +712,7 @@ namespace Network.Multiplayer.Managers
             songId = "";
             songType = SongType.empty;
             songInfo = null;
+            chartServer = "";
         }
     }
 }

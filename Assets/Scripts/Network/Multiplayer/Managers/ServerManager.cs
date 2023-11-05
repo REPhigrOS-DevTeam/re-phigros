@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Network.Multiplayer.Components;
@@ -160,22 +161,44 @@ namespace Network.Multiplayer.Managers
                 mpServerTest.UpdateConnectState("正在登录...");
                 SocketManager.Set(online, chart);
                 await UniTask.SwitchToTaskPool();
-                int state1 = SocketManager.Login();
-                await UniTask.SwitchToMainThread();
-                if (state1 == 0)
+                SocketManager.OnLoginSucceeded += OnLoginSucceeded;
+                SocketManager.OnLoginFailed += OnLoginFailed;
+                int sendState1 = SocketManager.Login();
+                int loginState = 0;
+                await new WaitWhile(() => loginState == 0);
+                SocketManager.OnLoginSucceeded -= OnLoginSucceeded;
+                SocketManager.OnLoginFailed -= OnLoginFailed;
+                int sendState2 = 0;
+                if (sendState1 == 0 && loginState == 1)
                 {
-                    mpServerTest.UpdateConnectState("成功发送登录数据");
+                    sendState2 = SocketManager.FetchServerInfo();
+                }
+                await UniTask.SwitchToMainThread();
+                if (sendState1 == 0)
+                {
+                    mpServerTest.UpdateConnectState("成功登录并同步");
                     return;
                 }
-                mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + state1 switch
+                
+                mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + (sendState2 == 0 ? "无法同步服务器" : sendState1 switch
                 {
                     -1 => "未知错误",
                     -2 => "无法连接至服务器",
                     -3 => "已经登录",
-                    _ => throw new ArgumentOutOfRangeException(nameof(state1), state1, "Unknown Exception")
-                });
+                    _ => throw new ArgumentOutOfRangeException(nameof(sendState1), sendState1, "Unknown Exception")
+                }));
                 serverConnectStateFailedButton.SetActive(true);
                 return;
+                
+                void OnLoginSucceeded()
+                {
+                    loginState = 1;
+                }
+
+                void OnLoginFailed()
+                {
+                    loginState = -1;
+                }
             }
 
             mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + state switch

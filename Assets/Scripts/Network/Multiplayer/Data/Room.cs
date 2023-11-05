@@ -1,11 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using JetBrains.Annotations;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Network.Multiplayer.Data
 {
-    public class SyncRoomReceive : BackReceiveData
+    public class SyncServerReceive : BackReceiveData
     {
         [JsonProperty("RoomList")] public RoomSummary[] List;
+        [JsonProperty("SupportChart")] public bool EnableChartUpload;
+        [JsonProperty("ChartServer")] [CanBeNull] public string ChartServerUrl;
     }
 
     public class RoomSummary

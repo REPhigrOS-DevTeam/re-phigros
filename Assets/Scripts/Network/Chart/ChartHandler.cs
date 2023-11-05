@@ -30,6 +30,7 @@ namespace Network.Chart
 
         public static async Task<string> Upload(string folderPath)
         {
+            if (string.IsNullOrEmpty(SocketManager.ChartUrlBase)) return "";
             CheckDirectory($"{TmpPathRoot}/zip_charts");
             string filePath = Path.GetFullPath($"{TmpPathRoot}/zip_charts/{Path.GetFileName(folderPath)}.zip");
             if (chartMap.ContainsKey(filePath)) return chartMap[filePath];
@@ -39,8 +40,7 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            JObject response =
-                JObject.Parse(await RepAPI.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
+            JObject response = JObject.Parse(await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
             if (response["status"].ToObject<bool>())
             {
                 string id = response["scoreid"].ToString();
@@ -73,9 +73,10 @@ namespace Network.Chart
 
         public static async Task<byte[]> Download(string id)
         {
+            if (string.IsNullOrEmpty(SocketManager.ChartUrlBase)) return null;
             CheckDirectory($"{TmpPathRoot}/online_charts");
             if (downloadedCharts.Contains(id)) return await ReadChartZip($"{TmpPathRoot}/online_charts/{id}");
-            byte[] bytes = await (RepAPI.ChartUrlBase.UrlCombine("/download") + $"?chartid={id}").SendGetRequestAsync();
+            byte[] bytes = await (SocketManager.ChartUrlBase.UrlCombine("/download") + $"?chartid={id}").SendGetRequestAsync();
             await WriteChartZip($"{TmpPathRoot}/online_charts/{id}", bytes);
             downloadedCharts.Add(id);
             return bytes;

@@ -19,11 +19,8 @@ namespace Network.Account.Serialized
         [JsonProperty("user-login")] public string userlogin { get; set; }
 
         [JsonProperty("user-verify")] public string userverify { get; set; }
-        
-        [JsonProperty("chart-ip")] public string chartIp { get; set; }
-        
-        [JsonProperty("chart-port")] public string chartPort { get; set; }
     }
+    
 //     {
 //     "name": "REPhigrOS Team",
 //     "english_name": "REPhigrOSTeam",
@@ -36,6 +33,5 @@ namespace Network.Account.Serialized
 //     "user-login": "/auth/login",
 //     "user-verify": "/auth/verify",
 //     "chart-ip": "114.514.191.98"
-// }
-// }
+//     }
 }
