@@ -3979,10 +3979,20 @@ PrefabInstance:
       propertyPath: m_FontData.m_FontSize
       value: 96
       objectReference: {fileID: 0}
+    - target: {fileID: 5152953713206275753, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_Interactable
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5703260545348070100, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
       propertyPath: m_Name
       value: Edit
+      objectReference: {fileID: 0}
+    - target: {fileID: 5703260545348070100, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6939002853770679672, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
@@ -4095,6 +4105,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: ec88c3ad15fa6a8469d28076e2724125,
         type: 3}
+    - target: {fileID: 8723812349865953681, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 0.5019608
+      objectReference: {fileID: 0}
     - target: {fileID: 8763569872732844314, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
       propertyPath: m_RootOrder

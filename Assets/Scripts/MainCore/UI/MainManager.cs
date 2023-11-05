@@ -17,7 +17,13 @@ namespace MainCore.UI
         [SerializeField] private GameObject characterSelectionObj;
         [SerializeField] private Button openCharaPreview, closeCharaPreview;
         [SerializeField] private DatuPreviewFadeInOut datuPreviewFadeInOut;
-        [SerializeField] private Button openCharacterSelections, deleteCharacter, selectCharacter, editCharacter, closeCharacterSelections;
+
+        [SerializeField] private Button openCharacterSelections,
+            deleteCharacter,
+            selectCharacter,
+            editCharacter,
+            closeCharacterSelections;
+
         [SerializeField] private SpriteRenderer character;
         [SerializeField] private Sprite defaultCharacter;
 
@@ -28,9 +34,8 @@ namespace MainCore.UI
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             openCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeIn(0.15f, 0.05f));
             closeCharaPreview.onClick.AddListener(() => datuPreviewFadeInOut.FadeOut(0.15f, 0.05f));
-#if UNITY_EDITOR
             openCharacterSelections.onClick.AddListener(OpenCharacterOptions);
-#elif false
+#if false
             openCharacterSelections.onClick.AddListener(OpenCharacterSelector);
 #endif
             deleteCharacter.onClick.AddListener(() =>
@@ -43,7 +48,14 @@ namespace MainCore.UI
             selectCharacter.onClick.AddListener(ImportCharacterPackage);
             selectCharacter.onClick.AddListener(CloseCharacterOptions);
             closeCharacterSelections.onClick.AddListener(CloseCharacterOptions);
+#if UNITY_EDITOR
             editCharacter.onClick.AddListener(() => SceneTransit.Instance.LoadScene("CharacterAdjustScene"));
+            editCharacter.interactable = true;
+            editCharacter.transform.Find("Mask").Find("Icon").gameObject.GetComponent<Image>().SetAlpha(1f);
+#else
+            editCharacter.interactable = false;
+            editCharacter.transform.Find("Mask").Find("Icon").gameObject.GetComponent<Image>().SetAlpha(0.5f);
+#endif
 #if !RELEASE_VERSION && !UNITY_EDITOR
             multiPlay.interactable = false;
 #else
@@ -74,8 +86,10 @@ namespace MainCore.UI
             if (PlayerPrefs.HasKey("character"))
             {
                 string[] strings = PlayerPrefs.GetString("character").Split("\n");
-                ExternalCharacterInfo externalCharacterInfo = JsonConvert.DeserializeObject<ExternalCharacterInfo>(strings[0]);
-                character.sprite = Util.ReadSprite(Convert.FromBase64String(strings[1]), externalCharacterInfo.Pivot, externalCharacterInfo.PixelsPerUnit);
+                ExternalCharacterInfo externalCharacterInfo =
+                    JsonConvert.DeserializeObject<ExternalCharacterInfo>(strings[0]);
+                character.sprite = Util.ReadSprite(Convert.FromBase64String(strings[1]), externalCharacterInfo.Pivot,
+                    externalCharacterInfo.PixelsPerUnit);
             }
             else
             {
@@ -84,6 +98,15 @@ namespace MainCore.UI
 
             CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
+            Update();
+        }
+
+        private void Update()
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            if (!Input.GetKeyDown(KeyCode.Escape)) return;
+            if (!InGameUIManager.IsActive) InGameUIManager.ShowModalWindowWithClose("提示", "确定要退出吗？", Util.QuitApp, "是", () => {},  "否");
+#endif
         }
 
         private void CloseCharacterOptions()
@@ -142,6 +165,7 @@ namespace MainCore.UI
         public byte[] TextureData;
         public Texture2D Texture => Util.ReadFileAsTexture(TextureData);
         public Sprite Sprite => Util.ReadSprite(Texture, Info.Pivot, Info.PixelsPerUnit);
+
         public override string ToString()
         {
             return JsonConvert.SerializeObject(Info, Formatting.None) + "\n" + Convert.ToBase64String(TextureData);

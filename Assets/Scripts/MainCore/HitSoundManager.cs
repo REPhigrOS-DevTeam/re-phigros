@@ -28,7 +28,6 @@ namespace MainCore
 #else
             InitUnityAudio();
 #endif
-            DontDestroyOnLoad(gameObject);
         }
 
         //Handle NativeAudio's sounds later to achieve a sync.
