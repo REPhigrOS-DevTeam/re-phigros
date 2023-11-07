@@ -1,11 +1,12 @@
 using System.IO;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
 using MainCore.Utilities;
 using Network;
 using Network.Multiplayer.Managers;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace MainCore.UI
 {
@@ -15,8 +16,11 @@ namespace MainCore.UI
         // [SerializeField] private Text touchToStartText;
         [SerializeField] private GameObject debugText;
         [SerializeField] private GameObject inGameDebugConsolePrefab;
+        [SerializeField] private VideoPlayer splashPlayer;
+        [SerializeField] private GameObject splashCanvas, splashBgCanvas;
 
         private bool clicked = false;
+        private bool inited = false;
 
         private void Awake()
         {
@@ -32,9 +36,19 @@ namespace MainCore.UI
 #endif
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();
+            splashCanvas.SetActive(true);
+            splashBgCanvas.SetActive(true);
+            splashPlayer.loopPointReached += async _ =>
+            {
+                splashCanvas.SetActive(false);
+                splashBgCanvas.SetActive(false);
+                await UniTask.Yield();
+                inited = true;
+            };
+            splashPlayer.Prepare();
         }
 
-        private async Task<bool> InitAPI()
+        private async UniTask<bool> InitAPI()
         {
             PopupMessageManager.Instance.Message("尝试连接服务器……");
             // LoginManagerOld.ReadAccountFromPlayerPrefs();
@@ -52,14 +66,17 @@ namespace MainCore.UI
             return succeeded;
         }
 
-        private void Start()
+        private async void Start()
         {
+            await UniTask.WaitUntil(() => splashPlayer.isPrepared);
+            splashPlayer.time = 0f;
+            splashPlayer.Play();
             Update();
         }
 
         private void Update()
         {
-            if (clicked || Time.timeSinceLevelLoad < 1 || !Input.GetMouseButtonUp(0)) return;
+            if (clicked || !inited || !Input.GetMouseButtonUp(0)) return;
             LoadIn();
             // StartCoroutine(CountDown());
             clicked = true;
