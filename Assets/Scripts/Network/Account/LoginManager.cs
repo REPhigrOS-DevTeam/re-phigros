@@ -127,12 +127,10 @@ namespace Network.Account
                             "确定");
                         break;
                     case StatusCode.OK:
-                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", () =>
-                        {
-                            accountInfos.Insert(0, accountInfo);
-                            AccountManager.SaveAccountList(accountInfos);
-                            Finally(accountInfo);
-                        }, "确定");
+                        accountInfos.Insert(0, accountInfo);
+                        AccountManager.SaveAccountList(accountInfos);
+                        Finally(accountInfo);
+                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Enter, "确定");
                         break;
                     case StatusCode.InvalidParam:
                         InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码：非法参数，请联系开发者\n程序即将退出",
@@ -181,14 +179,12 @@ namespace Network.Account
                             "确定");
                         break;
                     case StatusCode.OK:
-                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", () =>
-                        {
-                            accountInfos.Remove(info);
-                            info.VerifyToken = token;
-                            accountInfos.Insert(0, info);
-                            AccountManager.SaveAccountList(accountInfos);
-                            Finally(info);
-                        }, "确定");
+                        accountInfos.Remove(info);
+                        info.VerifyToken = token;
+                        accountInfos.Insert(0, info);
+                        AccountManager.SaveAccountList(accountInfos);
+                        Finally(info);
+                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Enter, "确定");
                         break;
                     case StatusCode.InvalidParam:
                         InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码：非法参数，请联系开发者\n程序即将退出",
@@ -235,6 +231,10 @@ namespace Network.Account
         {
             GlobalSetting.username = info.Username;
             GlobalSetting.verifyToken = info.VerifyToken;
+        }
+
+        private void Enter()
+        {
             if (!PlayerPrefs.HasKey("first_start"))
             {
                 PlayerPrefs.SetInt("first_start", 1);
