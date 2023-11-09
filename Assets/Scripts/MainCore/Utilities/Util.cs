@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -270,6 +271,18 @@ namespace MainCore.Utilities
                 HashData = hashData,
                 Info = externalCharacterInfo
             };
+        }
+
+        public static string[] Split(this string str)
+        {
+            List<string> list = new List<string>();
+            TextElementEnumerator enumerator = StringInfo.GetTextElementEnumerator(str);
+            while (enumerator.MoveNext())
+            {
+                list.Add(enumerator.GetTextElement());
+            }
+
+            return list.ToArray();
         }
 
         public static bool ValidateFileHash(byte[] hashData, byte[] imageData, byte[] configData)
