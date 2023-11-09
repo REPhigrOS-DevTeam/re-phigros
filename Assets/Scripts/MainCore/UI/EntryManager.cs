@@ -24,6 +24,7 @@ namespace MainCore.UI
 
         private void Awake()
         {
+            GlobalSetting.OriginResolution = Screen.currentResolution;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
             Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;

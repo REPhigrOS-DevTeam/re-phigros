@@ -85,7 +85,7 @@ namespace MainCore
         public static float maskAlpha = .5f;
         public static int maximumZOrder = 0;
         public static Sprite illustration;
-        public static Resolution OriginResolution => Screen.currentResolution;
+        public static Resolution OriginResolution;
         public static string charter;
         public static string composer;
         public static string illustrator;
