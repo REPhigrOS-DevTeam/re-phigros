@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
@@ -18,9 +19,12 @@ namespace MainCore.UI
         [SerializeField] private GameObject inGameDebugConsolePrefab;
         [SerializeField] private VideoPlayer splashPlayer;
         [SerializeField] private GameObject splashCanvas, splashBgCanvas;
-
+        
         private bool clicked = false;
+        private bool prepared = false;
         private bool inited = false;
+        
+        private CancellationTokenSource cts = new CancellationTokenSource();
 
         private void Awake()
         {
@@ -46,6 +50,7 @@ namespace MainCore.UI
                 await UniTask.Yield();
                 inited = true;
             };
+            splashPlayer.prepareCompleted += _ => prepared = true;
             splashPlayer.Prepare();
         }
 
@@ -67,16 +72,33 @@ namespace MainCore.UI
             return succeeded;
         }
 
-        private async void Start()
+        private void Start()
         {
-            await UniTask.WaitUntil(() => splashPlayer.isPrepared);
+            InitVideo(cts.Token);
+            Update();
+        }
+
+        private async void InitVideo(CancellationToken cancellationToken)
+        {
+            await UniTask.WaitUntil(() => prepared, cancellationToken:cancellationToken);
             splashPlayer.time = 0f;
             splashPlayer.Play();
-            Update();
         }
 
         private void Update()
         {
+            if (Input.GetMouseButtonUp(0) && !inited)
+            {
+                if (!splashPlayer.isPlaying && !splashPlayer.isPrepared)
+                {
+                    cts.Cancel();
+                }
+                splashPlayer.Stop();
+                splashCanvas.SetActive(false);
+                splashBgCanvas.SetActive(false);
+                inited = true;
+                return;
+            }
             if (clicked || !inited || !Input.GetMouseButtonUp(0)) return;
             LoadIn();
             // StartCoroutine(CountDown());
