@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using ICSharpCode.SharpZipLib.Checksum;
 using ICSharpCode.SharpZipLib.Zip;
@@ -36,16 +35,17 @@ public class CharacterAdjustManager : MonoBehaviour
         };
         selectCharacter.onClick.AddListener(SelectImage);
         exportCharacter.onClick.AddListener(ExportCharacterPackage);
-        ifPpu.InputField.onEndEdit.AddListener(_ => OnValueChanged());
-        ifPivotX.InputField.onEndEdit.AddListener(_ => OnValueChanged());
-        ifPivotY.InputField.onEndEdit.AddListener(_ => OnValueChanged());
+        ifPpu.onEndEdit += _ => OnValueChanged();
+        ifPivotX.onEndEdit += _ => OnValueChanged();
+        ifPivotY.onEndEdit += _ => OnValueChanged();
     }
 
     private void Start()
     {
         if (PlayerPrefs.HasKey("customCharacter"))
         {
-            CharacterImage characterImage = Util.GetCharacterImage(Convert.FromBase64String(PlayerPrefs.GetString("customCharacter")));
+            CharacterImage characterImage =
+                Util.GetCharacterImage(Convert.FromBase64String(PlayerPrefs.GetString("customCharacter")));
             ifPpu.Value = characterImage.Info.PixelsPerUnit;
             ifPivotX.Value = characterImage.Info.PivotX;
             ifPivotY.Value = characterImage.Info.PivotY;
@@ -96,7 +96,8 @@ public class CharacterAdjustManager : MonoBehaviour
             byte[] configData =
                 new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(externalCharacterInfo, Formatting.None));
             FileStream fileStream = new FileStream(tmpPkgPath, FileMode.Create, FileAccess.Write, FileShare.None);
-            ZipOutputStream zipOutputStream = new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
+            ZipOutputStream zipOutputStream =
+                new ZipOutputStream(fileStream, StringCodec.FromEncoding(new UTF8Encoding(false)));
             Crc32 crc32 = new Crc32();
             DateTime now = DateTime.Now;
             PutEntry("chara", characterTextureData);
@@ -124,7 +125,7 @@ public class CharacterAdjustManager : MonoBehaviour
                 zipOutputStream.PutNextEntry(zipEntry);
                 zipOutputStream.Write(data, 0, data.Length);
             }
-            
+
             zipOutputStream.Close();
             fileStream.Close();
             File.WriteAllBytes(path, FileEncryptor.Encrypt(File.ReadAllBytes(tmpPkgPath)));
@@ -176,6 +177,7 @@ public class CharacterAdjustManager : MonoBehaviour
                     InGameUIManager.ShowModalWindowWithClose("错误", "立绘文件不合法", () => { }, "确定");
                     return;
                 }
+
                 data = data.Skip((int)headers[0]).Take((int)(ends[0] - headers[0] + 4L)).ToArray(); // 检查完毕
                 texture = Util.ReadFileAsTexture(data);
                 ifPpu.Reset();

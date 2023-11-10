@@ -339,7 +339,7 @@ namespace Network.Account
             }
 
             if (res.Code != StatusCode.OK) throw new ArgumentException("吃席");
-            Debug.Log($"RePhigros API: Access granted, new token: {res.verifyToken}");
+            Debug.Log($"RePhigros API: Access granted, new token: {ProtectToken(res.verifyToken)}");
             return (StatusCode.OK, res.verifyToken);
         }
 

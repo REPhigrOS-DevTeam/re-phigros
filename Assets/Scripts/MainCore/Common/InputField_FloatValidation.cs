@@ -17,6 +17,7 @@ namespace MainCore.Common
             set => inputField.text = (lastValue = value).ToString(CultureInfo.InvariantCulture);
         }
 
+        public Action<string> onEndEdit = _ => { };
         public InputField InputField => inputField ? inputField : gameObject.GetComponent<InputField>();
         [SerializeField] private bool canEqual = true;
         [SerializeField] private ClampMode clampMode = ClampMode.None;
@@ -51,6 +52,7 @@ namespace MainCore.Common
                     }
                 }
                 inputField.SetTextWithoutNotify(lastValue.ToString(CultureInfo.InvariantCulture));
+                onEndEdit.Invoke(str);
             });
         }
 

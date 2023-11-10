@@ -1512,6 +1512,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba0e11cc23fd85428e33fb779fe0eb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  invert: 0
+  result: 0
 --- !u!114 &896993762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2128,6 +2130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amplitude: 0.1
   period: 5
+  canvasSizeFitter: {fileID: 896993761}
 --- !u!1 &1117646248
 GameObject:
   m_ObjectHideFlags: 0
@@ -2281,6 +2284,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba0e11cc23fd85428e33fb779fe0eb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  invert: 0
+  result: 0
 --- !u!114 &1152902555
 MonoBehaviour:
   m_ObjectHideFlags: 0
