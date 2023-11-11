@@ -345,5 +345,10 @@ namespace MainCore.Utilities
         }
 
         public static string DataPath => PlayerPrefs.GetString("file_path", Application.persistentDataPath);
+
+        public static bool Contains(this int[] arr, int i)
+        {
+            return arr.Any(t => i == t);
+        } 
     }
 }

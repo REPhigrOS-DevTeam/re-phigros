@@ -226,7 +226,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: dad56f6894ad91c43a941f8742c938b4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8699ebf14933ec54f8b5210c7ca96f55, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -412,6 +412,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e78972e4b1e749e990f25b67e7ccbd23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  button: {fileID: 9198948562672244889}
   iBackground: {fileID: 853998574382023740}
   iIcon: {fileID: 853998573858669134}
   iBorder: {fileID: 1499111202829812942}
@@ -462,19 +463,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 853998574382023740}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 853998574382023738}
-        m_TargetAssemblyTypeName: Network.Multiplayer.Components.ServerItem, Assembly-CSharp
-        m_MethodName: OnClicked
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &853998574902673441
 GameObject:
   m_ObjectHideFlags: 0

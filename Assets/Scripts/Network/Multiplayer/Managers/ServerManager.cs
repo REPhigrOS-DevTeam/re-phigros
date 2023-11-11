@@ -105,8 +105,13 @@ namespace Network.Multiplayer.Managers
         {
             if (selectedServerId == id && selectedServerIsInternal == isInternal)
             {
+                if (!(selectedServerIsInternal ? internalItems : externalItems)[selectedServerId].Available)
+                {
+                    UniTask.Void(FakeConnect);
+                    return;
+                }
                 var (url, online, chart) = (isInternal ? internalItems : externalItems)[id].GetInfo();
-                Task.Run(() => Connect(url, online, chart));
+                UniTask.Void(() => Connect(url, online, chart));
                 return;
             }
             
@@ -126,7 +131,20 @@ namespace Network.Multiplayer.Managers
 
         private int serverStateSelection = 0;
 
-        private async UniTask Connect(string url, bool online, bool chart)
+        private async UniTaskVoid FakeConnect()
+        {
+            await UniTask.SwitchToMainThread();
+            serverConnectStatePanel.SetActive(true);
+            serverConnectStateButtonPanel.SetActive(false);
+            serverConnectStateFailedButton.SetActive(false);
+            mpServerTest.UpdateConnectState("连接中...");
+            serverConnectState.text = "正在连接服务器...";
+            await new WaitForSeconds(0.3f); // 让玩家看着更真实一点
+            mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：无法连接服务器，可能是未启动");
+            serverConnectStateFailedButton.SetActive(true);
+        }
+
+        private async UniTaskVoid Connect(string url, bool online, bool chart)
         {
             await UniTask.SwitchToMainThread();
             serverConnectStatePanel.SetActive(true);

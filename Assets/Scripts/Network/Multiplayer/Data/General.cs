@@ -178,6 +178,8 @@ namespace Network.Multiplayer.Data
         [JsonProperty("Status")] public bool Status;
         [JsonProperty("Name")] public string Name;
         [JsonProperty("Motd")] public string Motd;
+        [JsonProperty("DebugServer")] public bool IsDebug = false;
+        [JsonProperty("RequireVersion")] public int Version = -1;
         [JsonProperty("ReceiveTime")] public long ReceiveTime;
         [JsonProperty("OnlineMode")] public bool IsOnline;
         [JsonProperty("ChartUploadMode")] public bool EnableChartUpload;

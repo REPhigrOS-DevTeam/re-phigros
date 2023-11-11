@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
@@ -18,12 +19,15 @@ namespace Network.Multiplayer.Components
         private static readonly DateTime TimeStampStart = new(1970, 1, 1, 0, 0, 0, 0);
         private ServerManager serverManager;
         private int id;
+        [SerializeField] private Button button;
         [SerializeField] private Image iBackground, iIcon, iBorder; // TODO: Sky暂时没写图标
         [SerializeField] private Text serverName, tServerId, tServerPing, tServerMotd;
         private string serverUrl;
         private bool online = true, chart;
         private Socket socket;
-        private bool isInternal;
+        private bool isInternal, isSelected;
+        private static readonly int[] AvailableVersions = { 6 };
+        public bool Available { get; private set; } = false;
 
         public void Init(int id, ServerManager serverManager, string serverUrl, string customName, bool isInternal)
         {
@@ -33,6 +37,7 @@ namespace Network.Multiplayer.Components
             this.isInternal = isInternal;
             serverName.text = isInternal ? "等待响应..." : customName;
             tServerId.text = isInternal ? "内置服务器" : "等待响应...";
+            button.onClick.AddListener(OnClicked);
             Refresh();
         }
 
@@ -43,6 +48,7 @@ namespace Network.Multiplayer.Components
         {
             await UniTask.Create(async () =>
             {
+                Available = false;
                 await UniTask.SwitchToMainThread();
                 if (!isInternal) tServerId.text = "";
                 tServerPing.text = string.Format(PingFormat, "-", "未知");
@@ -107,6 +113,24 @@ namespace Network.Multiplayer.Components
                     return;
                 }
 
+                if (data.IsDebug)
+                {
+                    tServerId.color = Color.blue;
+                }
+                else if (AvailableVersions.All(i => i != data.Version))
+                {
+                    if (isSelected) serverManager.UpdateSelectedServer(-1, isInternal);
+                    if (isInternal)
+                    {
+                        serverName.text = data.Name;
+                    }
+                    tServerId.text = (isInternal ? "内置服务器 " : "") + "不匹配的版本";
+                    tServerMotd.text = string.Format(ErrorFormat, "服务器过旧，请联系服主");
+                    button.interactable = false;
+                    button.onClick.RemoveListener(OnClicked);
+                    return;
+                }
+
                 if (isInternal)
                 {
                     serverName.text = data.Name;
@@ -115,11 +139,13 @@ namespace Network.Multiplayer.Components
                 {
                     tServerId.text = "@" + data.Name;
                 }
+
                 tServerMotd.text = data.Motd;
                 tServerPing.text = string.Format(PingFormat, (receivedTime - currentTime).ToString(),
                     data.EnableChartUpload ? "在线" : "离线");
                 online = data.IsOnline;
                 chart = data.EnableChartUpload;
+                Available = true;
             });
         }
 
@@ -135,6 +161,7 @@ namespace Network.Multiplayer.Components
 
         public void SetSelectState(bool state)
         {
+            isSelected = state;
             iBorder.color = state ? new Color(0.4f, 0.4f, 0.4f) : new Color(1, 1, 1, 0);
         }
     }
