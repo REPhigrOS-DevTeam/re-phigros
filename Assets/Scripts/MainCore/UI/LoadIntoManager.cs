@@ -32,7 +32,6 @@ namespace MainCore.UI
         // Start is called before the first frame update
         void Start()
         {
-            Debug.Log("DSPBuffer: " + AudioSettings.GetConfiguration().dspBufferSize);
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             {
                 GlobalSetting.chartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";
