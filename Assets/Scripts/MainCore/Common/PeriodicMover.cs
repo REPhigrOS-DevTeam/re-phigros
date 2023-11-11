@@ -2,7 +2,6 @@ using System.Diagnostics;
 using MainCore.Common;
 using MainCore.Utilities;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class PeriodicMover : MonoBehaviour
 {
