@@ -32,16 +32,17 @@ namespace Network.Multiplayer.Data
             byte[] buffer = new byte[8];
             List<byte> dataList = new List<byte>();
             int length;
-            qwq:
-            while ((length = socket.Receive(buffer)) > 0)
+            while (socket.Available > 0)
             {
-                dataList.AddRange(buffer.Take(length));
+                while ((length = socket.Receive(buffer)) > 0)
+                {
+                    dataList.AddRange(buffer.Take(length));
 
-                if (socket.Available <= 0 || length < buffer.Length) break;
+                    if (socket.Available <= 0 || length < buffer.Length) break;
+                }
+
+                if (dataList.Count == 0) throw new NullReferenceException("Received Nothing");
             }
-
-            if (dataList.Count == 0) throw new NullReferenceException("Received Nothing");
-            if (socket.Available > 0) goto qwq;
 
             string s = NoBomUtf8Encoding.GetString(dataList.ToArray());
             Debug.Log("接收到：" + s);
