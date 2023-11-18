@@ -1,9 +1,11 @@
 ﻿#define DISABLE_NATIVE_AUDIO
+#define USE_MA_AUDIO
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using E7.Native;
 using MainCore.Common;
+using MaTech.Audio;
 using UnityEngine;
 
 namespace MainCore
@@ -12,6 +14,7 @@ namespace MainCore
     {
         private static Dictionary<int, NativeAudioPointer> _nativeAudios;
         private static Dictionary<int, AudioSource[]> _unityAudios;
+        private static Dictionary<int, AudioSample[]> _maAudios;
         private static Dictionary<int, int> _audioIndexes;
         private static NativeSource.PlayOptions _nativeAudioOptions;
         private static float _hitSoundVolume = 1f;
@@ -23,7 +26,9 @@ namespace MainCore
 
         protected override void OnAwake()
         {
-#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+#if USE_MA_AUDIO
+            InitMaAudio().Forget();
+#elif UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             InitNativeAudio().Forget();
 #else
             InitUnityAudio();
@@ -128,6 +133,11 @@ namespace MainCore
 #endif
         }
 
+        public static void UpdateVolume()
+        {
+            _hitSoundVolume = GlobalSetting.hitVolume;
+        }
+
         private async UniTaskVoid InitNativeAudio()
         {
             if (!NativeAudio.OnSupportedPlatform) return;
@@ -149,21 +159,33 @@ namespace MainCore
             RefreshUnityAudio();
         }
 
-        public void RefreshHitSounds(Skin skin)
+        private async UniTaskVoid InitMaAudio()
         {
+            MaAudio.LoadForUnity(); // 全局
+            
+            _maAudios = new Dictionary<int, AudioSample[]>();
+            _audioIndexes = new Dictionary<int, int>();
+            
+            await RefreshMaAudio();
+        }
+
+        public async void RefreshHitSounds(Skin skin)
+        {
+            Resources.UnloadUnusedAssets();
             string id = skin.ToString();
-            if (!Resources.Load<AudioClip>($"SFX/{id}/click")) id = "Official";
+            if (!Resources.Load<AudioClip>($"SFX/{id}/click")) id = Skin.Official.ToString();
             AudioClip click = Resources.Load<AudioClip>($"SFX/{id}/click");
             AudioClip drag = Resources.Load<AudioClip>($"SFX/{id}/drag");
             AudioClip flick = Resources.Load<AudioClip>($"SFX/{id}/flick");
-            Resources.UnloadUnusedAssets();
             hitSounds[0] = null;
             hitSounds[1] = click;
             hitSounds[2] = drag;
             hitSounds[3] = click;
             hitSounds[4] = flick;
-#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
-            RefreshNativeAudio().Forget();
+#if USE_MA_AUDIO
+            await RefreshMaAudio();
+#elif UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+            await RefreshNativeAudio();
 #else
             RefreshUnityAudio();
 #endif
@@ -208,12 +230,33 @@ namespace MainCore
             }
         }
 
+        private async UniTask RefreshMaAudio()
+        {
+            _maAudios.Clear();
+            _audioIndexes.Clear();
+            
+            for (int i = 0; i < hitSounds.Length; i++)
+            {
+                _maAudios.Add(i, new AudioSample[hitSoundsLength[i]]);
+                _audioIndexes.Add(i, 0);
+                for (var j = 0; j < hitSoundsLength[i]; j++)
+                {
+                    if (!hitSounds[i]) continue;
+                    if (_maAudios[i][j] != null) _maAudios[i][j].Unload();
+                    _maAudios[i][j] = await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                    _maAudios[i][j].Volume = _hitSoundVolume;
+                }
+            }
+        }
+
         public void Play(int soundIndex, float rewriteVolume = -1)
         {
             var orgVlm = _hitSoundVolume;
             if (rewriteVolume >= 0) _hitSoundVolume = rewriteVolume;
 
-#if UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+#if USE_MA_AUDIO
+            PlayByMaAudio(soundIndex);
+#elif UNITY_ANDROID && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             PlayByNativeAudio(soundIndex);
 #else
             PlayByUnityAudio(soundIndex);
@@ -240,6 +283,20 @@ namespace MainCore
 
             source.volume = _hitSoundVolume;
             source.PlayScheduled(AudioSettings.dspTime);
+        }
+
+        private void PlayByMaAudio(int soundIndex)
+        {
+            if (_hitSoundVolume <= 0.01f) return;
+
+            var index = _audioIndexes[soundIndex] + 1;
+            if (index >= hitSoundsLength[soundIndex]) index = 0;
+            var source = _maAudios[soundIndex][index];
+            _audioIndexes[soundIndex] = index;
+            
+            // source.Volume = _hitSoundVolume;
+            source.Channel = (ushort) (soundIndex * 10 + index); // 自动分配音轨
+            source.PlayImmediate();
         }
     }
 }

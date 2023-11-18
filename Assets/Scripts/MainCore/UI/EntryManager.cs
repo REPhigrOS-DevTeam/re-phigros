@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
 using MainCore.Utilities;
+using MaTech.Audio;
 using Network;
 using Network.Multiplayer.Managers;
 using UnityEngine;
@@ -52,6 +53,7 @@ namespace MainCore.UI
             };
             splashPlayer.prepareCompleted += _ => prepared = true;
             splashPlayer.Prepare();
+            GlobalSetting.ReadUserSettings();
         }
 
         private async UniTask<bool> InitAPI()

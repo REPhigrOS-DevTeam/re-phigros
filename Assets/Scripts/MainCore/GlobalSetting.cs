@@ -203,6 +203,7 @@ namespace MainCore
             fxaaEnabled = PlayerPrefsExtension.GetBoolean("fxaa", false);
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
             HitSoundManager.Instance.RefreshHitSounds(Skin);
+            HitSoundManager.UpdateVolume();
             useCourseMode = PlayerPrefsExtension.GetBoolean("use_course_mode", false);
             _judgeTime = null;
             Pitch = PlayerPrefs.GetFloat("music_speed", 1f);
