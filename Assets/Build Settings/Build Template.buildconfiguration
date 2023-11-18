@@ -15,9 +15,9 @@
         },
         {
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
-            "ProductName": "REPhigros",
+            "ProductName": "REPhityOS",
             "CompanyName": "totorowldox",
-            "Version": "1.22"
+            "Version": "1.23"
         },
         {
             "$type": "Unity.Build.Common.RunSettings, Unity.Build",

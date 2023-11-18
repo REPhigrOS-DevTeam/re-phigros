@@ -29,6 +29,7 @@ namespace MainCore.UI
 
         private void Awake()
         {
+            // MaAudio.LoadForUnity();
             GlobalSetting.OriginResolution = Screen.currentResolution;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);

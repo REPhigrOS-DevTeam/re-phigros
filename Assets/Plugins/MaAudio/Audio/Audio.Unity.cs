@@ -23,7 +23,7 @@ namespace MaTech.Audio {
             #endif
             
             Application.quitting += UnloadForUnity;
-            Application.focusChanged += OnFocusChanged;
+            // Application.focusChanged += OnFocusChanged; //TODO: 我不需要.jpg
             
             isFocusLost = !Application.isFocused;
             

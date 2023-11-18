@@ -1,5 +1,5 @@
 ﻿#define DISABLE_NATIVE_AUDIO
-#define USE_MA_AUDIO
+// #define USE_MA_AUDIO
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -161,11 +161,9 @@ namespace MainCore
 
         private async UniTaskVoid InitMaAudio()
         {
-            MaAudio.LoadForUnity(); // 全局
-            
             _maAudios = new Dictionary<int, AudioSample[]>();
             _audioIndexes = new Dictionary<int, int>();
-            
+
             await RefreshMaAudio();
         }
 
@@ -234,7 +232,7 @@ namespace MainCore
         {
             _maAudios.Clear();
             _audioIndexes.Clear();
-            
+
             for (int i = 0; i < hitSounds.Length; i++)
             {
                 _maAudios.Add(i, new AudioSample[hitSoundsLength[i]]);
@@ -293,9 +291,9 @@ namespace MainCore
             if (index >= hitSoundsLength[soundIndex]) index = 0;
             var source = _maAudios[soundIndex][index];
             _audioIndexes[soundIndex] = index;
-            
-            // source.Volume = _hitSoundVolume;
-            source.Channel = (ushort) (soundIndex * 10 + index); // 自动分配音轨
+
+            source.Volume = _hitSoundVolume;
+            source.Channel = (ushort)(soundIndex * 10 + index); // 自动分配音轨
             source.PlayImmediate();
         }
     }
