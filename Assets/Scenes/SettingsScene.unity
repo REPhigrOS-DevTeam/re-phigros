@@ -7062,8 +7062,8 @@ MonoBehaviour:
   m_FillRect: {fileID: 966756070}
   m_HandleRect: {fileID: 966766792}
   m_Direction: 0
-  m_MinValue: -300
-  m_MaxValue: 300
+  m_MinValue: -900
+  m_MaxValue: 900
   m_WholeNumbers: 1
   m_Value: 0
   m_OnValueChanged:
@@ -15585,7 +15585,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96

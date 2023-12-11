@@ -384,7 +384,7 @@ namespace MainCore.Utilities
                         }
                         catch (Exception e) when (e is IndexOutOfRangeException or CsvHelper.MissingFieldException)
                         {
-                            InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是旧版格式", () => { }, "确认");
+                            InGameUIManager.ShowModalWindowWithClose("警告", "无法读取info.csv，可能是其他旧版格式", () => { }, "确认");
                         }
                         catch (Exception)
                         {
@@ -496,7 +496,7 @@ namespace MainCore.Utilities
             }
 
             return (songInfo, infoType, gameFilePathInfo,
-                infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null); // TODO
+                infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null);
         }
 
         public static string[] SelectGivenExtensionsFileNames(string directory, params string[] extensions) => Directory

@@ -19,10 +19,12 @@ namespace MainCore
          private Video[] videos;
          private Color[] targetColors;
          private double[] durations;
+         private Camera camera;
          public void Init(Video[] videos)
          {
              if (isInited) return;
              isInited = true;
+             camera = Camera.main;
              List<Video> list = videos.ToList();
              list.Sort((v1, v2) => v1.time.Frac() < v2.time.Frac() ? -1 : 1);
              this.videos = list.ToArray();
@@ -46,7 +48,7 @@ namespace MainCore
              for (var i = 0; i < this.videos.Length; i++)
              {
                  var video = this.videos[i];
-                 var mediaPlayer = mediaPlayers[i] = Camera.main.gameObject.AddComponent<MediaPlayer>();
+                 var mediaPlayer = mediaPlayers[i] = camera.gameObject.AddComponent<MediaPlayer>();
                  mediaPlayer.PlaybackRate = GlobalSetting.Pitch;
                  mediaPlayer.AutoOpen = false;
                  mediaPlayer.AutoStart = false;
@@ -107,7 +109,7 @@ namespace MainCore
 
          public void OnDestroy()
          {
-             Destroy(Camera.main.GetComponent<MediaPlayer>());
+             if (camera) Destroy(camera.GetComponent<MediaPlayer>());
          }
      }
 }

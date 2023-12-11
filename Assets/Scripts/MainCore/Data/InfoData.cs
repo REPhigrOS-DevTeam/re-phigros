@@ -101,7 +101,5 @@ namespace MainCore.Data
         
         [CsvHelper.Configuration.Attributes.Name("Designer")]
         public string Charter { get; set; }
-        
-        public string Artist { get; set; }
     }
 }

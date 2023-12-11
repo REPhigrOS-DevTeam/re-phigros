@@ -1,5 +1,5 @@
 ﻿#define DISABLE_NATIVE_AUDIO
-// #define USE_MA_AUDIO
+#define USE_MA_AUDIO
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -164,6 +164,7 @@ namespace MainCore
             _maAudios = new Dictionary<int, AudioSample[]>();
             _audioIndexes = new Dictionary<int, int>();
 
+            MaAudio.LoadForUnity();
             await RefreshMaAudio();
         }
 

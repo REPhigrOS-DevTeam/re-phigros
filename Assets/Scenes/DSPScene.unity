@@ -1164,7 +1164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e12d2ad6549142b99a87d5622ca45e1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 946289606}
   dataTag: dsp_pow
   defaultValue: 8
   shower: {fileID: 748844239}
@@ -1711,7 +1710,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: de5e440584cf02e488d96e75b711fd2b, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 9433a8e50f1572f4f814184897207f0c, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1

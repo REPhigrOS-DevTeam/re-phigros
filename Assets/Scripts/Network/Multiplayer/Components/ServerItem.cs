@@ -48,6 +48,8 @@ namespace Network.Multiplayer.Components
         {
             await UniTask.Create(async () =>
             {
+                if (!button.interactable) button.onClick.AddListener(OnClicked);
+                button.interactable = true;
                 Available = false;
                 await UniTask.SwitchToMainThread();
                 if (!isInternal) tServerId.text = "";
@@ -112,7 +114,7 @@ namespace Network.Multiplayer.Components
                     tServerMotd.text = string.Format(ErrorFormat, "？？？？？？？？？？？？？？？？？？？？？？");
                     return;
                 }
-
+                
                 if (data.IsDebug)
                 {
                     tServerId.color = Color.blue;

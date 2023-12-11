@@ -8,12 +8,28 @@
         "SongDifficulty": "IN Lv.15",
         "SongCharter": "NEKOYO喵、鳝丝大爹喵",
         "SongIllustrator": "榊はゆ茶",
-        "MusicLength": 264.888
+        "MusicLength": 0
       },
       "Path": {
         "Chart": "56493618.json",
         "Music": "56493618.ogg",
         "Illustration": "56493618.png"
+      }
+    },
+    {
+      "Info": {
+        "FolderName": "6927522",
+        "SongName": "Fly To Meteor",
+        "SongComposer": "ShooTinGStaR",
+        "SongDifficulty": "IN Lv.15",
+        "SongCharter": "RPGR Charting Team",
+        "SongIllustrator": "不知道",
+        "MusicLength": 0
+      },
+      "Path": {
+        "Chart": "6927522.json",
+        "Music": "6927522.ogg",
+        "Illustration": "6927522.png"
       }
     }
   ]

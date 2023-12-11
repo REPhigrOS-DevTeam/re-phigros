@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
 using MainCore.Utilities;
-using MaTech.Audio;
 using Network;
 using Network.Multiplayer.Managers;
 using UnityEngine;
@@ -29,7 +28,6 @@ namespace MainCore.UI
 
         private void Awake()
         {
-            // MaAudio.LoadForUnity();
             GlobalSetting.OriginResolution = Screen.currentResolution;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);

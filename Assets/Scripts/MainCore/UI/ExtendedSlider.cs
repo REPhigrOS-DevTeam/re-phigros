@@ -19,8 +19,18 @@ namespace MainCore.UI
         void Start()
         {
             slider = GetComponent<Slider>();
-            if (minus) minus.onClick.AddListener(() => { slider.value -= step; });
-            if (add) add.onClick.AddListener(() => { slider.value += step; });
+            if (minus) minus.onClick.AddListener(() =>
+            {
+                slider.value -= step;
+                if (fraction != 0) return;
+                if ((int) slider.value % (int) step != 0) slider.value = (int) (slider.value / step) * (int) step;
+            });
+            if (add) add.onClick.AddListener(() =>
+            {
+                slider.value += step; 
+                if (fraction != 0) return;
+                if ((int) slider.value % (int) step != 0) slider.value = (int) (slider.value / step) * (int) step;
+            });
             Update();
         }
 
