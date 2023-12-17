@@ -11,6 +11,7 @@ using MainCore.Utilities;
 using Network.Account.Utils;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YamlDotNet.Serialization;
@@ -40,12 +41,20 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            JObject response = JObject.Parse(await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content));
-            if (response["status"].ToObject<bool>())
+            string responseStr = await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content);
+            try
             {
-                string id = response["scoreid"].ToString();
-                chartMap.Add(filePath, id);
-                return id;
+                JObject response = JObject.Parse(responseStr);
+                if (response["status"].ToObject<bool>())
+                {
+                    string id = response["scoreid"].ToString();
+                    chartMap.Add(filePath, id);
+                    return id;
+                }
+            }
+            catch (JsonReaderException)
+            {
+                Debug.LogError("Error String:\n" + responseStr);
             }
 
             Debug.LogError($"上传谱面{filePath}失败");

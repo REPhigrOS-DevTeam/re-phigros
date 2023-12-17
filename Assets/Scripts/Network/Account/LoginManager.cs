@@ -43,7 +43,8 @@ namespace Network.Account
             usernameInputField.gameObject.SetActive(false);
             passwordInputField.gameObject.SetActive(false);
             createButton.IsOn = false;
-            if (PlayerPrefs.HasKey("repapi_playername") && accountInfos.Count == 0)
+            string oldPlayerName = PlayerPrefs.GetString("repapi_playername");
+            if (PlayerPrefs.HasKey("repapi_playername") && accountInfos.All(info => info.Username != oldPlayerName))
             {
                 accountInfos.Add(new AccountManager.AccountInfo(PlayerPrefs.GetString("repapi_playername", ""),
                     PlayerPrefs.GetString("repapi_verifytoken", "")));
@@ -200,11 +201,11 @@ namespace Network.Account
                         InGameUIManager.ShowModalWindowWithClose("错误", "用户名不合法（但是已经登录过了为啥报这个）", () => { }, "确定");
                         break;
                     case StatusCode.InvalidToken:
+                        accountInfos[i].VerifyToken = "";
+                        AccountManager.SaveAccountList(accountInfos);
+                        accountInfos.Remove(info);
                         InGameUIManager.ShowModalWindowWithClose("错误", "Token无效，请重新登录", () =>
                         {
-                            accountInfos[i].VerifyToken = "";
-                            AccountManager.SaveAccountList(accountInfos);
-                            accountInfos.Remove(info);
                             usernameInputField.text = info.Username;
                             Create();
                         }, "确定");

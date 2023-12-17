@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
+using Network.Account.Utils;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -68,7 +69,7 @@ namespace Network.Multiplayer.Managers
             OnSendMessageSucceeded = () => { },
             OnGetRoomSongIdSucceeded = () => { };
 
-        public static string ChartUrlBase => chartServer;
+        public static string ChartUrlBase => chartServer.UrlCombine("/api");
 
         public static Action OnGetRoomInfoFailed = () => { };
 

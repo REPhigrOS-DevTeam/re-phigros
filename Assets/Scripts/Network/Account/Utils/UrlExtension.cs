@@ -13,8 +13,7 @@ namespace Network.Account.Utils
     {
         public static string UrlCombine(this string urlBase, string combined)
         {
-            return urlBase + (urlBase.EndsWith("/") || combined.StartsWith("/") ? "" : "/") + combined;
-            return new Uri(new Uri(urlBase), combined).ToString();
+            return $"{urlBase}{(urlBase.EndsWith("/") || combined.StartsWith("/") ? "" : "/")}{combined}";
         }
 
         [ItemCanBeNull]
