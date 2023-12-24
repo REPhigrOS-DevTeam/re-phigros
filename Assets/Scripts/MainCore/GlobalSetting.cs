@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using CsvHelper;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
-using Utilities;
 
 namespace MainCore
 {
@@ -36,6 +34,8 @@ namespace MainCore
 
     public static class GlobalSetting
     {
+        public static int UnityThreadId;
+        
         public enum YayaMode
         {
             冲,

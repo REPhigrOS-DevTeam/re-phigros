@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using E7.Native;
 using MainCore.Common;
+using MainCore.Utilities;
 #if USE_MA_AUDIO
 using MaTech.Audio;
 #endif
@@ -174,19 +175,15 @@ namespace MainCore
         }
 #endif
 
-        public async void RefreshHitSounds(Skin skin)
+        public void RefreshHitSounds(Skin skin)
         {
             Resources.UnloadUnusedAssets();
-            string id = skin.ToString();
-            if (!Resources.Load<AudioClip>($"SFX/{id}/click")) id = Skin.Official.ToString();
-            AudioClip click = Resources.Load<AudioClip>($"SFX/{id}/click");
-            AudioClip drag = Resources.Load<AudioClip>($"SFX/{id}/drag");
-            AudioClip flick = Resources.Load<AudioClip>($"SFX/{id}/flick");
+            SkinInfo skinInfo = HitEffectManager.GetSkinInfo(skin);
             hitSounds[0] = null;
-            hitSounds[1] = click;
-            hitSounds[2] = drag;
-            hitSounds[3] = click;
-            hitSounds[4] = flick;
+            hitSounds[1] = skinInfo.clickAC;
+            hitSounds[2] = skinInfo.dragAC;
+            hitSounds[3] = skinInfo.clickAC;
+            hitSounds[4] = skinInfo.flickAC;
 #if USE_MA_AUDIO
             await RefreshMaAudio();
 #elif (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO

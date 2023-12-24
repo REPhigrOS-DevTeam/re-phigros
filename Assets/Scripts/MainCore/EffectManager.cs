@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using DG.Tweening;
 using MainCore;
 using MainCore.ECS_ver;
 using UnityEngine;
@@ -11,7 +12,9 @@ public class EffectManager : MonoBehaviour
     public SpriteRenderer sr;
     [SerializeField] private Color color;
     [SerializeField] private int cnt;
-    public Animator animator;
+    public Coroutine AnimationCoroutine;
+    private Skin skin;
+    private Sprite[] hitFx;
 
     public Coroutine RecycleCoroutine = null;
 
@@ -29,28 +32,47 @@ public class EffectManager : MonoBehaviour
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
+        hitFx = HitEffectManager.GetSkinInfo(skin).hitFx;
         RecycleCoroutine = StartCoroutine(RecycleObj());
     }
 
     public void PlayParticle()
     {
         EffectSystemManager.Instance.CreateParticle(cnt, color, transform.position, scale);
+        StopEffect();
+        AnimationCoroutine = StartCoroutine(PlayEffect());
     }
 
     private IEnumerator RecycleObj()
     {
         yield return new WaitForSeconds(0.49f);
-        animator.Play("NoteEffect", 0, 0f);
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
     public void ForceRecycle()
     {
         StopCoroutine(RecycleCoroutine);
-        animator.Play("NoteEffect", 0, 0f);
+        // AnimationCoroutine = StartCoroutine(PlayEffect());
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
+    private static readonly WaitForSeconds Frame60 = new WaitForSeconds(1 / 60f);
+
+    private IEnumerator PlayEffect()
+    {
+        if (hitFx == null) yield break;
+        foreach (var sprite in hitFx)
+        {
+            sr.sprite = sprite;
+            yield return Frame60;
+        }
+    }
+    
+    public void StopEffect()
+    {
+        if (AnimationCoroutine != null) StopCoroutine(AnimationCoroutine);
+    }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float GetFactor(Skin skin)
     {
@@ -60,7 +82,6 @@ public class EffectManager : MonoBehaviour
             Skin.OldOfficial => 0.16f,
             Skin.Sacabam => 0.25f,
             Skin.StarPinkXz => 0.16f,
-            Skin.Ppy => 0.16f,
             _ => throw new ArgumentOutOfRangeException()
         };
     }

@@ -6,6 +6,7 @@ using MainCore.Common;
 using MainCore.Utilities;
 using Network;
 using Network.Multiplayer.Managers;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -19,16 +20,19 @@ namespace MainCore.UI
         [SerializeField] private GameObject inGameDebugConsolePrefab;
         [SerializeField] private VideoPlayer splashPlayer;
         [SerializeField] private GameObject splashCanvas, splashBgCanvas;
-        
+
         private bool clicked = false;
         private bool prepared = false;
         private bool inited = false;
-        
+
         private CancellationTokenSource cts = new CancellationTokenSource();
+
+        public AnimatorController animator;
 
         private void Awake()
         {
             GlobalSetting.OriginResolution = Screen.currentResolution;
+            GlobalSetting.UnityThreadId = Thread.CurrentThread.ManagedThreadId;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
             Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
@@ -81,7 +85,7 @@ namespace MainCore.UI
 
         private async void InitVideo(CancellationToken cancellationToken)
         {
-            await UniTask.WaitUntil(() => prepared, cancellationToken:cancellationToken);
+            await UniTask.WaitUntil(() => prepared, cancellationToken: cancellationToken);
             splashPlayer.time = 0f;
             splashPlayer.Play();
         }
@@ -94,12 +98,14 @@ namespace MainCore.UI
                 {
                     cts.Cancel();
                 }
+
                 splashPlayer.Stop();
                 splashCanvas.SetActive(false);
                 splashBgCanvas.SetActive(false);
                 inited = true;
                 return;
             }
+
             if (clicked || !inited || !Input.GetMouseButtonUp(0)) return;
             LoadIn();
             // StartCoroutine(CountDown());
@@ -140,24 +146,7 @@ namespace MainCore.UI
             }
 
 //#endif
-#if !RELEASE_VERSION && !UNITY_EDITOR
-            GlobalSetting.username = "development";
-            GlobalSetting.verifyToken = "";
-            if (!PlayerPrefs.HasKey("first_start"))
-            {
-                PlayerPrefs.SetInt("first_start", 1);
-                PlayerPrefs.Save();
-                SceneTransit.Instance.AppendScene("MainScene");
-                SceneTransit.Instance.AppendScene("SettingsScene");
-                SceneTransit.Instance.LoadScene("DSPScene");
-            }
-            else
-            {
-                SceneTransit.Instance.JumpScene("MainScene");
-            }
-#else
             if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
-#endif
         }
     }
 }

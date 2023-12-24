@@ -17,7 +17,7 @@ public static class InGameUIManager
     /// /// <param name="confirmtext">确认按钮的text</param>
     /// <param name="cancelAction">取消后的行动</param>
     /// <param name="canceltext">取消按钮的text</param>
-    public static void ShowModalWindow(string title, string content, Action confirmAction,
+    public static void ShowModalWindow(string title, string content, Action confirmAction = null,
         string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
         Action alternateAction = null, string alternatetext = "Alternate")
     {

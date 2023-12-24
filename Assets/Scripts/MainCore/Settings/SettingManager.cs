@@ -57,7 +57,7 @@ namespace MainCore.Settings
             // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
             OnSkinChanged(skinDropdown.value);
 #if !RELEASE_VERSION || UNITY_EDITOR
-            skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼", "Pepoyo?" });
+            skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼" });
 #endif
         }
 

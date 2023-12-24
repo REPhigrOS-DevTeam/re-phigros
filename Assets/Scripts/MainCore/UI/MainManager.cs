@@ -64,11 +64,7 @@ namespace MainCore.UI
             editCharacter.interactable = false;
             editCharacter.transform.Find("Mask").Find("Icon").gameObject.GetComponent<Image>().SetAlpha(0.5f);
 #endif
-#if !RELEASE_VERSION && !UNITY_EDITOR
-            multiPlay.interactable = false;
-#else
             multiPlay.interactable = true;
-#endif
         }
 
 

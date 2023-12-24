@@ -1,5 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using DG.Tweening;
+using MainCore.Utilities;
+using UnityEditor.Animations;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MainCore
 {
@@ -8,17 +13,16 @@ namespace MainCore
         private const int MaxEffectCount = 500;
         private static HitEffectManager instance;
 
-        private Dictionary<string, List<EffectManager>> objectsInUse;
+        private Dictionary<string, List<EffectManager>> objectsInUse = new();
 
-        private Dictionary<string, List<EffectManager>> pool;
+        private Dictionary<string, List<EffectManager>> pool = new();
 
-        private Dictionary<string, EffectManager> prefabs;
+        private Dictionary<string, EffectManager> prefabs = new();
+
+        private static SkinInfo[] skinInfos = new SkinInfo[Enum.GetValues(typeof(Skin)).Length];
 
         private HitEffectManager()
         {
-            pool = new Dictionary<string, List<EffectManager>>();
-            prefabs = new Dictionary<string, EffectManager>();
-            objectsInUse = new();
         }
 
         public static HitEffectManager GetInstance()
@@ -56,7 +60,6 @@ namespace MainCore
                     //获取结果
                     result = pool[objName][0];
                     //激活动画
-                    result.animator.enabled = true;
                     result.sr.enabled = true;
                     //从池中移除该对象
                     pool[objName].Remove(result);
@@ -77,7 +80,7 @@ namespace MainCore
             else //如果没有加载过该预设体
             {
                 //加载预设体
-                prefab = Resources.Load<EffectManager>("HitFX/" + objName);
+                prefab = Resources.Load<EffectManager>($"HitFX/clickRaw_{judgeType}");
                 //更新字典
                 prefabs.Add(objName, prefab);
                 objectsInUse.Add(objName, new List<EffectManager>());
@@ -98,7 +101,7 @@ namespace MainCore
         public void RecycleObj(EffectManager obj)
         {
             //设置动画为非激活
-            obj.animator.enabled = false;
+            obj.StopEffect();
             obj.transform.position = new Vector3(1000, 1000, 0);
             obj.sr.enabled = false;
             //判断是否有该对象的对象池
@@ -121,6 +124,19 @@ namespace MainCore
             objectsInUse.Clear();
             prefabs.Clear();
         }
+
+        public static SkinInfo GetSkinInfo(Skin skin)
+        {
+            if (skinInfos != null && skinInfos[(int) skin] != null) return skinInfos[(int) skin];
+            SkinInfo loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
+            if (loadSkinInfo)
+            {
+                skinInfos[(int) skin] = loadSkinInfo;
+                return loadSkinInfo;
+            }
+
+            throw new ArgumentException();
+        }
     }
 
     public enum HitFxJudgeType
@@ -135,7 +151,6 @@ namespace MainCore
         StarPinkXz,
         OldOfficial,
         Phira,
-        Sacabam,
-        Ppy
+        Sacabam
     }
 }

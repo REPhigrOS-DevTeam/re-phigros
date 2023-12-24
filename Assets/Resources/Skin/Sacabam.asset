@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74c3a02825fe46aeb80a09a60b9d2780, type: 3}
+  m_Name: Sacabam
+  m_EditorClassIdentifier: 
+  click: {fileID: 0}
+  clickMh: {fileID: 0}
+  drag: {fileID: 0}
+  dragMh: {fileID: 0}
+  flick: {fileID: 0}
+  flickMh: {fileID: 0}
+  holdHead: {fileID: 0}
+  holdHeadMh: {fileID: 0}
+  holdBody: {fileID: 0}
+  holdBodyMh: {fileID: 0}
+  holdEnd: {fileID: 0}
+  holdEndMh: {fileID: 0}
+  click_bad: {fileID: 0}
+  hitFx:
+  - {fileID: -760386039, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1047950793, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -2069558244, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 503591675, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1076368157, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1374199670, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 818770813, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -35065994, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1267550919, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 1114207997, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 580981862, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -244897753, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 1537985094, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 752037095, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 1537985094, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 752037095, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -44049218, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 723686217, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 525379572, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 1058192742, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -576386276, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 326354278, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1307053160, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 1400716217, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1479708999, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -915565582, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1582098415, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: 491369769, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1975121839, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  - {fileID: -1375902508, guid: 439f859634be8fc4483681097a545e01, type: 3}
+  hitParticle: {fileID: 21300000, guid: d6c034779a9f09a4da83d67d5aef2859, type: 3}
+  clickAC: {fileID: 8300000, guid: f96fd9fe71d1a1d4e984935aa8caffb5, type: 3}
+  dragAC: {fileID: 8300000, guid: 623cd11fa4d3b224ba59a2798cfbffec, type: 3}
+  flickAC: {fileID: 8300000, guid: abadfa0f11d2c2e49acb72e5b122ce73, type: 3}

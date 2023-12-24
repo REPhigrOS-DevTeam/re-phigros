@@ -185,8 +185,7 @@ namespace MainCore
             var localPosition = new Vector3(cachedlocalPosition.x,
                 0, cachedlocalPosition.z);
             cachedTransform.localPosition = localPosition;
-            holdEffect = HitEffectManager.GetInstance()
-                .GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
+            holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
             holdEffect.transform.position = cachedTransform.position;
             holdEffect.PlayParticle();
             cachedTransform.localPosition = cachedlocalPosition;

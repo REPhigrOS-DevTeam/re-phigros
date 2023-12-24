@@ -45,8 +45,7 @@ public class MPServerTest : MonoBehaviour
 
     public GameObject loginObj, createRoomObj;
 
-    private static int? unityThreadId;
-    private bool IsFromUnityThread => unityThreadId == null || unityThreadId == Thread.CurrentThread.ManagedThreadId;
+    private bool IsFromUnityThread => GlobalSetting.UnityThreadId == Thread.CurrentThread.ManagedThreadId;
 
     public GameObject sendMask, downloadMask, uploadMask;
 
@@ -60,7 +59,6 @@ public class MPServerTest : MonoBehaviour
 
     private void Awake()
     {
-        unityThreadId = Thread.CurrentThread.ManagedThreadId;
         // ZipConstants.DefaultCodePage = 65001; // UTF-8
         buttonToState = new()
         {
@@ -137,7 +135,10 @@ public class MPServerTest : MonoBehaviour
                 int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]),
                     SongType.rep, (await GameUtils.GetSongInfo(paths[0])).Item1);
                 if (state == 0) return;
-                ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
+                if (state == -4)
+                    ChatManager.AddMessage("Server", "上传时遇到未知错误", MessageType.Error);
+                else
+                    ChatManager.AddMessage("Server", generalErrorMessages[-state - 1], MessageType.Error);
             }
 
             uploadMask.SetActive(true);
@@ -270,9 +271,10 @@ public class MPServerTest : MonoBehaviour
                 MessageType.Room);
         OnUpdateSongReceived(id, type, JObject.FromObject(info));
         if (!SocketManager.IsOwner) return;
+        
         bDownloadSong.interactable = false;
         OwnerOperation();
-
+        ChatManager.AddMessage("downloadSucceeded", $"正在处理..." + id, MessageType.Server);
         async void OwnerOperation()
         {
             if (await MoveSong())

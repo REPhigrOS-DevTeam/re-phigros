@@ -44,7 +44,7 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
     /// /// <param name="confirmtext">确认按钮的text</param>
     /// <param name="cancelAction">取消后的行动</param>
     /// <param name="canceltext">取消按钮的text</param>
-    public void Show(string title, string content, Action confirmAction, string confirmtext = "Confirm",
+    public void Show(string title, string content, Action confirmAction = null, string confirmtext = "Confirm",
         Action cancelAction = null, string canceltext = "Cancel", Action alternateAction = null,
         string alternatetext = "Alternate")
     {
@@ -58,8 +58,14 @@ public class InGameModalWindow : MonoSingleton<InGameModalWindow>
         bodyText.text = content;
 
         confirm = confirmAction;
-        confirmButton.onClick.AddListener(confirmClicked);
-        confirmText.text = confirmtext;
+        if (confirmAction != null)
+        {
+            confirmButton.gameObject.SetActive(true);
+            confirmButton.onClick.AddListener(confirmClicked);
+            confirmText.text = confirmtext;
+        }
+        else
+            confirmButton.gameObject.SetActive(false);
 
         cancel = cancelAction;
         if (cancelAction != null)

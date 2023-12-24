@@ -41,7 +41,16 @@ namespace Network.Chart
             content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
             content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
             content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
-            string responseStr = await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content);
+            string responseStr;
+            try
+            {
+                responseStr = await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content);
+            }
+            catch (Exception e)
+            {
+                Util.DisplayException(e);
+                throw;
+            }
             try
             {
                 JObject response = JObject.Parse(responseStr);

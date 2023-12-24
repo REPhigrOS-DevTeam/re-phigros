@@ -351,6 +351,13 @@ namespace MainCore.Utilities
             return arr.Any(t => i == t);
         }
 
+        public static async void DisplayException(Exception exception)
+        {
+            InGameUIManager.ShowModalWindow("错误", exception.Message + "\n" + exception.StackTrace, confirmtext:"确定");
+            await UniTask.Delay(1000);
+            InGameUIManager.HideModalWindow();
+        }
+
         public static void DisplayNetworkException(string original)
         {
             Debug.LogError(original);

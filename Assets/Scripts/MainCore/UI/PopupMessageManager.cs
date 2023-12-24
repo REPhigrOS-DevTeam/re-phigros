@@ -7,8 +7,6 @@ namespace MainCore.UI
 {
     public class PopupMessageManager : MonoSingleton<PopupMessageManager>
     {
-        private static int unityThread;
-
         [SerializeField] private Animation animation;
         [SerializeField] private Text content;
         private string animWaitToPlay = "";
@@ -16,13 +14,7 @@ namespace MainCore.UI
 
         private string popupMessage = "";
 
-        private bool OnUnityThread => Thread.CurrentThread.ManagedThreadId == unityThread;
-
-        // Start is called before the first frame update
-        protected override void OnAwake()
-        {
-            unityThread = Thread.CurrentThread.ManagedThreadId;
-        }
+        private bool OnUnityThread => Thread.CurrentThread.ManagedThreadId == GlobalSetting.UnityThreadId;
 
         void Update()
         {
