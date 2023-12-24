@@ -54,7 +54,7 @@ namespace Network.Chart
             }
             catch (JsonReaderException)
             {
-                Debug.LogError("Error String:\n" + responseStr);
+                Util.DisplayNetworkException(responseStr);
             }
 
             Debug.LogError($"上传谱面{filePath}失败");

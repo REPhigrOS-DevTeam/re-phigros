@@ -349,6 +349,14 @@ namespace MainCore.Utilities
         public static bool Contains(this int[] arr, int i)
         {
             return arr.Any(t => i == t);
-        } 
+        }
+
+        public static void DisplayNetworkException(string original)
+        {
+            Debug.LogError(original);
+            int lastIndexOf = original.LastIndexOf('{');
+            if (lastIndexOf != -1) original = original.Substring(0, lastIndexOf);
+            InGameUIManager.ShowModalWindowWithClose("错误", original, () => { }, "确定");
+        }
     }
 }
