@@ -1,4 +1,5 @@
 ﻿using System;
+using MainCore.Utilities;
 using UnityEngine;
 
 namespace MainCore
@@ -20,6 +21,8 @@ namespace MainCore
         private float holdRealLength = 0;
 
         private float releaseCounter = 0f;
+
+        private float holdBodyUnit;
 
         public override void OnStart()
         {
@@ -51,8 +54,15 @@ namespace MainCore
                 holdRenders[2].sprite = NormalSprites[2];
             }
 
+            if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+            {
+                holdRenders[1].drawMode = SpriteDrawMode.Tiled;
+                holdRenders[1].tileMode = SpriteTileMode.Continuous;
+            }
+
             holdOriginLength = (parentLine.CalculateNoteHeight(Note.time + Note.holdTime) -
                                 parentLine.CalculateNoteHeight(Note.time));
+            holdBodyUnit = holdRenders[1].sprite.rect.height / holdRenders[1].sprite.pixelsPerUnit;
 
             cachedTransform = transform;
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
@@ -151,6 +161,15 @@ namespace MainCore
             }
         }
 
+        public override void UpdateNoteSkin(SkinInfo skinInfo, int type)
+        {
+            base.UpdateNoteSkin(skinInfo, type);
+            NormalSprites[1] = skinInfo.holdBody;
+            NormalSprites[2] = skinInfo.holdEnd;
+            HLspriteHoldBody = skinInfo.holdBodyMh;
+            HLspriteHoldEnd = skinInfo.holdEndMh;
+        }
+
         protected override void OtherWorksOnUpdate()
         {
             HoldLengthReset();
@@ -196,6 +215,7 @@ namespace MainCore
                 {
                     holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
                     holdEffect.transform.position = cachedTransform.position;
+                    holdEffect.PlayEffect();
                     holdEffect.PlayParticle();
                     holdEffectCnt = 0;
                 }
@@ -244,12 +264,20 @@ namespace MainCore
             {
                 var clampedLength = Math.Max(0, parentLine.CalculateNoteHeight(Note.time + Note.holdTime));
                 //holdRealLength = (float) (.3f * Note.speed * clampedLength * speedFactor / 6.75f);
+                // if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+                // {
+                //     holdRenders[1].size = new Vector2(holdRenders[1].size.x, clampedLength * holdBodyUnit);
+                // }
                 holdRealLength = (float) (Note.speed * clampedLength * parentLine.SpeedFactor / holdLengthFactor);
                 holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
                 holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);
             }
             else
             {
+                // if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+                // {
+                //     holdRenders[1].size = new Vector2(holdRenders[1].size.x, holdOriginLength * holdBodyUnit);
+                // }
                 holdRealLength = (float) (Note.speed * holdOriginLength * parentLine.SpeedFactor / holdLengthFactor);
                 holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
                 holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);

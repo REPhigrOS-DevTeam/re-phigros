@@ -94,3 +94,13 @@ MonoBehaviour:
   clickAC: {fileID: 8300000, guid: f96fd9fe71d1a1d4e984935aa8caffb5, type: 3}
   dragAC: {fileID: 8300000, guid: 623cd11fa4d3b224ba59a2798cfbffec, type: 3}
   flickAC: {fileID: 8300000, guid: abadfa0f11d2c2e49acb72e5b122ce73, type: 3}
+  paintBadColor: 1
+  perfectColor: {r: 0, g: 0, b: 0, a: 0}
+  goodColor: {r: 0, g: 0, b: 0, a: 0}
+  hitFxDuration: 0
+  hitFxScale: 0
+  hitFxRotate: 0
+  hitFxTinted: 0
+  hideParticles: 0
+  holdKeepHead: 0
+  holdRepeat: 1

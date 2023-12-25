@@ -178,7 +178,7 @@ namespace MainCore
         public void RefreshHitSounds(Skin skin)
         {
             Resources.UnloadUnusedAssets();
-            SkinInfo skinInfo = HitEffectManager.GetSkinInfo(skin);
+            SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
             hitSounds[0] = null;
             hitSounds[1] = skinInfo.clickAC;
             hitSounds[2] = skinInfo.dragAC;

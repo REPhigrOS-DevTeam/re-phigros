@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using DG.Tweening;
@@ -36,11 +37,15 @@ public class EffectManager : MonoBehaviour
         RecycleCoroutine = StartCoroutine(RecycleObj());
     }
 
+    public void PlayEffect()
+    {
+        StopEffect();
+        AnimationCoroutine = StartCoroutine(PlayEffectE());
+    }
+
     public void PlayParticle()
     {
         EffectSystemManager.Instance.CreateParticle(cnt, color, transform.position, scale);
-        StopEffect();
-        AnimationCoroutine = StartCoroutine(PlayEffect());
     }
 
     private IEnumerator RecycleObj()
@@ -52,20 +57,20 @@ public class EffectManager : MonoBehaviour
     public void ForceRecycle()
     {
         StopCoroutine(RecycleCoroutine);
-        // AnimationCoroutine = StartCoroutine(PlayEffect());
         HitEffectManager.GetInstance().RecycleObj(this);
     }
-
-    private static readonly WaitForSeconds Frame60 = new WaitForSeconds(1 / 60f);
-
-    private IEnumerator PlayEffect()
+    private IEnumerator PlayEffectE()
     {
         if (hitFx == null) yield break;
-        foreach (var sprite in hitFx)
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+        float timer;
+        while ((timer = stopwatch.ElapsedMilliseconds / 1000f * 120f) < hitFx.Length)
         {
-            sr.sprite = sprite;
-            yield return Frame60;
+            sr.sprite = hitFx[(int) timer];
+            yield return null;
         }
+        sr.sprite = hitFx[^1];
     }
     
     public void StopEffect()

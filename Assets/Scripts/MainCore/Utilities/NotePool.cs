@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MainCore.Utilities
 {
@@ -63,7 +65,15 @@ namespace MainCore.Utilities
             else //如果没有加载过该预设体
             {
                 //加载预设体
-                prefab = Resources.Load<NoteMovement>("Notes/" + GlobalSetting.Skin + "/" + objName);
+                prefab = Resources.Load<NoteMovement>("Notes/" + objName);
+                prefab.UpdateNoteSkin(GlobalSetting.CurrentSkinInfo, objName switch
+                {
+                    "Tap" => 0,
+                    "Drag" => 1,
+                    "Flick" => 2,
+                    "Hold" => 3,
+                    _ => throw new ArgumentException()
+                });
                 //更新字典
                 prefabs.Add(objName, prefab);
             }

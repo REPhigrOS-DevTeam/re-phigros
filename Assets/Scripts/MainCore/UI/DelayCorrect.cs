@@ -35,6 +35,7 @@ namespace MainCore.UI
             {
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skin);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
+                effectManager.PlayEffect();
                 effectManager.PlayParticle();
             }
             sfx = GetComponent<AudioSource>();
@@ -65,6 +66,7 @@ namespace MainCore.UI
                 //hitFxObj = ObjectPool.GetInstance().GetObj($"HitFX/clickRaw_{HitEffectManager.HitFxType}_{HitFxJudgeType.Perfect}");
                 hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.Skin);
                 hitFxObj.transform.position = tapTransform.position;
+                hitFxObj.PlayEffect();
                 hitFxObj.PlayParticle();
                 played = true;
                 StartCoroutine(ReleaseCondition());

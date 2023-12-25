@@ -66,6 +66,7 @@ namespace MainCore.Common
             switch (type)
             {
                 case 0:
+                    OnSceneClosing.Invoke();
                     SceneManager.LoadScene(sceneName); // 直入
                     break;
                 case 1:
@@ -88,6 +89,7 @@ namespace MainCore.Common
             switch (type)
             {
                 case 0:
+                    OnSceneClosing.Invoke();
                     SceneManager.LoadScene(sceneName); // 直入
                     break;
                 case 1:
@@ -207,6 +209,7 @@ namespace MainCore.Common
 
             DOTween.KillAll();
             yield return null;
+            OnSceneClosing.Invoke();
             SceneManager.LoadScene(SceneName);
             yield return null;
             timer = 0;

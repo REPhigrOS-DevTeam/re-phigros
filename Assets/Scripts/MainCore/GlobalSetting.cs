@@ -35,7 +35,7 @@ namespace MainCore
     public static class GlobalSetting
     {
         public static int UnityThreadId;
-        
+
         public enum YayaMode
         {
             冲,
@@ -132,7 +132,30 @@ namespace MainCore
             }
         }
 
-        public static Skin Skin = Skin.StarPinkXz;
+        public static bool IsExternalSkin = false;
+        private static Skin skin = Skin.Official;
+        private static string externalSkinName;
+
+        public static string ExternalSkinName
+        {
+            get => externalSkinName;
+            set
+            {
+                externalSkinName = value;
+                if (IsExternalSkin); // TODO: 外置读取
+            }
+        }
+        public static Skin Skin
+        {
+            get => skin;
+            set
+            {
+                skin = value;
+                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetSkinInfo(skin);
+            }
+        }
+
+        public static SkinInfo CurrentSkinInfo;
 
         public static bool useCourseMode = false;
 
@@ -190,12 +213,15 @@ namespace MainCore
             userOffset =
                 PlayerPrefs.GetFloat("chart_offset", 0) /
                 1000f; //int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
-            autoPlay = PlayerPrefsExtension.GetBoolean("auto_play", false); //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
-            isMirror = PlayerPrefsExtension.GetBoolean("mirror", false); //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
+            autoPlay = PlayerPrefsExtension.GetBoolean("auto_play",
+                false); //GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
+            isMirror = PlayerPrefsExtension.GetBoolean("mirror",
+                false); //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
             disableBlur = PlayerPrefsExtension.GetBoolean("blur", false);
             is3D = false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
             postProcessing =
-                PlayerPrefsExtension.GetBoolean("post_processing", false); //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
+                PlayerPrefsExtension.GetBoolean("post_processing",
+                    false); //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
             globalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
             recordMode = PlayerPrefsExtension.GetBoolean("record_mode", false);
             hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);

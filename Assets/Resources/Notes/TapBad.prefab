@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7715766112660072987
+--- !u!1 &4076665199218670655
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,23 +8,24 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 30365902705091754}
-  - component: {fileID: 6386660164370352617}
-  - component: {fileID: -4087204692664548766}
+  - component: {fileID: 4076665199218670627}
+  - component: {fileID: 4076665199218670652}
+  - component: {fileID: 4076665199218670653}
+  - component: {fileID: 4076665199218670654}
   m_Layer: 0
-  m_Name: Drag
+  m_Name: TapBad
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &30365902705091754
+--- !u!4 &4076665199218670627
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7715766112660072987}
+  m_GameObject: {fileID: 4076665199218670655}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -33,13 +34,13 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &6386660164370352617
+--- !u!212 &4076665199218670652
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7715766112660072987}
+  m_GameObject: {fileID: 4076665199218670655}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -53,7 +54,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 04010825d9e5d494f935b3802a6321a9, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -73,53 +74,44 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1783593901
   m_SortingLayer: 2
-  m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: adae156471ab212469ebc9fd55731819, type: 3}
+  m_SortingOrder: 8
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 7.94, y: 0.4}
+  m_Size: {x: 8.6, y: 1.4}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 1
   m_SpriteSortPoint: 0
---- !u!114 &-4087204692664548766
+--- !u!111 &4076665199218670653
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4076665199218670655}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: da1d3d1d7de0d2e4f98d336efc38d312, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: e1745075e804ce6489d25c115744f2fc, type: 2}
+  - {fileID: 7400000, guid: da1d3d1d7de0d2e4f98d336efc38d312, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0
+--- !u!114 &4076665199218670654
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7715766112660072987}
+  m_GameObject: {fileID: 4076665199218670655}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 553be043b287871419f78a1d0bff0758, type: 3}
+  m_Script: {fileID: 11500000, guid: c10b347cf5e1f454d962e59216a08ea5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notetype: -1
-  Note:
-    type: 0
-    time: 0
-    positionX: 0
-    holdTime: 0
-    speed: 0
-    floorPosition: 0
-    isAbove: 0
-    isFake: 0
-    yOffset: 0
-    visibleTime: 99999
-    size: 1
-    alpha: 1
-    isMulti: 0
-  isAbove: 0
-  NormalSprites:
-  - {fileID: 21300000, guid: 125ddeb138b80d749a669211ef9c7581, type: 3}
-  HLsprite: {fileID: 21300000, guid: b26fec6b000a99a41bc181f7fd074770, type: 3}
-  destroyed: 0
-  badTap: {fileID: 0}
-  status: 4
-  originalSize: {x: 0, y: 0, z: 0}
-  thisRenderer: {fileID: 6386660164370352617}
-  cachedTransform: {fileID: 30365902705091754}
-  parentLine: {fileID: 0}

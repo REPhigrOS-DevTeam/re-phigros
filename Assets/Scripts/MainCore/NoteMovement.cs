@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
@@ -25,6 +26,8 @@ namespace MainCore
         protected EffectManager holdEffect;
         protected Color[] lastColors = new Color[3];
         protected Color[] temporaryColors = new Color[3];
+        private Sprite badTapSprite;
+        private bool paintBad;
 
         public virtual void OnStart()
         {
@@ -100,6 +103,28 @@ namespace MainCore
                 parentLine.NotesCanBeUpdated.Remove(this);
                 NotePool.GetInstance().RecycleObj(this);
             }
+        }
+
+        public virtual void UpdateNoteSkin(SkinInfo skinInfo, int type)
+        {
+            NormalSprites[0] = type switch
+            {
+                0 => skinInfo.click,
+                1 => skinInfo.drag,
+                2 => skinInfo.flick,
+                3 => skinInfo.holdHead,
+                _ => throw new ArgumentException()
+            };
+            HLsprite = type switch
+            {
+                0 => skinInfo.clickMh,
+                1 => skinInfo.dragMh,
+                2 => skinInfo.flickMh,
+                3 => skinInfo.holdHeadMh,
+                _ => throw new ArgumentException()
+            };
+            badTapSprite = skinInfo.click_bad;
+            paintBad = skinInfo.paintBadColor;
         }
 
         protected virtual void OtherWorksOnUpdate()
@@ -188,6 +213,7 @@ namespace MainCore
             holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
             holdEffect.transform.position = cachedTransform.position;
             holdEffect.PlayParticle();
+            holdEffect.PlayEffect();
             cachedTransform.localPosition = cachedlocalPosition;
             temporaryColors[0] = Color.clear;
         }
@@ -204,8 +230,11 @@ namespace MainCore
                 {
                     status = NoteStat.Bad;
                     GlobalSetting.scoreCounter.Add(NoteStat.Bad);
-                    Instantiate(badTap, cachedTransform.position, cachedTransform.rotation).transform.localScale =
-                        cachedTransform.lossyScale;
+                    GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
+                    badTapInstance.transform.localScale = cachedTransform.lossyScale;
+                    var spriteRenderer = badTapInstance.GetComponent<SpriteRenderer>();
+                    spriteRenderer.color = paintBad ? new Color(108f / 255f, 67f / 255f, 67f / 255f) : Color.white;
+                    spriteRenderer.sprite = badTapSprite;
                 }
                 else if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                 {
