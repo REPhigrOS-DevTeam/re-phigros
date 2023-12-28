@@ -42,7 +42,7 @@ namespace MainCore
         [NonSerialized] public List<float> PositionX = new List<float>(20);
         [NonSerialized] public List<note> ProcessingNotes = new();
         private NativeArray<float3> sizeArray;
-        private SpriteRenderer sr;
+        private SpriteRenderer sr, sr2;
 
         //Public fields
         [NonSerialized] public Vector3 TargetScale = new Vector3(10, 3, 1);
@@ -87,6 +87,7 @@ namespace MainCore
             {
                 sr.color = Color.clear;
                 sr.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
+                sr2.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
                 return;
             }
             
@@ -125,6 +126,7 @@ namespace MainCore
             mainCamera = Camera.main;
 
             sr = gameObject.GetComponent<SpriteRenderer>();
+            sr2 = gameObject.transform.parent.Find("Mask").gameObject.GetComponent<SpriteRenderer>();
 
             if (Line.useImage)
             {

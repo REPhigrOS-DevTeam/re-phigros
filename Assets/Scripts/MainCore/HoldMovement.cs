@@ -8,7 +8,7 @@ namespace MainCore
     {
         public Sprite HLspriteHoldBody;
         public Sprite HLspriteHoldEnd;
-        public SpriteRenderer[] holdRenders = new SpriteRenderer[3];
+        public SpriteRenderer[] holdRenders = new SpriteRenderer[4];
         public Transform[] holdParts = new Transform[3];
         private bool holdCatched = false;
         private float holdEffectCnt = 0.2f;
@@ -23,6 +23,8 @@ namespace MainCore
         private float releaseCounter = 0f;
 
         private float holdBodyUnit;
+
+        private int spriteId = 0;
 
         public override void OnStart()
         {
@@ -44,25 +46,42 @@ namespace MainCore
             if (Note.isMulti)
             {
                 holdRenders[0].sprite = HLsprite;
-                holdRenders[1].sprite = HLspriteHoldBody;
+                holdRenders[1].sprite = Instantiate(HLspriteHoldBody);
                 holdRenders[2].sprite = HLspriteHoldEnd;
             }
             else
             {
                 holdRenders[0].sprite = NormalSprites[0];
-                holdRenders[1].sprite = NormalSprites[1];
+                holdRenders[1].sprite = Instantiate(NormalSprites[1]);
                 holdRenders[2].sprite = NormalSprites[2];
-            }
-
-            if (GlobalSetting.CurrentSkinInfo.holdRepeat)
-            {
-                holdRenders[1].drawMode = SpriteDrawMode.Tiled;
-                holdRenders[1].tileMode = SpriteTileMode.Continuous;
             }
 
             holdOriginLength = (parentLine.CalculateNoteHeight(Note.time + Note.holdTime) -
                                 parentLine.CalculateNoteHeight(Note.time));
-            holdBodyUnit = holdRenders[1].sprite.rect.height / holdRenders[1].sprite.pixelsPerUnit;
+            holdBodyUnit = holdRenders[1].sprite.rect.width / holdRenders[1].sprite.pixelsPerUnit;
+            
+            if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+            {
+                holdRenders[1].drawMode = SpriteDrawMode.Tiled;
+                holdRenders[1].tileMode = SpriteTileMode.Continuous;
+                float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
+                holdRenders[1].size = new Vector2(holdBodyUnit, (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.globalNoteScale);
+                // holdRenders[3].sprite = Instantiate(holdRenders[1].sprite);
+                // holdRenders[3].drawMode = SpriteDrawMode.Tiled;
+                // holdRenders[3].tileMode = SpriteTileMode.Continuous;
+                // holdRenders[3].gameObject.transform.localPosition = new Vector3(0f, 1000f, 0f);
+                // holdRenders[3].size = new Vector2(holdBodyUnit, 1000f);
+                // SpriteMask spriteMask = holdRenders[3].gameObject.GetComponent<SpriteMask>();
+                // spriteMask.enabled = true;
+                // spriteMask.sprite = holdRenders[3].sprite;
+                // spriteMask.sortingLayerID = 1783593901; // Notes
+                // spriteMask.sortingOrder = spriteId;
+            }
+            // else
+            // {
+            //     holdRenders[3].sprite = null;
+            //     holdRenders[3].gameObject.GetComponent<SpriteMask>().enabled = false;
+            // }
 
             cachedTransform = transform;
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
@@ -71,6 +90,11 @@ namespace MainCore
             holdParts[0].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
             holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
             holdParts[2].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
+        }
+
+        public void GiveSortId(int id)
+        {
+            spriteId = id;
         }
 
 
@@ -260,27 +284,39 @@ namespace MainCore
 
         private void HoldLengthReset()
         {
+            float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
+            float nowLength = (float) (Note.speed * Math.Max(0, parentLine.CalculateNoteHeight(Note.time + Note.holdTime)) * parentLine.SpeedFactor);
             if (Note.time <= parentLine.PgrTime)
             {
-                var clampedLength = Math.Max(0, parentLine.CalculateNoteHeight(Note.time + Note.holdTime));
-                //holdRealLength = (float) (.3f * Note.speed * clampedLength * speedFactor / 6.75f);
-                // if (GlobalSetting.CurrentSkinInfo.holdRepeat)
-                // {
-                //     holdRenders[1].size = new Vector2(holdRenders[1].size.x, clampedLength * holdBodyUnit);
-                // }
-                holdRealLength = (float) (Note.speed * clampedLength * parentLine.SpeedFactor / holdLengthFactor);
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
-                holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);
+                holdRealLength = nowLength;
+                if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+                {
+                    holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength <= 0 ? 0f : GlobalSetting.globalNoteScale, 1.0f);
+                }
+                else
+                {
+                    holdRenders[1].size = new Vector2(holdBodyUnit, holdLengthFactor);
+                    holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
+                }
+
+                holdParts[1].localPosition = new Vector3(0, holdRealLength, 0);
+                holdParts[2].localPosition = new Vector3(0, holdRealLength, 0);
             }
             else
             {
-                // if (GlobalSetting.CurrentSkinInfo.holdRepeat)
-                // {
-                //     holdRenders[1].size = new Vector2(holdRenders[1].size.x, holdOriginLength * holdBodyUnit);
-                // }
-                holdRealLength = (float) (Note.speed * holdOriginLength * parentLine.SpeedFactor / holdLengthFactor);
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
-                holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);
+                holdRealLength = originalLength;
+                if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+                {
+                    holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength <= 0 ? 0f : GlobalSetting.globalNoteScale, 1.0f);
+                }
+                else
+                {
+                    holdRenders[1].size = new Vector2(holdBodyUnit, holdLengthFactor);
+                    holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
+                }
+                holdParts[2].localPosition = new Vector3(0, holdRealLength, 0);
+                holdParts[1].localPosition = new Vector3(0, holdRealLength, 0);
+                holdParts[2].localPosition = new Vector3(0, holdRealLength, 0);
             }
         }
 

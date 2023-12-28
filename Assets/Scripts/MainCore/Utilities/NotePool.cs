@@ -18,6 +18,7 @@ namespace MainCore.Utilities
         {
             pool = new Dictionary<string, List<NoteMovement>>();
             prefabs = new Dictionary<string, NoteMovement>();
+            uniqueHoldId = -1;
         }
 
         public static NotePool GetInstance()
@@ -83,9 +84,16 @@ namespace MainCore.Utilities
             //改名（去除 Clone）
             result.name = objName;
             result.gameObject.SetActive(true);
+            if (objName == "Hold")
+            {
+                ((HoldMovement) result).GiveSortId(uniqueHoldId--);
+            }
+
             //返回
             return result;
         }
+
+        private int uniqueHoldId;
 
         /// <summary>
         /// 回收对象到对象池
@@ -111,6 +119,7 @@ namespace MainCore.Utilities
         {
             pool.Clear();
             prefabs.Clear();
+            uniqueHoldId = -1;
         }
 
         private void OverrideAnimator()
