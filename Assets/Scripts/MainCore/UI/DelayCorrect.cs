@@ -22,7 +22,7 @@ namespace MainCore.UI
 
         private AudioSource sfx;
         private float beatTime = .96f * 2f;
-        private float lastFrame = 0;
+        private float lastFrame = -1;
 
         private bool played = false;
         private float posY = 0;
@@ -30,9 +30,9 @@ namespace MainCore.UI
         private float val = 0;
 
         private Stopwatch stopwatch = new();
-
-        private Coroutine releaseCoroutine;
-
+        private float delay;
+        private float ElapsedTime => stopwatch.ElapsedMilliseconds / 1000f - delay;
+        
         async void Start()
         {
             tapTransform = tap.transform;
@@ -49,7 +49,7 @@ namespace MainCore.UI
             await UniTask.Delay(3000);
             speed = 1400 / beatTime;
             if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
-            await UniTask.Delay((int) (beatTime * 500));
+            delay = beatTime / 2f;
             HeartBeat();
         }
 
@@ -63,7 +63,9 @@ namespace MainCore.UI
             }
             tapTransform.localScale = Vector2.one * sizeGetter.value * new Vector2(98.9f, 100f);
 
-            var percentage = ((stopwatch.ElapsedMilliseconds / 1000f - offsetGetter.value / 1000f) % beatTime);
+            float offsetTime = ElapsedTime - offsetGetter.value / 1000f;
+            if (offsetTime < 0) offsetTime = 0f;
+            var percentage = (offsetTime % beatTime);
 
             posY = 1000 - speed * percentage;
 
@@ -81,7 +83,7 @@ namespace MainCore.UI
                 hitFxObj.PlayEffect();
                 if (!GlobalSetting.CurrentSkinInfo.hideParticles) hitFxObj.PlayParticle();
                 played = true;
-                releaseCoroutine = StartCoroutine(ReleaseCondition());
+                StartCoroutine(ReleaseCondition());
             }
 
             lastFrame = percentage;
@@ -111,7 +113,6 @@ namespace MainCore.UI
         {
             yield return new WaitForSeconds(.05f);
             played = false;
-            releaseCoroutine = null;
         }
 
         public void OnSkinChanged()

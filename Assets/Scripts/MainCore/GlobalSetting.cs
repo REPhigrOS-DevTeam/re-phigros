@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MainCore
 {
@@ -132,21 +134,9 @@ namespace MainCore
             }
         }
 
-        public static bool IsExternalSkin = false;
-        private static Skin skin = Skin.Official;
         private static string externalSkinName;
-        
-        public static Skin Skin
-        {
-            get => skin;
-            set
-            {
-                skin = value;
-                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo(skin);
-            }
-        }
 
-        public static SkinInfo CurrentSkinInfo;
+        public static SkinInfo CurrentSkinInfo { get; set; }
 
         public static bool useCourseMode = false;
 
@@ -218,7 +208,24 @@ namespace MainCore
             hitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
             maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
             fxaaEnabled = PlayerPrefsExtension.GetBoolean("fxaa", false);
-            Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
+            if (PlayerPrefs.HasKey("skin"))
+            {
+                int skin = PlayerPrefs.GetInt("skin", 0);
+                CurrentSkinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo((Skin)skin);
+                PlayerPrefs.DeleteKey("skin");
+                PlayerPrefs.SetString("selected_skin", $"i{skin}");
+                PlayerPrefs.Save();
+            }
+            else
+            {
+                string s = PlayerPrefs.GetString("selected_skin", "i0");
+                CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(s[0] switch // internal external
+                {
+                    'i' => false,
+                    'e' => true,
+                    _ => throw new ArgumentException()
+                }, s[1..]);
+            }
             HitSoundManager.Instance.RefreshHitSounds();
             HitSoundManager.UpdateVolume();
             useCourseMode = PlayerPrefsExtension.GetBoolean("use_course_mode", false);

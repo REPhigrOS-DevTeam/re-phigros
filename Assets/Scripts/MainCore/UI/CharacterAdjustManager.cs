@@ -9,6 +9,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
 using SimpleFileBrowser;
@@ -75,9 +76,8 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         if (characterTextureData == null) return;
 
-        FileBrowser.SetFilters(false, ".charapkg");
-        FileBrowser.ShowSaveDialog(paths => OnExportPathSelected(paths[0]), () => { }, FileBrowser.PickMode.Files,
-            false, Util.DataPath, null, "保存到...", "确定");
+        OpenFile.SaveFile(paths => OnExportPathSelected(paths[0]), () => { }, "REP用立绘包(*.charapkg)|*.charapkg",
+            Util.DataPath, "保存到...", "确定");
     }
 
     private void OnExportPathSelected(string path)
@@ -151,13 +151,11 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void SelectImage()
     {
-        FileBrowser.SetFilters(false, ".png", ".charapkg");
-        FileBrowser.ShowLoadDialog(paths =>
-            {
-                SetInput(true);
-                OnImageSelected(paths[0]);
-            }, () => { }, FileBrowser.PickMode.Files, false,
-            Util.DataPath, null, "选择人物...", "确定");
+        OpenFile.LoadFile(paths =>
+        {
+            SetInput(true);
+            OnImageSelected(paths[0]);
+        }, () => { }, "立绘贴图(*.png)|*.png|REP用立绘包(*.charapkg)|*.charapkg", null, "选择人物...", "确定");
     }
 
     private void OnImageSelected(string path)

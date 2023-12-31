@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using MainCore.Common;
 using MainCore.Data;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
 using SimpleFileBrowser;
@@ -163,13 +164,11 @@ namespace MainCore.UI
 
         private void ImportCharacterPackage()
         {
-            FileBrowser.SetFilters(false, ".charapkg");
-            FileBrowser.ShowLoadDialog(paths =>
-                {
-                    Sprite sprite = OnSelectedCharacterPackage(paths[0]);
-                    if (sprite) character.sprite = sprite;
-                }, () => { }, FileBrowser.PickMode.Files, false,
-                Util.DataPath, null, "选择立绘包...", "确定");
+            OpenFile.LoadFile(paths =>
+            {
+                Sprite sprite = OnSelectedCharacterPackage(paths[0]);
+                if (sprite) character.sprite = sprite;
+            }, () => { }, "REP用立绘包(*.charapkg)|*.charapkg", null, "选择立绘包...", "确定");
         }
 
         private Sprite OnSelectedCharacterPackage(string path)

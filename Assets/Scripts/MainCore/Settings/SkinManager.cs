@@ -12,6 +12,8 @@ public class SkinManager : MonoSingleton<SkinManager>
 {
     public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
 
+    public Sprite defaultParticle;
+
     private Dictionary<string, SkinInfo> externalSkinInfos = new Dictionary<string, SkinInfo>();
 
     public string skinPath;
@@ -59,7 +61,9 @@ public class SkinManager : MonoSingleton<SkinManager>
         Skins skins = JsonConvert.DeserializeObject<Skins>(skinPath + "/info.json");
         foreach (SkinSummary skinSummary in skins.skins)
         {
-            externalSkinInfos.Add(skinSummary.id, await GameUtils.ReadSkin($"{skinPath}/{skinSummary.id}"));
+            SkinInfo skinInfo = await GameUtils.ReadSkin($"{skinPath}/{skinSummary.id}");
+            skinInfo.id = skinSummary.id;
+            externalSkinInfos.Add(skinSummary.id, skinInfo);
         }
     }
 
@@ -78,6 +82,7 @@ public class SkinManager : MonoSingleton<SkinManager>
         skins.skins = skinSummaries.ToArray();
         File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
         Util.CopyAll(new DirectoryInfo(tempPath), new DirectoryInfo($"{skinPath}/{s}"));
+        skinInfo.id = s;
         externalSkinInfos.Add(s, skinInfo);
     }
 

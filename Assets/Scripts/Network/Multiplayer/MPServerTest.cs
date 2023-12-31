@@ -8,13 +8,13 @@ using MainCore;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Network.Chart;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -142,12 +142,11 @@ public class MPServerTest : MonoBehaviour
             }
 
             uploadMask.SetActive(true);
-            FileBrowser.ShowLoadDialog(async paths =>
-                {
-                    await OnGetFileSuccess(paths);
-                    uploadMask.SetActive(false);
-                }, () => { uploadMask.SetActive(false); }, FileBrowser.PickMode.Folders, false, Util.DataPath, null,
-                "选择谱面...", "上传");
+            OpenFile.LoadFolder(async paths =>
+            {
+                await OnGetFileSuccess(paths);
+                uploadMask.SetActive(false);
+            }, () => { uploadMask.SetActive(false); }, Util.DataPath, "选择谱面...", "上传");
         });
         bDownloadSong.onClick.AddListener(Download);
         SocketManager.OnLoginSucceeded += () => { loginObj.SetActive(false); };

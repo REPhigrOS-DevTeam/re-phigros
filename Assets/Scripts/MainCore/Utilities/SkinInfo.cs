@@ -8,6 +8,7 @@ namespace MainCore.Utilities
     {
         public bool isExternal = true;
         public Skin skin;
+        public string id = "";
         public string skinName;
         public string author;
         public string description;

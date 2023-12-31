@@ -1,3 +1,5 @@
+using System.Linq;
+using MainCore.UI.Utils;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +24,22 @@ namespace MainCore.Common
 
         private void Browse()
         {
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            if (pickMode != FileBrowser.PickMode.FilesAndFolders)
+            {
+                if (pickMode == FileBrowser.PickMode.Folders)
+                {
+                    OpenFile.LoadFolder(paths => inputFieldStringSetting.SetValue(paths[0]),
+                        () => { }, Application.persistentDataPath, "选择...", "确定");
+                }
+                else
+                {
+                    OpenFile.LoadFile(paths => inputFieldStringSetting.SetValue(paths[0]),
+                        () => { }, string.Join("|", fileExtensions.Select(s => $"|*{s}")), Application.persistentDataPath, "选择...", "确定");
+                }
+                return;
+            }
+#endif
             if (fileExtensions.Length > 0 && pickMode == FileBrowser.PickMode.Files)
             {
                 FileBrowser.SetFilters(enableAllFileSelector, fileExtensions);

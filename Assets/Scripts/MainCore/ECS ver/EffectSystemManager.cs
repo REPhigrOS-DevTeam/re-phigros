@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -13,7 +15,9 @@ namespace MainCore.ECS_ver
     public class EffectSystemManager : MonoBehaviour
     {
         public Mesh mesh;
-        [SerializeField] private Material[] materials;
+        [SerializeField] private Material materialPrefab;
+        private Dictionary<Skin, Material> internalParticleCache = new();
+        // private Dictionary<string, Material> externalParticleCache = new();
         public Material Material { get; private set; }
 
         [SerializeField] private int particleCount;
@@ -25,12 +29,14 @@ namespace MainCore.ECS_ver
 
         //private GameObjectConversionSettings settings;
         private EntityManager manager;
+        private static readonly int Texture1 = Shader.PropertyToID("Texture");
         public static EffectSystemManager Instance { get; private set; }
 
         private void Awake()
         {
             Instance = this;
-            Material = materials[(int)GlobalSetting.Skin];
+            LoadAllInternalParticle();
+            Material = GlobalSetting.CurrentSkinInfo.isExternal ? internalParticleCache[Skin.Phira] : internalParticleCache[GlobalSetting.CurrentSkinInfo.skin];
             //settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
             manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             //button.onClick.AddListener(() => CreateParticle(particleCount, colorToDraw, 0, 1));
@@ -41,6 +47,17 @@ namespace MainCore.ECS_ver
                 typeof(Translation));
 
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<MeshDrawer>().BindCamera();
+        }
+
+        private void LoadAllInternalParticle()
+        {
+            foreach (Skin skin in Enum.GetValues(typeof(Skin)))
+            {
+                Sprite hitParticle = HitEffectManager.GetInstance().GetInternalSkinInfo(skin).hitParticle;
+                Material material = Instantiate(materialPrefab);
+                material.SetTexture(Texture1, hitParticle.texture);
+                internalParticleCache.Add(skin, material);
+            }
         }
 
         public void CreateParticle(int cnt, Color color, float3 centerPosition, float scale)

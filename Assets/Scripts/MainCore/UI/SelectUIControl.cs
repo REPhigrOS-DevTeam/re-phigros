@@ -10,6 +10,7 @@ using Cysharp.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Data;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
@@ -336,9 +337,7 @@ namespace MainCore.UI
 
         public void UnzipPez()
         {
-            FileBrowser.SetFilters(false, ".pez");
-            FileBrowser.ShowLoadDialog(OnLoadPezSucceeded, () => { }, FileBrowser.PickMode.Files, false, Util.DataPath,
-                "", "选择Pez...", "确定");
+            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, "RPE谱包(*.pez)|*.pez", null, "选择Pez...", "确定");
         }
 
         private void OnLoadPezSucceeded(string[] paths)

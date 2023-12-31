@@ -27,7 +27,7 @@ public class GameObjectSizeFitter : MonoBehaviour
             scale = 1f;
         }
 
-        transform.position = originPosition * scale;
+        transform.position = new Vector3(originPosition.x * scale, originPosition.y * scale, 0f);
         transform.localScale = originScale * scale;
     }
 

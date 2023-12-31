@@ -22,12 +22,21 @@ namespace MainCore.Settings
         [SerializeField] private Button openSkinSelector, closeSkinSelector;
         [SerializeField] private GameObject skinSelectorCanvas, skinPreview;
         [SerializeField] private SkinPreview skinPreviewer;
-        private List<SkinItem> internalSkinItems = new List<SkinItem>(), externalSkinItems = new List<SkinItem>();
+        [SerializeField] private Button displaySkinInfo, deleteSkin;
+        private Dictionary<Skin, SkinItem> internalSkinItems = new();
+        private Dictionary<string, SkinItem> externalSkinItems = new();
         private bool selectedIsExternal = false;
         private string selectedId = "-1";
 
         void Start()
         {
+            displaySkinInfo.onClick.AddListener(() =>
+            {
+                InGameUIManager.ShowModalWindowWithClose("信息",
+                    $"名称：{GlobalSetting.CurrentSkinInfo.skinName}\n" +
+                    $"作者：{GlobalSetting.CurrentSkinInfo.author}\n" +
+                    $"介绍：{GlobalSetting.CurrentSkinInfo.description}", () => { }, "确定");
+            });
             openSkinSelector.onClick.AddListener(() =>
             {
                 skinSelectorCanvas.SetActive(true);
@@ -95,12 +104,19 @@ namespace MainCore.Settings
                 o.name = ((Skin)i).ToString();
                 SkinItem skinItem = o.GetComponent<SkinItem>();
                 skinItem.Init(this, false, i.ToString(), ((Skin)i).ToString());
-                internalSkinItems.Add(skinItem);
+                internalSkinItems.Add((Skin)i, skinItem);
             }
-            
+
             RefreshExternalSkins();
-            
-            internalSkinItems[(int)GlobalSetting.Skin].GetComponent<Button>().onClick.Invoke();
+
+            if (GlobalSetting.CurrentSkinInfo.isExternal)
+            {
+                externalSkinItems[GlobalSetting.CurrentSkinInfo.id].GetComponent<Button>().onClick.Invoke();
+            }
+            else
+            {
+                internalSkinItems[GlobalSetting.CurrentSkinInfo.skin].GetComponent<Button>().onClick.Invoke();
+            }
         }
 
         private void RefreshExternalSkins()
@@ -109,6 +125,7 @@ namespace MainCore.Settings
             {
                 Destroy(externalSkinParent.GetChild(i).gameObject);
             }
+
             SkinSummary[] skinSummaries = SkinManager.Instance.GetSkinSummaries();
             foreach (SkinSummary skinSummary in skinSummaries)
             {
@@ -116,8 +133,9 @@ namespace MainCore.Settings
                 o.name = skinSummary.id;
                 SkinItem skinItem = o.GetComponent<SkinItem>();
                 skinItem.Init(this, true, skinSummary.id, skinSummary.name);
-                externalSkinItems.Add(skinItem);
+                externalSkinItems.Add(skinSummary.id, skinItem);
             }
+
             GameObject add = Instantiate(skinItemPrefab, externalSkinParent);
             add.name = "Add";
             SkinItem skinItem1 = add.GetComponent<SkinItem>();
@@ -137,6 +155,7 @@ namespace MainCore.Settings
         private void SaveNExit()
         {
             broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.SetString("selected_skin", GlobalSetting.CurrentSkinInfo.isExternal ? $"e{GlobalSetting.CurrentSkinInfo.id}" : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
             PlayerPrefs.Save();
 #if UNITY_IPHONE && !UNITY_EDITOR
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
@@ -159,18 +178,20 @@ namespace MainCore.Settings
                 // TODO: 文件选择并导入
                 return;
             }
+
             if (selectedIsExternal == isExternal && selectedId == id) return;
             selectedIsExternal = isExternal;
             selectedId = id;
-            foreach (var internalSkinItem in internalSkinItems)
+            foreach (var internalSkinItem in internalSkinItems.Values)
             {
                 internalSkinItem.SetSelected(isExternal, id);
             }
 
-            foreach (var externalSkinItem in externalSkinItems)
+            foreach (var externalSkinItem in externalSkinItems.Values)
             {
                 externalSkinItem.SetSelected(isExternal, id);
             }
+
             OnSkinChanged();
         }
 
@@ -181,7 +202,7 @@ namespace MainCore.Settings
             delayCorrect.OnSkinChanged();
             skinPreviewer.UpdateSkin();
         }
-        
+
         private async void AddSkinFromPackage(string path)
         {
             string tmpDirPath = Application.temporaryCachePath + "/tmpSkinPackage";
@@ -189,13 +210,15 @@ namespace MainCore.Settings
             if (Directory.Exists(dirPath)) Directory.Delete(dirPath, true);
             try
             {
-                ZipUtils.UnZip(await File.ReadAllBytesAsync(path), tmpDirPath + $"/{Path.GetFileNameWithoutExtension(path)}");
+                ZipUtils.UnZip(await File.ReadAllBytesAsync(path),
+                    tmpDirPath + $"/{Path.GetFileNameWithoutExtension(path)}");
             }
             catch (IOException)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "无法读取文件", () => { }, "确定");
                 return;
             }
+
             SkinManager.Instance.AddSkinInfo(dirPath, await GameUtils.ReadSkin(dirPath));
         }
 
