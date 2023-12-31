@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Lean.Gui;
 using MainCore.Common;
+using MainCore.ECS_ver;
 using MainCore.UI;
 using MainCore.Utilities;
 using UnityEngine;
@@ -201,6 +202,7 @@ namespace MainCore.Settings
             HitSoundManager.Instance.RefreshHitSounds();
             delayCorrect.OnSkinChanged();
             skinPreviewer.UpdateSkin();
+            EffectSystemManager.Instance.UpdateSkin();
         }
 
         private async void AddSkinFromPackage(string path)

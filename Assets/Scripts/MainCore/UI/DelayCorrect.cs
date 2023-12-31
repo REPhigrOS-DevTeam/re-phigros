@@ -97,14 +97,16 @@ namespace MainCore.UI
 
         public void SetRunning(bool state)
         {
+            running = state;
             if (state)
             {
-                stopwatch.Start();
+                stopwatch.Restart();
                 if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
             }
             else
             {
-                stopwatch.Reset();
+                lastFrame = -1;
+                stopwatch.Stop();
                 if (sfx) sfx.Stop();
             }
         }

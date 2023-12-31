@@ -16,7 +16,9 @@ namespace MainCore.ECS_ver
     {
         public Mesh mesh;
         [SerializeField] private Material materialPrefab;
+
         private Dictionary<Skin, Material> internalParticleCache = new();
+
         // private Dictionary<string, Material> externalParticleCache = new();
         public Material Material { get; private set; }
 
@@ -29,14 +31,14 @@ namespace MainCore.ECS_ver
 
         //private GameObjectConversionSettings settings;
         private EntityManager manager;
-        private static readonly int Texture1 = Shader.PropertyToID("Texture");
+        private static readonly int MainTextureId = Shader.PropertyToID("_MainTex");
         public static EffectSystemManager Instance { get; private set; }
 
         private void Awake()
         {
             Instance = this;
             LoadAllInternalParticle();
-            Material = GlobalSetting.CurrentSkinInfo.isExternal ? internalParticleCache[Skin.Phira] : internalParticleCache[GlobalSetting.CurrentSkinInfo.skin];
+            UpdateSkin();
             //settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
             manager = World.DefaultGameObjectInjectionWorld.EntityManager;
             //button.onClick.AddListener(() => CreateParticle(particleCount, colorToDraw, 0, 1));
@@ -55,9 +57,16 @@ namespace MainCore.ECS_ver
             {
                 Sprite hitParticle = HitEffectManager.GetInstance().GetInternalSkinInfo(skin).hitParticle;
                 Material material = Instantiate(materialPrefab);
-                material.SetTexture(Texture1, hitParticle.texture);
+                material.SetTexture(MainTextureId, hitParticle.texture);
                 internalParticleCache.Add(skin, material);
             }
+        }
+
+        public void UpdateSkin()
+        {
+            Material = GlobalSetting.CurrentSkinInfo.isExternal
+                ? internalParticleCache[Skin.Phira]
+                : internalParticleCache[GlobalSetting.CurrentSkinInfo.skin];
         }
 
         public void CreateParticle(int cnt, Color color, float3 centerPosition, float scale)
@@ -72,7 +81,7 @@ namespace MainCore.ECS_ver
                     centerPosition = centerPosition,
                     scale = scale,
                     time = 0,
-                    color = (Vector4) color,
+                    color = (Vector4)color,
                     spd = Random.Range(0f, 1f) * 80f + 185f,
                     rad = Random.Range(0f, 360f) * Mathf.Deg2Rad,
                 });
