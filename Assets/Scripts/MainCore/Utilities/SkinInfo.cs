@@ -6,6 +6,11 @@ namespace MainCore.Utilities
     [CreateAssetMenu(fileName = "New Skin Info", menuName = "RPGR/ Skin Info")]
     public class SkinInfo : ScriptableObject
     {
+        public bool isExternal = true;
+        public Skin skin;
+        public string skinName;
+        public string author;
+        public string description;
         public Sprite click,
             clickMh,
             drag,
@@ -26,11 +31,14 @@ namespace MainCore.Utilities
         public Color perfectColor, goodColor;
         public float hitFxDuration;
         public float hitFxScale;
-        public float hitFxRotate;
-        public float hitFxTinted;
+        public bool hitFxRotate;
+        public bool hitFxTinted;
         public bool hideParticles;
         public bool holdKeepHead;
         public bool holdRepeat;
-        
+        public bool holdCompact;
+
+        public float holdLengthFactor;
+        public float holdMhLengthFactor;
     }
 }

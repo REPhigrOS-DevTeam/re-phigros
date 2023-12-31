@@ -14,7 +14,7 @@ namespace MainCore
         private float holdEffectCnt = 0.2f;
 
         private float holdEventScale = 1f;
-        private float holdLengthFactor = 4.25f;
+        private float holdLengthFactor => Note.isMulti ? GlobalSetting.CurrentSkinInfo.holdMhLengthFactor : GlobalSetting.CurrentSkinInfo.holdLengthFactor;
         private bool holdMissed = false;
         private bool holdOK = false;
         private float holdOriginLength = 0;
@@ -237,8 +237,10 @@ namespace MainCore
                 holdEffectCnt += Time.deltaTime;
                 if (holdEffectCnt >= 0.2f)
                 {
-                    holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
+                    holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
                     holdEffect.transform.position = cachedTransform.position;
+                    if (GlobalSetting.CurrentSkinInfo.hitFxRotate)
+                        holdEffect.transform.rotation = cachedTransform.rotation;
                     holdEffect.PlayEffect();
                     holdEffect.PlayParticle();
                     holdEffectCnt = 0;

@@ -135,16 +135,7 @@ namespace MainCore
         public static bool IsExternalSkin = false;
         private static Skin skin = Skin.Official;
         private static string externalSkinName;
-
-        public static string ExternalSkinName
-        {
-            get => externalSkinName;
-            set
-            {
-                externalSkinName = value;
-                if (IsExternalSkin); // TODO: 外置读取
-            }
-        }
+        
         public static Skin Skin
         {
             get => skin;

@@ -9,6 +9,7 @@ namespace MainCore
     public class NoteMovement : MonoBehaviour
     {
         public int notetype = -1;
+
         public note Note;
         public int isAbove;
         public List<Sprite> NormalSprites;
@@ -210,8 +211,10 @@ namespace MainCore
             var localPosition = new Vector3(cachedlocalPosition.x,
                 0, cachedlocalPosition.z);
             cachedTransform.localPosition = localPosition;
-            holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.Skin);
+            holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             holdEffect.transform.position = cachedTransform.position;
+            if (GlobalSetting.CurrentSkinInfo.hitFxRotate)
+                holdEffect.transform.rotation = cachedTransform.rotation;
             holdEffect.PlayParticle();
             holdEffect.PlayEffect();
             cachedTransform.localPosition = cachedlocalPosition;

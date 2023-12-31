@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74c3a02825fe46aeb80a09a60b9d2780, type: 3}
   m_Name: Official
   m_EditorClassIdentifier: 
+  isExternal: 0
+  skin: 0
+  skinName: 
+  author: 
+  description: 
   click: {fileID: 21300000, guid: 16bd94e3ff4bb514f887ec2ee1a9d3bc, type: 3}
   clickMh: {fileID: 21300000, guid: 3028922790867aa47b8f35fd3b53646e, type: 3}
   drag: {fileID: 21300000, guid: 5882e3b748d2a7d46aa4f2a7e789b2f7, type: 3}
@@ -95,12 +100,15 @@ MonoBehaviour:
   dragAC: {fileID: 8300000, guid: 623cd11fa4d3b224ba59a2798cfbffec, type: 3}
   flickAC: {fileID: 8300000, guid: abadfa0f11d2c2e49acb72e5b122ce73, type: 3}
   paintBadColor: 1
-  perfectColor: {r: 0, g: 0, b: 0, a: 0}
-  goodColor: {r: 0, g: 0, b: 0, a: 0}
+  perfectColor: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
+  goodColor: {r: 0.54901963, g: 0.9254902, b: 1, a: 1}
   hitFxDuration: 0
-  hitFxScale: 0
+  hitFxScale: 1
   hitFxRotate: 0
-  hitFxTinted: 0
+  hitFxTinted: 1
   hideParticles: 0
   holdKeepHead: 0
-  holdRepeat: 1
+  holdRepeat: 0
+  holdCompact: 0
+  holdLengthFactor: 9
+  holdMhLengthFactor: 9

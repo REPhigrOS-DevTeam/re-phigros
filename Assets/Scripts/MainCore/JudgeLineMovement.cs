@@ -87,7 +87,7 @@ namespace MainCore
             {
                 sr.color = Color.clear;
                 sr.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
-                sr2.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
+                // sr2.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
                 return;
             }
             
@@ -126,7 +126,7 @@ namespace MainCore
             mainCamera = Camera.main;
 
             sr = gameObject.GetComponent<SpriteRenderer>();
-            sr2 = gameObject.transform.parent.Find("Mask").gameObject.GetComponent<SpriteRenderer>();
+            // sr2 = gameObject.transform.parent.Find("Mask").gameObject.GetComponent<SpriteRenderer>();
 
             if (Line.useImage)
             {

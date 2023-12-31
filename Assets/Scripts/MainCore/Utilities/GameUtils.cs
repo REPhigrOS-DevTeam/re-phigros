@@ -347,14 +347,14 @@ namespace MainCore.Utilities
         {
             InfoType infoType = InfoType.Empty;
             string phiraInfoPath = directory + "/info.yml";
-            PhiraInfoData phiraInfoData = null;
+            PhiraChartInfoData phiraChartInfoData = null;
             LchzhInfo lchzhInfo = null;
             LchzhInfoOld lchzhInfoOld = null;
             InfoTxtReader infoTxtReader = null;
             if (File.Exists(phiraInfoPath))
             {
                 IDeserializer deserializer = new DeserializerBuilder().Build();
-                phiraInfoData = deserializer.Deserialize<PhiraInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                phiraChartInfoData = deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
                 infoType = InfoType.InfoYml;
             }
             else
@@ -413,8 +413,8 @@ namespace MainCore.Utilities
             }
 
             string musicPath = directory + "/" +
-                               (phiraInfoData != null && !string.IsNullOrEmpty(phiraInfoData.music)
-                                   ? phiraInfoData.music
+                               (phiraChartInfoData != null && !string.IsNullOrEmpty(phiraChartInfoData.music)
+                                   ? phiraChartInfoData.music
                                    : lchzhInfo != null
                                        ? lchzhInfo.Music
                                        : infoTxtReader != null
@@ -427,22 +427,22 @@ namespace MainCore.Utilities
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
-                SongName = phiraInfoData != null ? phiraInfoData.name :
+                SongName = phiraChartInfoData != null ? phiraChartInfoData.name :
                     lchzhInfo != null ? lchzhInfo.Name :
                     infoTxtReader != null ? infoTxtReader.GetName() : Path.GetFileNameWithoutExtension(Directory
                         .GetFiles(directory)
                         .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
                             Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]),
-                SongComposer = phiraInfoData != null ? phiraInfoData.composer :
+                SongComposer = phiraChartInfoData != null ? phiraChartInfoData.composer :
                     lchzhInfo != null ? lchzhInfo.Artist :
                     infoTxtReader != null ? infoTxtReader.GetComposer() : "Unknown",
-                SongDifficulty = phiraInfoData != null ? phiraInfoData.level :
+                SongDifficulty = phiraChartInfoData != null ? phiraChartInfoData.level :
                     lchzhInfo != null ? lchzhInfo.Level :
                     infoTxtReader != null ? infoTxtReader.GetDifficulty() : "SP  Lv.?",
-                SongCharter = phiraInfoData != null ? phiraInfoData.charter :
+                SongCharter = phiraChartInfoData != null ? phiraChartInfoData.charter :
                     lchzhInfo != null ? lchzhInfo.Charter :
                     infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
-                SongIllustrator = phiraInfoData != null ? phiraInfoData.illustrator :
+                SongIllustrator = phiraChartInfoData != null ? phiraChartInfoData.illustrator :
                     lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
                 MusicLength = musicLength
             }, infoType, infoType switch
@@ -451,7 +451,7 @@ namespace MainCore.Utilities
                 InfoType.InfoTxt => infoTxtReader,
                 InfoType.InfoCsv => lchzhInfo,
                 InfoType.InfoCsvOld => lchzhInfoOld,
-                InfoType.InfoYml => phiraInfoData,
+                InfoType.InfoYml => phiraChartInfoData,
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
@@ -485,10 +485,10 @@ namespace MainCore.Utilities
                     gameFilePathInfo.Illustration = lchzhInfoOld.Image;
                     break;
                 case InfoType.InfoYml:
-                    PhiraInfoData phiraInfoData = obj as PhiraInfoData;
-                    gameFilePathInfo.Chart = phiraInfoData.chart;
-                    gameFilePathInfo.Music = phiraInfoData.music;
-                    gameFilePathInfo.Illustration = phiraInfoData.illustration;
+                    PhiraChartInfoData phiraChartInfoData = obj as PhiraChartInfoData;
+                    gameFilePathInfo.Chart = phiraChartInfoData.chart;
+                    gameFilePathInfo.Music = phiraChartInfoData.music;
+                    gameFilePathInfo.Illustration = phiraChartInfoData.illustration;
                     break;
                 case InfoType.RpeJson:
                 default:
@@ -496,7 +496,7 @@ namespace MainCore.Utilities
             }
 
             return (songInfo, infoType, gameFilePathInfo,
-                infoType == InfoType.InfoYml ? ((PhiraInfoData)obj).offset : null);
+                infoType == InfoType.InfoYml ? ((PhiraChartInfoData)obj).offset : null);
         }
 
         public static string[] SelectGivenExtensionsFileNames(string directory, params string[] extensions) => Directory

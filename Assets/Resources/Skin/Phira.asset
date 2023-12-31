@@ -12,6 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74c3a02825fe46aeb80a09a60b9d2780, type: 3}
   m_Name: Phira
   m_EditorClassIdentifier: 
+  isExternal: 0
+  skin: 3
+  skinName: 
+  author: 
+  description: 
   click: {fileID: 0}
   clickMh: {fileID: 0}
   drag: {fileID: 0}
@@ -86,3 +91,16 @@ MonoBehaviour:
   clickAC: {fileID: 8300000, guid: 3335eb977225e2046aa9182617871cfa, type: 3}
   dragAC: {fileID: 8300000, guid: 19474b7e3e704784a80fa284203eb159, type: 3}
   flickAC: {fileID: 8300000, guid: fde8dcf14dc81b847a534738b6c4955b, type: 3}
+  paintBadColor: 1
+  perfectColor: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
+  goodColor: {r: 0.54901963, g: 0.9254902, b: 1, a: 1}
+  hitFxDuration: 0
+  hitFxScale: 1
+  hitFxRotate: 0
+  hitFxTinted: 1
+  hideParticles: 0
+  holdKeepHead: 0
+  holdRepeat: 0
+  holdCompact: 0
+  holdLengthFactor: 4.25
+  holdMhLengthFactor: 4.25

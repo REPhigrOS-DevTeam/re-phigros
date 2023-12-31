@@ -6,6 +6,7 @@ using System.Threading;
 using DG.Tweening;
 using MainCore;
 using MainCore.ECS_ver;
+using MainCore.Utilities;
 using UnityEngine;
 
 public class EffectManager : MonoBehaviour
@@ -14,7 +15,6 @@ public class EffectManager : MonoBehaviour
     [SerializeField] private Color color;
     [SerializeField] private int cnt;
     public Coroutine AnimationCoroutine;
-    private Skin skin;
     private Sprite[] hitFx;
 
     public Coroutine RecycleCoroutine = null;
@@ -27,14 +27,23 @@ public class EffectManager : MonoBehaviour
         transform.localScale = new Vector3(0.001f, 0.001f, 1f);
     }
 
-    public void Enable(Skin skin)
+    public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
-        scale = GlobalSetting.globalNoteScale / GetFactor(skin);
+        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.16f : GetFactor(skinInfo.skin));
+        if (skinInfo.isExternal) scale *= skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
-        hitFx = HitEffectManager.GetSkinInfo(skin).hitFx;
+        hitFx = skinInfo.hitFx;
         RecycleCoroutine = StartCoroutine(RecycleObj());
+        sr.color = skinInfo.hitFxTinted
+            ? JudgeType switch
+            {
+                HitFxJudgeType.Perfect => skinInfo.perfectColor,
+                HitFxJudgeType.Good => skinInfo.goodColor,
+                _ => throw new ArgumentOutOfRangeException(nameof(JudgeType), JudgeType, null)
+            }
+            : Color.white;
     }
 
     public void PlayEffect()

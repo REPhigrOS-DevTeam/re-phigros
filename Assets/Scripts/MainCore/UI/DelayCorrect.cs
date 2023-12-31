@@ -33,10 +33,11 @@ namespace MainCore.UI
             // 预加载
             foreach (Skin skin in Enum.GetValues(typeof(Skin)))
             {
-                EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skin);
+                SkinInfo skinInfo = HitEffectManager.GetSkinInfo(skin);
+                EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
                 effectManager.PlayEffect();
-                effectManager.PlayParticle();
+                if (!skinInfo.hideParticles) effectManager.PlayParticle();
             }
             sfx = GetComponent<AudioSource>();
             await UniTask.Delay(3000);
@@ -64,10 +65,10 @@ namespace MainCore.UI
                 tapTransform.localPosition = new Vector2(0, -400);
                 EffectManager hitFxObj;
                 //hitFxObj = ObjectPool.GetInstance().GetObj($"HitFX/clickRaw_{HitEffectManager.HitFxType}_{HitFxJudgeType.Perfect}");
-                hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.Skin);
+                hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
                 hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.PlayEffect();
-                hitFxObj.PlayParticle();
+                if (!GlobalSetting.CurrentSkinInfo.hideParticles) hitFxObj.PlayParticle();
                 played = true;
                 StartCoroutine(ReleaseCondition());
             }

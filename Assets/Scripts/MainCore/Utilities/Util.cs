@@ -58,14 +58,14 @@ namespace MainCore.Utilities
             return unimageProcessor.GetTexture(noLongerReadable: false);
         }
 
-        public static Sprite ReadFileAsSprite(byte[] data, out Exception exception)
+        public static Sprite ReadFileAsSprite(byte[] data, out Exception exception, float ppu = 100f)
         {
             try
             {
                 exception = null;
                 Texture2D texture = ReadFileAsTexture(data);
                 return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f), 100f, 1);
+                    new Vector2(0.5f, 0.5f), ppu, 1);
             }
             catch (Exception e)
             {
@@ -84,9 +84,13 @@ namespace MainCore.Utilities
             return audioClip;
         }
 
-        public static AudioType GetAudioTypeFromFile(string path)
+        private static AudioType GetAudioTypeFromFile(string path)
         {
-            byte[] data = File.ReadAllBytes(path);
+            FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            byte[] data = new byte[4];
+            Array.Clear(data, 0 , data.Length);
+            fileStream.Read(data, 0, data.Length);
+            fileStream.Close();
             if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
             if (data.SplitByteArrayToString(4) == "OggS") return AudioType.OGGVORBIS;
             if (data.SplitByteArrayToString(4) == "RIFF") return AudioType.WAV;

@@ -357,7 +357,7 @@ public class MPServerTest : MonoBehaviour
         ChatManager.AddMessage("Server", errorMessages[-state - 1], MessageType.Error);
     }
 
-    private PhiraInfoData phiraInfoData;
+    private PhiraChartInfoData phiraChartInfoData;
     private static readonly int Enabled = Animator.StringToHash("Enabled");
     private static readonly int Disabled = Animator.StringToHash("Disabled");
 

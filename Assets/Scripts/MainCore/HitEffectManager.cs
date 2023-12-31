@@ -21,6 +21,8 @@ namespace MainCore
 
         private static SkinInfo[] skinInfos = new SkinInfo[Enum.GetValues(typeof(Skin)).Length];
 
+        public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
+
         private HitEffectManager()
         {
         }
@@ -41,9 +43,9 @@ namespace MainCore
         /// <param name="type"></param>
         /// <param name="judgeType"></param>
         /// <returns></returns>
-        public EffectManager GetObj(HitFxJudgeType judgeType, Skin skin)
+        public EffectManager GetObj(HitFxJudgeType judgeType, SkinInfo skinInfo)
         {
-            string objName = $"clickRaw_{skin}_{judgeType}";
+            string objName = $"clickRaw_{(skinInfo.isExternal ? "External" : "Internal")}_{(skinInfo.isExternal ? skinInfo.skinName : skinInfo.skin.ToString())}_{judgeType}";
             //结果对象
             EffectManager result = null;
             //判断是否有该名字的对象池
@@ -64,7 +66,7 @@ namespace MainCore
                     //从池中移除该对象
                     pool[objName].Remove(result);
                     objectsInUse[objName].Add(result);
-                    result.Enable(skin);
+                    result.Enable(skinInfo, judgeType);
                     //返回结果
                     return result;
                 }
@@ -80,7 +82,7 @@ namespace MainCore
             else //如果没有加载过该预设体
             {
                 //加载预设体
-                prefab = Resources.Load<EffectManager>($"HitFX/clickRaw_{judgeType}");
+                prefab = Resources.Load<EffectManager>($"HitFX/clickRaw");
                 //更新字典
                 prefabs.Add(objName, prefab);
                 objectsInUse.Add(objName, new List<EffectManager>());
@@ -90,7 +92,7 @@ namespace MainCore
             result = Object.Instantiate(prefab);
             //改名（去除 Clone）
             result.name = objName;
-            result.Enable(skin);
+            result.Enable(skinInfo, judgeType);
             //返回
             return result;
         }

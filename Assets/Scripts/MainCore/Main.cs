@@ -66,8 +66,8 @@ namespace MainCore
         // Start is called before the first frame update
         protected override void OnAwake()
         {
-            GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
-            GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
+            GlobalSetting.lineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
+            GlobalSetting.lineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
             GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
             progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
@@ -341,10 +341,10 @@ namespace MainCore
             // We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
             // 预生成一个HitFX，避免读取prefab时吃硬盘
             var hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Perfect, GlobalSetting.Skin);
+                .GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
             hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Good, GlobalSetting.Skin);
+                .GetObj(HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
 
             totalOffset = json.offset + GlobalSetting.userOffset;
