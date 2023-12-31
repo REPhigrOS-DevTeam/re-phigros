@@ -201,7 +201,7 @@ namespace MainCore.Settings
 
         public void PlayHitSound(int id)
         {
-            HitSoundManager.Instance.Play(id);
+            HitSoundManager.Instance.Play(id, 0.5f);
         }
     }
 

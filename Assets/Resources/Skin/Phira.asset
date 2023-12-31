@@ -14,22 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExternal: 0
   skin: 3
-  skinName: 
-  author: 
-  description: 
-  click: {fileID: 0}
-  clickMh: {fileID: 0}
-  drag: {fileID: 0}
-  dragMh: {fileID: 0}
-  flick: {fileID: 0}
-  flickMh: {fileID: 0}
-  holdHead: {fileID: 0}
-  holdHeadMh: {fileID: 0}
-  holdBody: {fileID: 0}
-  holdBodyMh: {fileID: 0}
-  holdEnd: {fileID: 0}
-  holdEndMh: {fileID: 0}
-  click_bad: {fileID: 0}
+  skinName: nomo
+  author: "\u661F\u9E7FELEC & \u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440"
+  description: "\u661F\u9E7FELEC\u8D1F\u8D23\u7ED8\u5236\uFF0C\u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440\u8D1F\u8D23\u97F3\u6548"
+  click: {fileID: 21300000, guid: 628fa6ba526bf4e479b04c3f460063e3, type: 3}
+  clickMh: {fileID: 21300000, guid: 64c109b164f800243a2de3debc7fcf4e, type: 3}
+  drag: {fileID: 21300000, guid: 3add09ca39a99664ba13ed04bb4f5933, type: 3}
+  dragMh: {fileID: 21300000, guid: 5491709d4153454428d75e32fc524719, type: 3}
+  flick: {fileID: 21300000, guid: 4b80faebb98e1784a9bae6070d6fec36, type: 3}
+  flickMh: {fileID: 21300000, guid: c236c460037c92a49971985fcdf74d35, type: 3}
+  holdHead: {fileID: 21300000, guid: 2e4a7bed76a0ee9408bb123eaae01e0f, type: 3}
+  holdHeadMh: {fileID: 21300000, guid: 11d9ccfbde994384e89d6e41222273c7, type: 3}
+  holdBody: {fileID: 21300000, guid: 5eb998f3010179241a7328f578d5affc, type: 3}
+  holdBodyMh: {fileID: 21300000, guid: d4bc75e3dd14ef94d8a0f48ae1e8378c, type: 3}
+  holdEnd: {fileID: 21300000, guid: 0eede236b9fbde544aea71f3b4e92b10, type: 3}
+  holdEndMh: {fileID: 21300000, guid: b881d67df71fb1e4da8d83ba0ffbbf42, type: 3}
+  click_bad: {fileID: 21300000, guid: 628fa6ba526bf4e479b04c3f460063e3, type: 3}
   hitFx:
   - {fileID: 1247939306, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
   - {fileID: -131503051, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
@@ -102,5 +102,5 @@ MonoBehaviour:
   holdKeepHead: 0
   holdRepeat: 0
   holdCompact: 0
-  holdLengthFactor: 4.25
-  holdMhLengthFactor: 4.25
+  holdLengthFactor: 10
+  holdMhLengthFactor: 9.9

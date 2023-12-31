@@ -14,22 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExternal: 0
   skin: 2
-  skinName: 
-  author: 
-  description: 
-  click: {fileID: 0}
-  clickMh: {fileID: 0}
-  drag: {fileID: 0}
-  dragMh: {fileID: 0}
-  flick: {fileID: 0}
-  flickMh: {fileID: 0}
-  holdHead: {fileID: 0}
-  holdHeadMh: {fileID: 0}
-  holdBody: {fileID: 0}
-  holdBodyMh: {fileID: 0}
-  holdEnd: {fileID: 0}
-  holdEndMh: {fileID: 0}
-  click_bad: {fileID: 0}
+  skinName: "rep\u5185\u7F6E2"
+  author: "\u661F\u9E7FELEC"
+  description: "\u65E0"
+  click: {fileID: 21300000, guid: 329f8f1411ebf9647a46e9381661b4b8, type: 3}
+  clickMh: {fileID: 21300000, guid: d2e5667bec9cb6c469b2720f76b85059, type: 3}
+  drag: {fileID: 21300000, guid: d2697acf0c6f0454c835fd645dfb024a, type: 3}
+  dragMh: {fileID: 21300000, guid: ffbd620d4bb55364c9d25e1de3977961, type: 3}
+  flick: {fileID: 21300000, guid: dd784e3241f684443b3384fabae7902b, type: 3}
+  flickMh: {fileID: 21300000, guid: 74861f948a7a32f47b1ebc51c3ccf331, type: 3}
+  holdHead: {fileID: 21300000, guid: 3ae8f1b48974641429413a00bff2880f, type: 3}
+  holdHeadMh: {fileID: 21300000, guid: ba2f3cf2b724427478aac8143a333613, type: 3}
+  holdBody: {fileID: 21300000, guid: ac71f5bca8e4075439a442abac12f1f2, type: 3}
+  holdBodyMh: {fileID: 21300000, guid: e03d6dc5d53e5b2439d13a798f445381, type: 3}
+  holdEnd: {fileID: 21300000, guid: e96eeccc00452b24dab48e29fff88041, type: 3}
+  holdEndMh: {fileID: 21300000, guid: e1246f74de264e64b8761ab7e72d20b6, type: 3}
+  click_bad: {fileID: 21300000, guid: 3ba41e259a1716d4088203bb9968802e, type: 3}
   hitFx:
   - {fileID: 695057711, guid: f1c7402ce1cde2246a1051b9ab036682, type: 3}
   - {fileID: -187471482, guid: f1c7402ce1cde2246a1051b9ab036682, type: 3}

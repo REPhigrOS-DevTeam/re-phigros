@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExternal: 0
   skin: 1
-  skinName: 
-  author: 
-  description: 
+  skinName: "\u661F\u7C89Xz"
+  author: "\u661F\u9E7FELEC"
+  description: "\u65E0"
   click: {fileID: 21300000, guid: 7bd8fe9d20ef3bd488ec37f5c75edfbd, type: 3}
   clickMh: {fileID: 21300000, guid: 1d47633b161a0c64ca861b9e1b4d10f5, type: 3}
   drag: {fileID: 21300000, guid: d624e1e87beff67459250b3bdb86ea7b, type: 3}
@@ -110,5 +110,5 @@ MonoBehaviour:
   holdKeepHead: 0
   holdRepeat: 0
   holdCompact: 0
-  holdLengthFactor: 4.25
-  holdMhLengthFactor: 4.25
+  holdLengthFactor: 9
+  holdMhLengthFactor: 9
