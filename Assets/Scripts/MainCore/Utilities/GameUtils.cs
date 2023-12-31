@@ -18,13 +18,15 @@ namespace MainCore.Utilities
     public static class GameUtils
     {
         public static float ScreenDelta => Mathf.Min((float)Screen.width / Screen.height * 0.5625f, 1f);
+
         public static void SetAlpha(this SpriteRenderer spriteRenderer, float alpha)
         {
             Color color = spriteRenderer.color;
             spriteRenderer.color = new Color(color.r, color.g, color.b, alpha);
         }
 
-        public static void SetAlpha(this Graphic graphic, float alpha) => graphic.color = new Color(graphic.color.r, graphic.color.g, graphic.color.b, alpha);
+        public static void SetAlpha(this Graphic graphic, float alpha) =>
+            graphic.color = new Color(graphic.color.r, graphic.color.g, graphic.color.b, alpha);
 
         public static Color SetAlpha(this Color color, float alpha) => new Color(color.r, color.g, color.b, alpha);
 
@@ -354,7 +356,8 @@ namespace MainCore.Utilities
             if (File.Exists(phiraInfoPath))
             {
                 IDeserializer deserializer = new DeserializerBuilder().Build();
-                phiraChartInfoData = deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                phiraChartInfoData =
+                    deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
                 infoType = InfoType.InfoYml;
             }
             else
@@ -503,6 +506,170 @@ namespace MainCore.Utilities
             .GetFiles(directory).Where(s => extensions.Select(str => str.ToLowerInvariant()).ToList()
                 .Contains(Path.GetExtension(s).ToLowerInvariant()))
             .Select(Path.GetFileName).ToArray();
+
+        private static string[] constantSkinFile =
+        {
+            "info.yml", "click.png", "click_mh.png", "drag.png", "drag_mh.png", "flick.png", "flick_mh.png", "hold.png",
+            "hold_mh.png", "hit_fx.png"
+        };
+
+        public static async UniTask<SkinInfo> ReadSkin(string dirPath)
+        {
+            List<string> files = Directory.GetFiles(dirPath).Select(Path.GetFileName).ToList();
+            if (constantSkinFile.Any(s => !files.Contains(s)))
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "资源包不完整", () => { }, "确定");
+                return null;
+            }
+
+            PhiraSkinInfoData phiraSkinInfoData;
+            try
+            {
+                IDeserializer deserializer = new DeserializerBuilder().Build();
+                phiraSkinInfoData =
+                    deserializer.Deserialize<PhiraSkinInfoData>(await File.ReadAllTextAsync($"{dirPath}/info.yml"));
+            }
+            catch (IOException)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "无法读取文件", () => { }, "确定");
+                return null;
+            }
+            catch (Exception)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "info.yml格式不正确", () => { }, "确定");
+                return null;
+            }
+
+            if (phiraSkinInfoData.name == null || phiraSkinInfoData.author == null ||
+                phiraSkinInfoData.hitFx == null || phiraSkinInfoData.holdAtlas == null ||
+                phiraSkinInfoData.holdAtlasMH == null || phiraSkinInfoData.hitFx.Length != 2 ||
+                phiraSkinInfoData.holdAtlas.Length != 2 || phiraSkinInfoData.holdAtlasMH.Length != 2)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "info.yml不完整", () => { }, "确定");
+                return null;
+            }
+
+            SkinInfo skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
+            skinInfo.skinName = phiraSkinInfoData.name;
+            skinInfo.author = phiraSkinInfoData.author;
+            skinInfo.description = phiraSkinInfoData.desciption == "" ? "无" : phiraSkinInfoData.desciption;
+            skinInfo.hitFxDuration = phiraSkinInfoData.hitFxDuration;
+            skinInfo.hitFxScale = phiraSkinInfoData.hitFxScale;
+            skinInfo.hitFxRotate = phiraSkinInfoData.hitFxRotate;
+            skinInfo.hitFxTinted = phiraSkinInfoData.hitFxTinted;
+            skinInfo.hideParticles = phiraSkinInfoData.hideParticles;
+            skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
+            skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
+            skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
+            // 读取Hit Fx
+            List<Sprite> hitFx = new List<Sprite>();
+            int numColumns = phiraSkinInfoData.hitFx[0];
+            int numRows = phiraSkinInfoData.hitFx[1];
+            Texture2D hitFxTexture = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/hit_fx.png"));
+            if (hitFxTexture.width % numColumns != 0 || hitFxTexture.height % numRows != 0)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "打击特效图片长宽与info.yml的内容不匹配", () => { }, "确定");
+                return null;
+            }
+
+            Vector2 spriteSize =
+                new Vector2(hitFxTexture.width / numColumns, hitFxTexture.height / numRows); // 按列和行切割图片
+
+            for (int y = 0; y < numRows; ++y)
+            {
+                for (int x = 0; x < numColumns; ++x)
+                {
+                    Rect rect = new Rect(x * spriteSize.x, y * spriteSize.y, spriteSize.x, spriteSize.y);
+
+                    // TODO: PPU计算
+                    Sprite sprite =
+                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), 100f, 1); // 创建新的 Sprite 对象
+                    sprite.name = $"hit_fx_external_{y * numColumns + x}"; // 自定义 Sprite 的名字
+
+                    hitFx.Add(sprite);
+                }
+            }
+
+            skinInfo.hitFx = hitFx.ToArray();
+            // 读取note们
+            skinInfo.click_bad =
+                skinInfo.click = Util.ReadFileAsSprite(await File.ReadAllBytesAsync($"{dirPath}/click.png"), out _);
+            skinInfo.clickMh = Util.ReadFileAsSprite(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"), out _);
+            Texture2D dragTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/drag.png"));
+            skinInfo.drag = Sprite.Create(dragTex, new Rect(0, 0, dragTex.width, dragTex.height),
+                new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * dragTex.width / skinInfo.click.rect.width, 1);
+            Texture2D dragMhTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
+            skinInfo.dragMh = Sprite.Create(dragMhTex, new Rect(0, 0, dragMhTex.width, dragMhTex.height),
+                new Vector2(0.5f, 0.5f), skinInfo.clickMh.pixelsPerUnit * dragMhTex.width / skinInfo.clickMh.rect.width,
+                1);
+            Texture2D flickTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
+            skinInfo.flick = Sprite.Create(flickTex, new Rect(0, 0, flickTex.width, flickTex.height),
+                new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * flickTex.width / skinInfo.click.rect.width, 1);
+            Texture2D flickMhTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
+            skinInfo.flickMh = Sprite.Create(flickMhTex, new Rect(0, 0, flickMhTex.width, flickMhTex.height),
+                new Vector2(0.5f, 0.5f),
+                skinInfo.clickMh.pixelsPerUnit * flickMhTex.width / skinInfo.clickMh.rect.width,
+                1);
+            try
+            {
+                // hold
+                Texture2D holdTexture = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
+                Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
+                    phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width);
+                skinInfo.holdHead = holdSprites[0];
+                skinInfo.holdBody = holdSprites[1];
+                skinInfo.holdEnd = holdSprites[2];
+                skinInfo.holdLengthFactor = skinInfo.holdBody.rect.height / skinInfo.holdBody.pixelsPerUnit;
+                Texture2D holdMhTexture =
+                    Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
+                Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[0],
+                    phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width);
+                skinInfo.holdHeadMh = holdMhSprites[0];
+                skinInfo.holdBodyMh = holdMhSprites[1];
+                skinInfo.holdEndMh = holdMhSprites[2];
+                skinInfo.hitParticle = HitEffectManager.GetInternalSkinInfo(Skin.Phira).hitParticle;
+                skinInfo.holdMhLengthFactor = skinInfo.holdBodyMh.rect.height / skinInfo.holdBodyMh.pixelsPerUnit;
+            }
+            catch (ArgumentException)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "Hold贴图高度不足", () => { }, "确定");
+                return null;
+            }
+
+            skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg")
+                : SkinManager.Instance.defaultClickAC;
+            skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/drag.ogg")
+                : SkinManager.Instance.defaultDragAC;
+            skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg")
+                : SkinManager.Instance.defaultFlickAC;
+            return skinInfo;
+        }
+
+        private static Sprite[] SplitTexture(string namePrefix, Texture2D texture, int startPixel, int endPixel,
+            float clickPpu,
+            float clickWidth)
+        {
+            if (startPixel + endPixel > texture.height)
+            {
+                throw new ArgumentException();
+            }
+
+            float ppu = clickPpu * texture.width / clickWidth;
+            Sprite head = Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), new Vector2(0.5f, 1f),
+                ppu, 1);
+            Sprite body = Sprite.Create(texture,
+                new Rect(0f, startPixel, texture.width, texture.height - startPixel - endPixel), new Vector2(0.5f, 1f),
+                ppu, 1);
+            Sprite end = Sprite.Create(texture, new Rect(0f, texture.height - endPixel, texture.width, endPixel),
+                new Vector2(0.5f, 0f), ppu, 1);
+            head.name = $"{namePrefix}_head";
+            body.name = $"{namePrefix}_body";
+            end.name = $"{namePrefix}_end";
+            return new[] { head, body, end };
+        }
 #if false
         public static string[] SelectGivenExtensionsFileNames1(string directory, params string[] extensions)
         {

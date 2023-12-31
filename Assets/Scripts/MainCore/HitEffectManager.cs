@@ -127,7 +127,7 @@ namespace MainCore
             prefabs.Clear();
         }
 
-        public static SkinInfo GetSkinInfo(Skin skin)
+        public static SkinInfo GetInternalSkinInfo(Skin skin)
         {
             if (skinInfos != null && skinInfos[(int) skin] != null) return skinInfos[(int) skin];
             SkinInfo loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
@@ -138,6 +138,11 @@ namespace MainCore
             }
 
             throw new ArgumentException();
+        }
+
+        public static SkinInfo GetSkinInfo(bool isExternal, string id)
+        {
+            return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }
     }
 

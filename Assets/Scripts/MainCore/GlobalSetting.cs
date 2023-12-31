@@ -142,7 +142,7 @@ namespace MainCore
             set
             {
                 skin = value;
-                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetSkinInfo(skin);
+                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetInternalSkinInfo(skin);
             }
         }
 
@@ -219,7 +219,7 @@ namespace MainCore
             maskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
             fxaaEnabled = PlayerPrefsExtension.GetBoolean("fxaa", false);
             Skin = (Skin)PlayerPrefs.GetInt("skin", 0);
-            HitSoundManager.Instance.RefreshHitSounds(Skin);
+            HitSoundManager.Instance.RefreshHitSounds();
             HitSoundManager.UpdateVolume();
             useCourseMode = PlayerPrefsExtension.GetBoolean("use_course_mode", false);
             _judgeTime = null;

@@ -369,5 +369,26 @@ namespace MainCore.Utilities
             if (lastIndexOf != -1) original = original.Substring(0, lastIndexOf);
             InGameUIManager.ShowModalWindowWithClose("错误", original, () => { }, "确定");
         }
+        
+        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        {
+            foreach (FileSystemInfo fi in source.GetFileSystemInfos())
+            {
+                var targetPath = Path.Combine(target.FullName, fi.Name);
+
+                switch (fi)
+                {
+                    case FileInfo fileInfo:
+                        fileInfo.CopyTo(targetPath, true);
+                        break;
+                    case DirectoryInfo directoryInfo:
+                    {
+                        DirectoryInfo subDir = target.CreateSubdirectory(directoryInfo.Name);
+                        CopyAll(directoryInfo, subDir);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

@@ -33,7 +33,7 @@ namespace MainCore.UI
             // 预加载
             foreach (Skin skin in Enum.GetValues(typeof(Skin)))
             {
-                SkinInfo skinInfo = HitEffectManager.GetSkinInfo(skin);
+                SkinInfo skinInfo = HitEffectManager.GetInternalSkinInfo(skin);
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
                 effectManager.PlayEffect();
@@ -90,8 +90,7 @@ namespace MainCore.UI
 
         public void OnSkinChanged()
         {
-            tap.sprite = Resources.Load<GameObject>($"Notes/{GlobalSetting.Skin.ToString()}/Tap")
-                .GetComponent<NoteMovement>().NormalSprites[0];
+            tap.sprite = GlobalSetting.CurrentSkinInfo.click;
         }
     }
 }

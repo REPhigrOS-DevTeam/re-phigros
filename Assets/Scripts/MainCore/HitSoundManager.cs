@@ -175,7 +175,7 @@ namespace MainCore
         }
 #endif
 
-        public void RefreshHitSounds(Skin skin)
+        public void RefreshHitSounds()
         {
             Resources.UnloadUnusedAssets();
             SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
