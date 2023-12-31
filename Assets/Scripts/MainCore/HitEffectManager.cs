@@ -19,7 +19,7 @@ namespace MainCore
 
         private Dictionary<string, EffectManager> prefabs = new();
 
-        private static SkinInfo[] skinInfos = new SkinInfo[Enum.GetValues(typeof(Skin)).Length];
+        private Dictionary<Skin, SkinInfo> skinInfos = new Dictionary<Skin, SkinInfo>();
 
         public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
 
@@ -127,20 +127,21 @@ namespace MainCore
             prefabs.Clear();
         }
 
-        public static SkinInfo GetInternalSkinInfo(Skin skin)
+        public SkinInfo GetInternalSkinInfo(Skin skin)
         {
-            if (skinInfos != null && skinInfos[(int) skin] != null) return skinInfos[(int) skin];
+            if (skinInfos == null) throw new ArgumentException();
+            if (skinInfos.ContainsKey(skin)) return skinInfos[skin];
             SkinInfo loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
             if (loadSkinInfo)
             {
-                skinInfos[(int) skin] = loadSkinInfo;
+                skinInfos.Add(skin, loadSkinInfo);
                 return loadSkinInfo;
             }
 
-            throw new ArgumentException();
+            throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
         }
 
-        public static SkinInfo GetSkinInfo(bool isExternal, string id)
+        public SkinInfo GetSkinInfo(bool isExternal, string id)
         {
             return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }

@@ -627,7 +627,7 @@ namespace MainCore.Utilities
                 skinInfo.holdHeadMh = holdMhSprites[0];
                 skinInfo.holdBodyMh = holdMhSprites[1];
                 skinInfo.holdEndMh = holdMhSprites[2];
-                skinInfo.hitParticle = HitEffectManager.GetInternalSkinInfo(Skin.Phira).hitParticle;
+                skinInfo.hitParticle = HitEffectManager.GetInstance().GetInternalSkinInfo(Skin.Phira).hitParticle;
                 skinInfo.holdMhLengthFactor = skinInfo.holdBodyMh.rect.height / skinInfo.holdBodyMh.pixelsPerUnit;
             }
             catch (ArgumentException)

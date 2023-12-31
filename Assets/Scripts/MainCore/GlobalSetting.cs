@@ -142,7 +142,7 @@ namespace MainCore
             set
             {
                 skin = value;
-                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetInternalSkinInfo(skin);
+                if (!IsExternalSkin) CurrentSkinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo(skin);
             }
         }
 

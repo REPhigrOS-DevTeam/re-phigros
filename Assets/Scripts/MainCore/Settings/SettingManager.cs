@@ -21,12 +21,25 @@ namespace MainCore.Settings
         [SerializeField] private GameObject skinItemPrefab;
         [SerializeField] private Button openSkinSelector, closeSkinSelector;
         [SerializeField] private GameObject skinSelectorCanvas, skinPreview;
+        [SerializeField] private SkinPreview skinPreviewer;
         private List<SkinItem> internalSkinItems = new List<SkinItem>(), externalSkinItems = new List<SkinItem>();
         private bool selectedIsExternal = false;
         private string selectedId = "-1";
 
         void Start()
         {
+            openSkinSelector.onClick.AddListener(() =>
+            {
+                skinSelectorCanvas.SetActive(true);
+                skinPreview.SetActive(true);
+                delayCorrect.SetRunning(false);
+            });
+            closeSkinSelector.onClick.AddListener(() =>
+            {
+                skinSelectorCanvas.SetActive(false);
+                skinPreview.SetActive(false);
+                delayCorrect.SetRunning(true);
+            });
             if (!PlayerPrefs.HasKey(dataPath.BaseData.DataTag))
             {
                 dataPath.BaseData.SetValue($"{Application.persistentDataPath}");
@@ -65,6 +78,12 @@ namespace MainCore.Settings
 // #if !RELEASE_VERSION || UNITY_EDITOR
 //             skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼" });
 // #endif
+            skinSelectorCanvas.SetActive(false);
+            skinPreview.SetActive(false);
+            for (int i = 0; i < internalSkinParent.childCount; i++)
+            {
+                Destroy(internalSkinParent.GetChild(i).gameObject);
+            }
 #if !RELEASE_VERSION || UNITY_EDITOR
             int internalMax = 5;
 #else
@@ -76,8 +95,20 @@ namespace MainCore.Settings
                 o.name = ((Skin)i).ToString();
                 SkinItem skinItem = o.GetComponent<SkinItem>();
                 skinItem.Init(this, false, i.ToString(), ((Skin)i).ToString());
+                internalSkinItems.Add(skinItem);
             }
+            
+            RefreshExternalSkins();
+            
+            internalSkinItems[(int)GlobalSetting.Skin].GetComponent<Button>().onClick.Invoke();
+        }
 
+        private void RefreshExternalSkins()
+        {
+            for (int i = 0; i < externalSkinParent.childCount; i++)
+            {
+                Destroy(externalSkinParent.GetChild(i).gameObject);
+            }
             SkinSummary[] skinSummaries = SkinManager.Instance.GetSkinSummaries();
             foreach (SkinSummary skinSummary in skinSummaries)
             {
@@ -85,7 +116,12 @@ namespace MainCore.Settings
                 o.name = skinSummary.id;
                 SkinItem skinItem = o.GetComponent<SkinItem>();
                 skinItem.Init(this, true, skinSummary.id, skinSummary.name);
+                externalSkinItems.Add(skinItem);
             }
+            GameObject add = Instantiate(skinItemPrefab, externalSkinParent);
+            add.name = "Add";
+            SkinItem skinItem1 = add.GetComponent<SkinItem>();
+            skinItem1.Init(this, true, "", "＋");
         }
 
         private void IntoDSP()
@@ -118,7 +154,14 @@ namespace MainCore.Settings
 
         public void UpdateSelectedSkinItem(bool isExternal, string id)
         {
+            if (isExternal && id == "")
+            {
+                // TODO: 文件选择并导入
+                return;
+            }
             if (selectedIsExternal == isExternal && selectedId == id) return;
+            selectedIsExternal = isExternal;
+            selectedId = id;
             foreach (var internalSkinItem in internalSkinItems)
             {
                 internalSkinItem.SetSelected(isExternal, id);
@@ -133,9 +176,10 @@ namespace MainCore.Settings
 
         private void OnSkinChanged()
         {
-            GlobalSetting.CurrentSkinInfo = HitEffectManager.GetSkinInfo(selectedIsExternal, selectedId);
+            GlobalSetting.CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(selectedIsExternal, selectedId);
             HitSoundManager.Instance.RefreshHitSounds();
             delayCorrect.OnSkinChanged();
+            skinPreviewer.UpdateSkin();
         }
         
         private async void AddSkinFromPackage(string path)

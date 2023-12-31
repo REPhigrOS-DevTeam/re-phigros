@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
 using Newtonsoft.Json;
@@ -48,7 +46,7 @@ public class SkinManager : MonoSingleton<SkinManager>
         Directory.CreateDirectory(skinPath);
         if (!File.Exists(skinPath + "/info.json"))
         {
-            File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins())));
+            File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins(), Formatting.None)));
         }
         else
         {
@@ -64,17 +62,6 @@ public class SkinManager : MonoSingleton<SkinManager>
             externalSkinInfos.Add(skinSummary.id, await GameUtils.ReadSkin($"{skinPath}/{skinSummary.id}"));
         }
     }
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     public void AddSkinInfo(string tempPath, SkinInfo skinInfo)
     {
@@ -89,7 +76,7 @@ public class SkinManager : MonoSingleton<SkinManager>
             name = skinInfo.skinName
         });
         skins.skins = skinSummaries.ToArray();
-        File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins)));
+        File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
         Util.CopyAll(new DirectoryInfo(tempPath), new DirectoryInfo($"{skinPath}/{s}"));
         externalSkinInfos.Add(s, skinInfo);
     }
@@ -100,7 +87,7 @@ public class SkinManager : MonoSingleton<SkinManager>
         List<SkinSummary> skinSummaries = skins.skins.ToList();
         skinSummaries.Remove(skinSummaries.Find(skinSummary => skinSummary.id == id));
         skins.skins = skinSummaries.ToArray();
-        File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins)));
+        File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
         Directory.Delete($"{skinPath}/{id}", true);
         externalSkinInfos.Remove(id);
     }
@@ -110,13 +97,13 @@ public class SkinManager : MonoSingleton<SkinManager>
         return externalSkinInfos.ContainsKey(id) ? externalSkinInfos[id] : null;
     }
 
-    public SkinSummary[] GetSkinSummaries() => JsonConvert.DeserializeObject<Skins>(File.ReadAllText(skinPath + "info.json")).skins;
+    public SkinSummary[] GetSkinSummaries() => JsonConvert.DeserializeObject<Skins>(File.ReadAllText(skinPath + "/info.json")).skins;
 }
 
 public class Skins
 {
     [JsonProperty("skins")]
-    public SkinSummary[] skins;
+    public SkinSummary[] skins= Array.Empty<SkinSummary>();
 }
 
 public class SkinSummary

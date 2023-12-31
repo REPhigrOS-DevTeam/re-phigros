@@ -1,4 +1,5 @@
 using MainCore.Settings;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,12 +9,12 @@ public class SkinItem : MonoBehaviour
     private SettingManager settingManager;
     private string id;
     private Image image;
-    private Text text;
+    private TextMeshProUGUI text;
 
     public void Init(SettingManager settingManager, bool isExternal, string id, string name)
     {
         image = gameObject.GetComponent<Image>();
-        text = gameObject.GetComponent<Text>();
+        text = gameObject.GetComponentInChildren<TextMeshProUGUI>();
         text.text = name;
         gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
         this.settingManager = settingManager;
