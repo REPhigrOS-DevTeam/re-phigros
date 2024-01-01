@@ -101,6 +101,7 @@ namespace Network.Multiplayer.Data
                 displayUrl = "";
                 return false;
             }
+            
 
             string host = url.Substring(0, maoHaoWeiZhi);
             string portStr = url.Substring(maoHaoWeiZhi + 1);
@@ -115,23 +116,29 @@ namespace Network.Multiplayer.Data
             {
                 host = host.Substring(1);
                 host = host.Substring(0, host.Length - 1);
-                if (!IPAddress.TryParse(host, out IPAddress ipAddress) ||
-                    ipAddress.AddressFamily != AddressFamily.InterNetworkV6)
+                if (!IPAddress.TryParse(host, out IPAddress ipv6Address) ||
+                    ipv6Address.AddressFamily != AddressFamily.InterNetworkV6)
                 {
                     endPoint = null;
                     displayUrl = "";
                     return false;
                 }
 
-                endPoint = new IPEndPoint(ipAddress, port);
+                endPoint = new IPEndPoint(ipv6Address, port);
                 displayUrl = host + ":" + port;
                 return true;
             }
 
+            if (IPAddress.TryParse(host, out IPAddress ipv4Address) &&
+                ipv4Address.AddressFamily == AddressFamily.InterNetwork)
+            {
+                endPoint = new IPEndPoint(ipv4Address, port);
+            }
             List<IPAddress> hostAddresses;
             try
             {
                 hostAddresses = Dns.GetHostAddresses(host).ToList();
+                
             }
             catch (Exception e) when (e is SocketException or ArgumentException)
             {
@@ -139,13 +146,23 @@ namespace Network.Multiplayer.Data
                 displayUrl = "";
                 return false;
             }
-
+            
+            hostAddresses = hostAddresses.Where(address => address.AddressFamily is AddressFamily.InterNetwork or AddressFamily.InterNetworkV6).ToList();
+            
+            if (!Socket.OSSupportsIPv6)
+                hostAddresses = hostAddresses.Where(address => address.AddressFamily != AddressFamily.InterNetworkV6).ToList();
             hostAddresses.Sort((a, b) =>
             {
                 int c = (int)a.AddressFamily;
                 int d = (int)b.AddressFamily;
                 return c - d;
             });
+            if (hostAddresses.Count == 0)
+            {
+                endPoint = null;
+                displayUrl = "";
+                return false;
+            }
             endPoint = new IPEndPoint(hostAddresses[0], port);
             displayUrl = host + ":" + port;
             return true;

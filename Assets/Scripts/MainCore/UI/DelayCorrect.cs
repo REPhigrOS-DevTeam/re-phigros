@@ -13,11 +13,11 @@ namespace MainCore.UI
     public class DelayCorrect : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer tap;
+        [SerializeField] private Transform auxiliaryLineTransform;
         private Transform tapTransform;
         [SerializeField] private Slider sizeGetter;
         [SerializeField] private Slider hitSfxVolumeGetter;
         [SerializeField] private Slider offsetGetter;
-        [SerializeField] private AudioClip tapSound;
         private bool running = true;
 
         private AudioSource sfx;
@@ -32,7 +32,7 @@ namespace MainCore.UI
         private Stopwatch stopwatch = new();
         private float delay;
         private float ElapsedTime => stopwatch.ElapsedMilliseconds / 1000f - delay;
-        
+
         async void Start()
         {
             tapTransform = tap.transform;
@@ -41,15 +41,17 @@ namespace MainCore.UI
             {
                 SkinInfo skinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo(skin);
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
-                effectManager.transform.position = Camera.main.transform.position - new Vector3(0, 0, 1);
+                effectManager.transform.position = Camera.main.transform.position - new Vector3(0f, 0f, 1f);
                 effectManager.PlayEffect();
                 if (!skinInfo.hideParticles) effectManager.PlayParticle();
             }
+
             sfx = GetComponent<AudioSource>();
             await UniTask.Delay(3000);
             speed = 1400 / beatTime;
             if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
             delay = beatTime / 2f;
+            auxiliaryLineTransform.localPosition = new Vector2(0f, 1000f);
             HeartBeat();
         }
 
@@ -58,9 +60,10 @@ namespace MainCore.UI
         {
             if (!running)
             {
-                tapTransform.localPosition = new Vector2(0, -400);
+                tapTransform.localPosition = new Vector2(0f, 1000f);
                 return;
             }
+
             tapTransform.localScale = Vector2.one * sizeGetter.value * new Vector2(98.9f, 100f);
 
             float offsetTime = ElapsedTime - offsetGetter.value / 1000f;
@@ -69,17 +72,20 @@ namespace MainCore.UI
 
             posY = 1000 - speed * percentage;
 
-            tapTransform.localPosition = new Vector2(0, posY);
+            tapTransform.localPosition = new Vector2(0f, posY);
+            // if (CheckInput())
+            // {
+            //     auxiliaryLineTransform.localPosition = new Vector2(0f, posY);
+            // }
 
             if (lastFrame > percentage && !played)
             {
                 //AudioSource.PlayClipAtPoint(tapSound, Camera.main.transform.position);
                 HitSoundManager.Instance.Play(1, hitSfxVolumeGetter.value);
-                tapTransform.localPosition = new Vector2(0, -400);
-                EffectManager hitFxObj;
-                //hitFxObj = ObjectPool.GetInstance().GetObj($"HitFX/clickRaw_{HitEffectManager.HitFxType}_{HitFxJudgeType.Perfect}");
-                hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
+                tapTransform.localPosition = new Vector2(0f, -400f);
+                EffectManager hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
                 hitFxObj.transform.position = tapTransform.position;
+                hitFxObj.transform.rotation = Quaternion.identity;
                 hitFxObj.PlayEffect();
                 if (!GlobalSetting.CurrentSkinInfo.hideParticles) hitFxObj.PlayParticle();
                 played = true;
@@ -87,6 +93,27 @@ namespace MainCore.UI
             }
 
             lastFrame = percentage;
+        }
+
+        private bool CheckInput()
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            if (Input.GetMouseButtonDown(0) &&
+                1 - Input.mousePosition.x / Screen.width is > 0 and < 500f / 1920f) // 500是背景宽度，1920是参考分辨率宽度
+            {
+                return true;
+            }
+#endif
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
+                if (touch.phase == TouchPhase.Began && 1 - touch.position.x / Screen.width is > 0 and < 500f / 1920f)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         void HeartBeat()

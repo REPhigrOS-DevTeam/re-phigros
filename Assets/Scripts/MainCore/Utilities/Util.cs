@@ -379,10 +379,12 @@ namespace MainCore.Utilities
                 switch (fi)
                 {
                     case FileInfo fileInfo:
+                        if (fileInfo.Directory is { Exists: false }) fileInfo.Directory.Create();
                         fileInfo.CopyTo(targetPath, true);
                         break;
                     case DirectoryInfo directoryInfo:
                     {
+                        if (!target.Exists) target.Create();
                         DirectoryInfo subDir = target.CreateSubdirectory(directoryInfo.Name);
                         CopyAll(directoryInfo, subDir);
                         break;

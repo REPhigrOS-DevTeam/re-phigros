@@ -164,9 +164,9 @@ namespace MainCore.UI
 
         private void ImportCharacterPackage()
         {
-            OpenFile.LoadFile(paths =>
+            OpenFile.LoadFile(path =>
             {
-                Sprite sprite = OnSelectedCharacterPackage(paths[0]);
+                Sprite sprite = OnSelectedCharacterPackage(path);
                 if (sprite) character.sprite = sprite;
             }, () => { }, "REP用立绘包(*.charapkg)|*.charapkg", null, "选择立绘包...", "确定");
         }

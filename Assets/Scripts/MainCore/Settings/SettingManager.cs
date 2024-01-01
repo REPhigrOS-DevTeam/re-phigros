@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Lean.Gui;
 using MainCore.Common;
 using MainCore.ECS_ver;
 using MainCore.UI;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,10 +26,14 @@ namespace MainCore.Settings
         [SerializeField] private GameObject skinSelectorCanvas, skinPreview;
         [SerializeField] private SkinPreview skinPreviewer;
         [SerializeField] private Button displaySkinInfo, deleteSkin;
+        [SerializeField] private Transform hitEffectPos;
         private Dictionary<Skin, SkinItem> internalSkinItems = new();
         private Dictionary<string, SkinItem> externalSkinItems = new();
         private bool selectedIsExternal = false;
         private string selectedId = "-1";
+#if UNITY_EDITOR
+        public Sprite[] hitFx;
+#endif
 
         void Start()
         {
@@ -37,6 +43,23 @@ namespace MainCore.Settings
                     $"名称：{GlobalSetting.CurrentSkinInfo.skinName}\n" +
                     $"作者：{GlobalSetting.CurrentSkinInfo.author}\n" +
                     $"介绍：{GlobalSetting.CurrentSkinInfo.description}", () => { }, "确定");
+            });
+            deleteSkin.onClick.AddListener(() =>
+            {
+                if (GlobalSetting.CurrentSkinInfo.isExternal)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("提示", "确定要删除吗？", () =>
+                    {
+                        string id = GlobalSetting.CurrentSkinInfo.id;
+                        UpdateSelectedSkinItem(false, "0");
+                        SkinManager.Instance.DeleteSkinInfo(id);
+                        RefreshExternalSkins();
+                    }, "确定", () => { }, "取消");
+                }
+                else
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "不可删除内置皮肤", () => { }, "好");
+                }
             });
             openSkinSelector.onClick.AddListener(() =>
             {
@@ -156,7 +179,10 @@ namespace MainCore.Settings
         private void SaveNExit()
         {
             broadCastTarget.BroadcastMessage("SaveValue");
-            PlayerPrefs.SetString("selected_skin", GlobalSetting.CurrentSkinInfo.isExternal ? $"e{GlobalSetting.CurrentSkinInfo.id}" : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
+            PlayerPrefs.SetString("selected_skin",
+                GlobalSetting.CurrentSkinInfo.isExternal
+                    ? $"e{GlobalSetting.CurrentSkinInfo.id}"
+                    : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
             PlayerPrefs.Save();
 #if UNITY_IPHONE && !UNITY_EDITOR
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
@@ -176,11 +202,20 @@ namespace MainCore.Settings
         {
             if (isExternal && id == "")
             {
-                // TODO: 文件选择并导入
+                OpenFile.LoadFile(AddSkinFromPackage, () => { }, "皮肤包(*.zip)|*.zip", null, "选择皮肤包…", "确定");
                 return;
             }
 
             if (selectedIsExternal == isExternal && selectedId == id) return;
+            SkinInfo newSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(isExternal, id);
+            if (newSkinInfo == null)
+            {
+                if (!isExternal) throw new ArgumentException();
+                SkinManager.Instance.DeleteSkinInfo(id);
+                RefreshExternalSkins();
+                return;
+            }
+
             selectedIsExternal = isExternal;
             selectedId = id;
             foreach (var internalSkinItem in internalSkinItems.Values)
@@ -193,12 +228,15 @@ namespace MainCore.Settings
                 externalSkinItem.SetSelected(isExternal, id);
             }
 
+            GlobalSetting.CurrentSkinInfo = newSkinInfo;
             OnSkinChanged();
         }
 
         private void OnSkinChanged()
         {
-            GlobalSetting.CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(selectedIsExternal, selectedId);
+#if UNITY_EDITOR
+            hitFx = GlobalSetting.CurrentSkinInfo.hitFx;
+#endif
             HitSoundManager.Instance.RefreshHitSounds();
             delayCorrect.OnSkinChanged();
             skinPreviewer.UpdateSkin();
@@ -222,11 +260,21 @@ namespace MainCore.Settings
             }
 
             SkinManager.Instance.AddSkinInfo(dirPath, await GameUtils.ReadSkin(dirPath));
+            RefreshExternalSkins();
         }
 
         public void PlayHitSound(int id)
         {
             HitSoundManager.Instance.Play(id, 0.5f);
+        }
+
+        public void PlayHitEffect(int type)
+        {
+            EffectManager hitFxObj = HitEffectManager.GetInstance()
+                .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo);
+            hitFxObj.transform.position = hitEffectPos.position;
+            hitFxObj.transform.rotation = Quaternion.identity;
+            hitFxObj.PlayEffect();
         }
     }
 

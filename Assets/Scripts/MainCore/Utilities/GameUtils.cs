@@ -561,6 +561,8 @@ namespace MainCore.Utilities
             skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
             skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
+            skinInfo.perfectColor = phiraSkinInfoData.colorPerfect;
+            skinInfo.goodColor = phiraSkinInfoData.colorGood;
             // 读取Hit Fx
             List<Sprite> hitFx = new List<Sprite>();
             int numColumns = phiraSkinInfoData.hitFx[0];
@@ -579,7 +581,7 @@ namespace MainCore.Utilities
             {
                 for (int x = 0; x < numColumns; ++x)
                 {
-                    Rect rect = new Rect(x * spriteSize.x, y * spriteSize.y, spriteSize.x, spriteSize.y);
+                    Rect rect = new Rect(x * spriteSize.x, (numRows - y - 1) * spriteSize.y, spriteSize.x, spriteSize.y);
 
                     // TODO: PPU计算
                     Sprite sprite =

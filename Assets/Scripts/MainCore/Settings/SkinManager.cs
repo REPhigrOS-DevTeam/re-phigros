@@ -44,7 +44,7 @@ public class SkinManager : MonoSingleton<SkinManager>
     protected override void OnAwake()
     {
         skinPath = GetBasePath() + "/Skins";
-        if (Directory.Exists(skinPath)) Directory.Delete(skinPath, true);
+        if (Directory.Exists(skinPath + "/..") && !File.Exists(skinPath + "/info.json")) Directory.Delete(skinPath + "/..", true);
         Directory.CreateDirectory(skinPath);
         if (!File.Exists(skinPath + "/info.json"))
         {
@@ -58,9 +58,10 @@ public class SkinManager : MonoSingleton<SkinManager>
 
     private async void ReadLocalSkins()
     {
-        Skins skins = JsonConvert.DeserializeObject<Skins>(skinPath + "/info.json");
+        Skins skins = JsonConvert.DeserializeObject<Skins>(await File.ReadAllTextAsync(skinPath + "/info.json"));
         foreach (SkinSummary skinSummary in skins.skins)
         {
+            if (!Directory.Exists($"{skinPath}/{skinSummary.id}")) continue;
             SkinInfo skinInfo = await GameUtils.ReadSkin($"{skinPath}/{skinSummary.id}");
             skinInfo.id = skinSummary.id;
             externalSkinInfos.Add(skinSummary.id, skinInfo);
@@ -81,9 +82,11 @@ public class SkinManager : MonoSingleton<SkinManager>
         });
         skins.skins = skinSummaries.ToArray();
         File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
+        Directory.CreateDirectory($"{skinPath}/{s}");
         Util.CopyAll(new DirectoryInfo(tempPath), new DirectoryInfo($"{skinPath}/{s}"));
         skinInfo.id = s;
         externalSkinInfos.Add(s, skinInfo);
+        Directory.Delete(tempPath, true);
     }
 
     public void DeleteSkinInfo(string id)
@@ -93,7 +96,7 @@ public class SkinManager : MonoSingleton<SkinManager>
         skinSummaries.Remove(skinSummaries.Find(skinSummary => skinSummary.id == id));
         skins.skins = skinSummaries.ToArray();
         File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
-        Directory.Delete($"{skinPath}/{id}", true);
+        if (Directory.Exists($"{skinPath}/{id}")) Directory.Delete($"{skinPath}/{id}", true);
         externalSkinInfos.Remove(id);
     }
 

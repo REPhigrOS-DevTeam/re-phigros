@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExternal: 0
   skin: 1
+  id: 
   skinName: "\u661F\u7C89Xz"
   author: "\u661F\u9E7FELEC"
   description: "\u65E0"
@@ -102,9 +103,9 @@ MonoBehaviour:
   paintBadColor: 1
   perfectColor: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
   goodColor: {r: 0.54901963, g: 0.9254902, b: 1, a: 1}
-  hitFxDuration: 0
+  hitFxDuration: 0.55
   hitFxScale: 1
-  hitFxRotate: 0
+  hitFxRotate: 1
   hitFxTinted: 1
   hideParticles: 0
   holdKeepHead: 0

@@ -213,8 +213,7 @@ namespace MainCore
             cachedTransform.localPosition = localPosition;
             holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             holdEffect.transform.position = cachedTransform.position;
-            if (GlobalSetting.CurrentSkinInfo.hitFxRotate)
-                holdEffect.transform.rotation = cachedTransform.rotation;
+            holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
             holdEffect.PlayParticle();
             holdEffect.PlayEffect();
             cachedTransform.localPosition = cachedlocalPosition;

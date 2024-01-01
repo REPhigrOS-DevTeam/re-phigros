@@ -12,7 +12,7 @@ namespace MainCore.SceneTransitAnimation
         [SerializeField] private Text text;
         public override int Enter()
         {
-            throw new System.NotImplementedException();
+            return 0;
         }
 
         public override int Quit()

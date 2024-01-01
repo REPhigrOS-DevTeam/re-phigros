@@ -130,10 +130,10 @@ public class MPServerTest : MonoBehaviour
         bStartGame.onClick.AddListener(() => GeneralListener(SocketManager.StartGame, generalErrorMessages));
         bUpdateSong.onClick.AddListener(() =>
         {
-            async Task OnGetFileSuccess(string[] paths)
+            async Task OnGetFileSuccess(string path)
             {
-                int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = paths[0]),
-                    SongType.rep, (await GameUtils.GetSongInfo(paths[0])).Item1);
+                int state = SocketManager.UpdateSong(await ChartHandler.Upload(ownerLocalPath = path),
+                    SongType.rep, (await GameUtils.GetSongInfo(path)).Item1);
                 if (state == 0) return;
                 if (state == -4)
                     ChatManager.AddMessage("Server", "上传时遇到未知错误", MessageType.Error);
@@ -142,9 +142,9 @@ public class MPServerTest : MonoBehaviour
             }
 
             uploadMask.SetActive(true);
-            OpenFile.LoadFolder(async paths =>
+            OpenFile.LoadFolder(async path =>
             {
-                await OnGetFileSuccess(paths);
+                await OnGetFileSuccess(path);
                 uploadMask.SetActive(false);
             }, () => { uploadMask.SetActive(false); }, Util.DataPath, "选择谱面...", "上传");
         });

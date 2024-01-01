@@ -179,7 +179,7 @@ namespace MainCore
         {
             if (Input.GetMouseButtonDown(0)) fingers[0].phase = TouchPhase.Began;
             else if (Input.GetMouseButton(0)) fingers[0].phase = TouchPhase.Moved;
-            else if (Input.GetMouseButtonUp(0)) fingers[0].phase = TouchPhase.Canceled;
+            else if (Input.GetMouseButtonUp(0)) fingers[0].phase = TouchPhase.Ended;
             fingers[0].newPosition = Input.mousePosition;
             fingers[0].CheckInput();
             if (Input.GetMouseButton(0))

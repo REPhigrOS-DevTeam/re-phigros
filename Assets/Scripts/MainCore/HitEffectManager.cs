@@ -45,7 +45,7 @@ namespace MainCore
         /// <returns></returns>
         public EffectManager GetObj(HitFxJudgeType judgeType, SkinInfo skinInfo)
         {
-            string objName = $"clickRaw_{(skinInfo.isExternal ? "External" : "Internal")}_{(skinInfo.isExternal ? skinInfo.skinName : skinInfo.skin.ToString())}_{judgeType}";
+            string objName = $"clickRaw_{(skinInfo.isExternal ? "External" : "Internal")}_{(skinInfo.isExternal ? skinInfo.skinName : skinInfo.skin.ToString())}";
             //结果对象
             EffectManager result = null;
             //判断是否有该名字的对象池

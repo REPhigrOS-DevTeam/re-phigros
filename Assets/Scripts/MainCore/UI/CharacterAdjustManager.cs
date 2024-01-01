@@ -76,7 +76,7 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         if (characterTextureData == null) return;
 
-        OpenFile.SaveFile(paths => OnExportPathSelected(paths[0]), () => { }, "REP用立绘包(*.charapkg)|*.charapkg",
+        OpenFile.SaveFile(OnExportPathSelected, () => { }, "REP用立绘包(*.charapkg)|*.charapkg",
             Util.DataPath, "保存到...", "确定");
     }
 
@@ -151,10 +151,10 @@ public class CharacterAdjustManager : MonoBehaviour
 
     private void SelectImage()
     {
-        OpenFile.LoadFile(paths =>
+        OpenFile.LoadFile(path =>
         {
             SetInput(true);
-            OnImageSelected(paths[0]);
+            OnImageSelected(path);
         }, () => { }, "立绘贴图(*.png)|*.png|REP用立绘包(*.charapkg)|*.charapkg", null, "选择人物...", "确定");
     }
 

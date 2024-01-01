@@ -8,6 +8,7 @@ using MainCore;
 using MainCore.ECS_ver;
 using MainCore.Utilities;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class EffectManager : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class EffectManager : MonoBehaviour
     [SerializeField] private int cnt;
     public Coroutine AnimationCoroutine;
     private Sprite[] hitFx;
+    private float hitFxFactor;
 
     public Coroutine RecycleCoroutine = null;
 
@@ -29,12 +31,14 @@ public class EffectManager : MonoBehaviour
 
     public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
-        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.16f : GetFactor(skinInfo.skin));
-        if (skinInfo.isExternal) scale *= skinInfo.hitFxScale;
+        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.16f : GetFactor(skinInfo.skin)) * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
         hitFx = skinInfo.hitFx;
+        hitFxFactor = GlobalSetting.CurrentSkinInfo.isExternal && GlobalSetting.CurrentSkinInfo.skin == Skin.OldOfficial
+            ? 120f
+            : hitFx.Length / GlobalSetting.CurrentSkinInfo.hitFxDuration;
         RecycleCoroutine = StartCoroutine(RecycleObj());
         sr.color = skinInfo.hitFxTinted
             ? JudgeType switch
@@ -74,7 +78,7 @@ public class EffectManager : MonoBehaviour
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
         float timer;
-        while ((timer = stopwatch.ElapsedMilliseconds / 1000f * 120f) < hitFx.Length)
+        while ((timer = stopwatch.ElapsedMilliseconds / 1000f * hitFxFactor) < hitFx.Length)
         {
             sr.sprite = hitFx[(int) timer];
             yield return null;

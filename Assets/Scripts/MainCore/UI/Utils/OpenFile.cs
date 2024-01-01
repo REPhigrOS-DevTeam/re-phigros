@@ -12,7 +12,7 @@ namespace MainCore.UI.Utils
         {
             return filter.Split("|").Where((_, i) => i % 2 == 1).Select(str => str[str.LastIndexOf('.')..]);
         }
-        public static void LoadFolder(FileBrowser.OnSuccess onSuccess, FileBrowser.OnCancel onCancel, string initPath, string title, string buttonText)
+        public static void LoadFolder(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string initPath, string title, string buttonText)
         {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             try
@@ -24,7 +24,7 @@ namespace MainCore.UI.Utils
                 }
                 else
                 {
-                    onSuccess.Invoke(new[] { s });
+                    onSuccess.Invoke(s);
                 }
             }
             catch (Exception)
@@ -34,10 +34,10 @@ namespace MainCore.UI.Utils
             return;
 #endif
             FileBrowser.SetFilters(true);
-            FileBrowser.ShowLoadDialog(onSuccess, onCancel, FileBrowser.PickMode.Folders, false, initPath, "", title,
+            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Folders, false, initPath, "", title,
                 buttonText);
         }
-        public static void LoadFile(FileBrowser.OnSuccess onSuccess, FileBrowser.OnCancel onCancel, string filter,
+        public static void LoadFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string filter,
             string initPath, string title, string buttonText)
         {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -50,7 +50,7 @@ namespace MainCore.UI.Utils
                 }
                 else
                 {
-                    onSuccess.Invoke(new[] { s });
+                    onSuccess.Invoke(s);
                 }
             }
             catch (Exception)
@@ -60,11 +60,11 @@ namespace MainCore.UI.Utils
             return;
 #endif
             FileBrowser.SetFilters(false, ParseSimpleFileBrowserFilter(filter));
-            FileBrowser.ShowLoadDialog(onSuccess, onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
+            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
                 buttonText);
         }
         
-        public static void SaveFile(FileBrowser.OnSuccess onSuccess, FileBrowser.OnCancel onCancel, string filter,
+        public static void SaveFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string filter,
             string initPath, string title, string buttonText)
         {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -77,17 +77,17 @@ namespace MainCore.UI.Utils
                 }
                 else
                 {
-                    onSuccess.Invoke(new[] { s });
+                    onSuccess.Invoke(s);
                 }
             }
             catch (Exception)
             {
                 onCancel.Invoke();
-            }
-            // return;
+            } 
+            return;
 #endif
             FileBrowser.SetFilters(false, ParseSimpleFileBrowserFilter(filter));
-            FileBrowser.ShowSaveDialog(onSuccess, onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
+            FileBrowser.ShowSaveDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
                 buttonText);
         }
     }

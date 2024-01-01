@@ -136,7 +136,7 @@ namespace MainCore
 
         private static string externalSkinName;
 
-        public static SkinInfo CurrentSkinInfo { get; set; }
+        public static SkinInfo CurrentSkinInfo;
 
         public static bool useCourseMode = false;
 
@@ -225,6 +225,13 @@ namespace MainCore
                     'e' => true,
                     _ => throw new ArgumentException()
                 }, s[1..]);
+                if (CurrentSkinInfo == null)
+                {
+                    if (s[0] != 'e') throw new ArgumentException();
+                    PlayerPrefs.SetString("selected_skin", "i0");
+                    CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(false, "0");
+                    PlayerPrefs.Save();
+                }
             }
             HitSoundManager.Instance.RefreshHitSounds();
             HitSoundManager.UpdateVolume();

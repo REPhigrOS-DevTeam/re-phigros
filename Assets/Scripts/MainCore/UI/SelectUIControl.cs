@@ -340,9 +340,8 @@ namespace MainCore.UI
             OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, "RPE谱包(*.pez)|*.pez", null, "选择Pez...", "确定");
         }
 
-        private void OnLoadPezSucceeded(string[] paths)
+        private void OnLoadPezSucceeded(string zipFile)
         {
-            string zipFile = paths[0];
             string songFolderName = Path.GetFileNameWithoutExtension(zipFile);
             string destFolderPath = Path.Combine(PlayerPrefs.GetString("file_path"), songFolderName);
             if (Directory.Exists(destFolderPath))

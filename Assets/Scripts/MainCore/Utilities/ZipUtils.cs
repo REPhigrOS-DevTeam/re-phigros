@@ -36,9 +36,14 @@ namespace MainCore.Utilities
         private static void UnZip(Stream stream, string TargetDirectory, bool OverWrite)
         {
             TargetDirectory = TargetDirectory.Replace("\\", "/");
-            //如果解压到的目录不存在，则报错
+            
             if (!Directory.Exists(TargetDirectory))
             {
+                Directory.CreateDirectory(TargetDirectory);
+            }
+            else if (OverWrite)
+            {
+                Directory.Delete(TargetDirectory, true);
                 Directory.CreateDirectory(TargetDirectory);
             }
 

@@ -29,12 +29,12 @@ namespace MainCore.Common
             {
                 if (pickMode == FileBrowser.PickMode.Folders)
                 {
-                    OpenFile.LoadFolder(paths => inputFieldStringSetting.SetValue(paths[0]),
+                    OpenFile.LoadFolder(path => inputFieldStringSetting.SetValue(path),
                         () => { }, Application.persistentDataPath, "选择...", "确定");
                 }
                 else
                 {
-                    OpenFile.LoadFile(paths => inputFieldStringSetting.SetValue(paths[0]),
+                    OpenFile.LoadFile(path => inputFieldStringSetting.SetValue(path),
                         () => { }, string.Join("|", fileExtensions.Select(s => $"|*{s}")), Application.persistentDataPath, "选择...", "确定");
                 }
                 return;

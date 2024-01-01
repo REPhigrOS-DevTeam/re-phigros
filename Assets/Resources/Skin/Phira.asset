@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isExternal: 0
   skin: 3
+  id: 
   skinName: nomo
   author: "\u661F\u9E7FELEC & \u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440"
   description: "\u661F\u9E7FELEC\u8D1F\u8D23\u7ED8\u5236\uFF0C\u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440\u8D1F\u8D23\u97F3\u6548"
@@ -94,8 +95,8 @@ MonoBehaviour:
   paintBadColor: 1
   perfectColor: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
   goodColor: {r: 0.54901963, g: 0.9254902, b: 1, a: 1}
-  hitFxDuration: 0
-  hitFxScale: 1
+  hitFxDuration: 0.5
+  hitFxScale: 0.9
   hitFxRotate: 0
   hitFxTinted: 1
   hideParticles: 0
