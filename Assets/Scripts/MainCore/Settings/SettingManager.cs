@@ -7,6 +7,7 @@ using MainCore.ECS_ver;
 using MainCore.UI;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
+using SFB;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -202,7 +203,8 @@ namespace MainCore.Settings
         {
             if (isExternal && id == "")
             {
-                OpenFile.LoadFile(AddSkinFromPackage, () => { }, "皮肤包(*.zip)|*.zip", null, "选择皮肤包…", "确定");
+                OpenFile.LoadFile(AddSkinFromPackage, () => { },
+                    new[] { new ExtensionFilter("Skin Package", "zip") }, null, "选择皮肤包…", "确定");
                 return;
             }
 

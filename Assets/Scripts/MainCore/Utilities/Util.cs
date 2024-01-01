@@ -16,9 +16,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
 using UnityEditor;
-
-#else
-using UnityEngine;
 #endif
 
 namespace MainCore.Utilities

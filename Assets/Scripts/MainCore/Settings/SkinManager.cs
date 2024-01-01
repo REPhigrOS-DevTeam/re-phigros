@@ -44,7 +44,7 @@ public class SkinManager : MonoSingleton<SkinManager>
     protected override void OnAwake()
     {
         skinPath = GetBasePath() + "/Skins";
-        if (Directory.Exists(skinPath + "/..") && !File.Exists(skinPath + "/info.json")) Directory.Delete(skinPath + "/..", true);
+        if (Directory.Exists(skinPath) && !File.Exists(skinPath + "/info.json")) Directory.Delete(skinPath, true);
         Directory.CreateDirectory(skinPath);
         if (!File.Exists(skinPath + "/info.json"))
         {

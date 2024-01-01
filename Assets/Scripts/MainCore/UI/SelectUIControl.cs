@@ -14,6 +14,7 @@ using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
+using SFB;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -337,7 +338,7 @@ namespace MainCore.UI
 
         public void UnzipPez()
         {
-            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, "RPE谱包(*.pez)|*.pez", null, "选择Pez...", "确定");
+            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, new []{new ExtensionFilter("RPE谱包", "pez")}, null, "选择Pez...", "确定");
         }
 
         private void OnLoadPezSucceeded(string zipFile)

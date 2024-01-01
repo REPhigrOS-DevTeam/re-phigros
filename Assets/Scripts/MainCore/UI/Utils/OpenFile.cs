@@ -1,49 +1,78 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Schwarzer.Windows;
+using SFB;
 using SimpleFileBrowser;
 
 namespace MainCore.UI.Utils
 {
     public class OpenFile
     {
-        private static IEnumerable<string> ParseSimpleFileBrowserFilter(string filter)
+        // 妈的日了狗了传中文会乱码
+        public static void LoadFolder(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string initPath,
+            string title, string buttonText)
         {
-            return filter.Split("|").Where((_, i) => i % 2 == 1).Select(str => str[str.LastIndexOf('.')..]);
-        }
-        public static void LoadFolder(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string initPath, string title, string buttonText)
-        {
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                string s = Dialog.OpenFolderDialog(title, initPath);
-                if (string.IsNullOrEmpty(s))
+                string[] s = StandaloneFileBrowser.OpenFolderPanel(title, initPath, false);
+                if (s.Length == 0)
                 {
                     onCancel.Invoke();
                 }
                 else
                 {
-                    onSuccess.Invoke(s);
+                    onSuccess.Invoke(s[0]);
                 }
             }
             catch (Exception)
             {
                 onCancel.Invoke();
             }
+
             return;
 #endif
             FileBrowser.SetFilters(true);
-            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Folders, false, initPath, "", title,
+            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Folders,
+                false, initPath, "", title,
                 buttonText);
         }
-        public static void LoadFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string filter,
+
+        public static void LoadFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, ExtensionFilter[] filter,
             string initPath, string title, string buttonText)
         {
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if UNITY_EDITOR || UNITY_STANDALONE
             try
             {
-                string s = Dialog.OpenFileDialog(title, "", initPath, filter);
+                string[] openFilePanel = StandaloneFileBrowser.OpenFilePanel(title, initPath, filter, false);
+                if (openFilePanel.Length == 0)
+                {
+                    onCancel.Invoke();
+                }
+                else
+                {
+                    onSuccess.Invoke(openFilePanel[0]);
+                }
+            }
+            catch (Exception)
+            {
+                onCancel.Invoke();
+            }
+
+            return;
+#endif
+            FileBrowser.SetFilters(false, ParseSimpleFileBrowserFilter(filter));
+            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false,
+                initPath, "", title,
+                buttonText);
+        }
+
+        public static void SaveFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, ExtensionFilter[] filter,
+            string initPath, string title, string buttonText)
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            try
+            {
+                string s = StandaloneFileBrowser.SaveFilePanel(title, initPath, "", filter);
                 if (string.IsNullOrEmpty(s))
                 {
                     onCancel.Invoke();
@@ -57,38 +86,24 @@ namespace MainCore.UI.Utils
             {
                 onCancel.Invoke();
             }
+
             return;
 #endif
             FileBrowser.SetFilters(false, ParseSimpleFileBrowserFilter(filter));
-            FileBrowser.ShowLoadDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
+            FileBrowser.ShowSaveDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false,
+                initPath, "", title,
                 buttonText);
         }
-        
-        public static void SaveFile(Action<string> onSuccess, FileBrowser.OnCancel onCancel, string filter,
-            string initPath, string title, string buttonText)
+
+        private static IEnumerable<string> ParseSimpleFileBrowserFilter(ExtensionFilter[] filter)
         {
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            try
+            List<string> extensions = new List<string>();
+            foreach (ExtensionFilter extensionFilter in filter)
             {
-                string s = Dialog.SaveFileDialog(title, "", initPath, filter);
-                if (string.IsNullOrEmpty(s))
-                {
-                    onCancel.Invoke();
-                }
-                else
-                {
-                    onSuccess.Invoke(s);
-                }
+                extensions.AddRange(extensionFilter.Extensions);
             }
-            catch (Exception)
-            {
-                onCancel.Invoke();
-            } 
-            return;
-#endif
-            FileBrowser.SetFilters(false, ParseSimpleFileBrowserFilter(filter));
-            FileBrowser.ShowSaveDialog(paths => onSuccess.Invoke(paths[0]), onCancel, FileBrowser.PickMode.Files, false, initPath, "", title,
-                buttonText);
+
+            return extensions;
         }
     }
 }

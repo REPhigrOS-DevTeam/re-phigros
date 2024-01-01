@@ -1,5 +1,6 @@
 using System.Linq;
 using MainCore.UI.Utils;
+using SFB;
 using SimpleFileBrowser;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,7 +36,7 @@ namespace MainCore.Common
                 else
                 {
                     OpenFile.LoadFile(path => inputFieldStringSetting.SetValue(path),
-                        () => { }, string.Join("|", fileExtensions.Select(s => $"|*{s}")), Application.persistentDataPath, "选择...", "确定");
+                        () => { }, fileExtensions.Select(fileExtension => new ExtensionFilter("", fileExtension.Substring(1))).ToArray(), Application.persistentDataPath, "选择...", "确定");
                 }
                 return;
             }

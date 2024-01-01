@@ -12,6 +12,7 @@ using MainCore.UI;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
+using SFB;
 using SimpleFileBrowser;
 using Unimage;
 using UnityEngine;
@@ -76,7 +77,7 @@ public class CharacterAdjustManager : MonoBehaviour
     {
         if (characterTextureData == null) return;
 
-        OpenFile.SaveFile(OnExportPathSelected, () => { }, "REP用立绘包(*.charapkg)|*.charapkg",
+        OpenFile.SaveFile(OnExportPathSelected, () => { }, new []{new ExtensionFilter("REP角色包", "charapkg")},
             Util.DataPath, "保存到...", "确定");
     }
 
@@ -155,7 +156,7 @@ public class CharacterAdjustManager : MonoBehaviour
         {
             SetInput(true);
             OnImageSelected(path);
-        }, () => { }, "立绘贴图(*.png)|*.png|REP用立绘包(*.charapkg)|*.charapkg", null, "选择人物...", "确定");
+        }, () => { }, new []{new ExtensionFilter("立绘贴图", "png"), new ExtensionFilter("REP角色包", "charapkg")}, null, "选择人物...", "确定");
     }
 
     private void OnImageSelected(string path)

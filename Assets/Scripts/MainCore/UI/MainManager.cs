@@ -5,6 +5,7 @@ using MainCore.Data;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
+using SFB;
 using SimpleFileBrowser;
 using Unimage;
 using UnityEngine;
@@ -168,7 +169,7 @@ namespace MainCore.UI
             {
                 Sprite sprite = OnSelectedCharacterPackage(path);
                 if (sprite) character.sprite = sprite;
-            }, () => { }, "REP用立绘包(*.charapkg)|*.charapkg", null, "选择立绘包...", "确定");
+            }, () => { }, new []{new ExtensionFilter("REP角色包", "charapkg")}, null, "选择立绘包...", "确定");
         }
 
         private Sprite OnSelectedCharacterPackage(string path)

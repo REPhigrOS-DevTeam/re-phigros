@@ -3,11 +3,9 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
-using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Network;
 using Network.Multiplayer.Managers;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Video;
 
@@ -27,9 +25,7 @@ namespace MainCore.UI
         private bool inited = false;
 
         private CancellationTokenSource cts = new CancellationTokenSource();
-
-        public AnimatorController animator;
-
+        
         private void Awake()
         {
             GlobalSetting.OriginResolution = Screen.currentResolution;
