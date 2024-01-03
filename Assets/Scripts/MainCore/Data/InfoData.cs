@@ -44,7 +44,7 @@ namespace MainCore.Data
         public int[] holdAtlas;
         public int[] holdAtlasMH;
         // 非必要
-        public string desciption = "";
+        public string description = "";
         public float hitFxDuration = 0.5f;
         public float hitFxScale = 1.0f;
         public bool hitFxRotate = false;
@@ -53,8 +53,8 @@ namespace MainCore.Data
         public bool holdKeepHead = false;
         public bool holdRepeat = false;
         public bool holdCompact = false;
-        public Color colorPerfect = new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1); // phira: new Color(225f/255f, 1f, 236f/255f, 159f/255f)
-        public Color colorGood = new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1); // phira: new Color(235f/255f, 180f/255f, 225f/255f, 1f)
+        public string colorPerfect =  "0xfeffadff"; // phira: 0xe1ffec9f
+        public string colorGood = "0x8cecffff"; // phira: 0xebb4e1ff
     }
     
     public class LchzhInfo

@@ -534,9 +534,10 @@ namespace MainCore.Utilities
                 InGameUIManager.ShowModalWindowWithClose("错误", "无法读取文件", () => { }, "确定");
                 return null;
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "info.yml格式不正确", () => { }, "确定");
+                Debug.LogException(e);
                 return null;
             }
 
@@ -552,7 +553,7 @@ namespace MainCore.Utilities
             SkinInfo skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
             skinInfo.skinName = phiraSkinInfoData.name;
             skinInfo.author = phiraSkinInfoData.author;
-            skinInfo.description = phiraSkinInfoData.desciption == "" ? "无" : phiraSkinInfoData.desciption;
+            skinInfo.description = phiraSkinInfoData.description == "" ? "无" : phiraSkinInfoData.description;
             skinInfo.hitFxDuration = phiraSkinInfoData.hitFxDuration;
             skinInfo.hitFxScale = phiraSkinInfoData.hitFxScale;
             skinInfo.hitFxRotate = phiraSkinInfoData.hitFxRotate;
@@ -561,8 +562,8 @@ namespace MainCore.Utilities
             skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
             skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
-            skinInfo.perfectColor = phiraSkinInfoData.colorPerfect;
-            skinInfo.goodColor = phiraSkinInfoData.colorGood;
+            skinInfo.perfectColor = phiraSkinInfoData.colorPerfect.ToColor();
+            skinInfo.goodColor = phiraSkinInfoData.colorGood.ToColor();
             // 读取Hit Fx
             List<Sprite> hitFx = new List<Sprite>();
             int numColumns = phiraSkinInfoData.hitFx[0];
@@ -585,7 +586,7 @@ namespace MainCore.Utilities
 
                     // TODO: PPU计算
                     Sprite sprite =
-                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), 100f, 1); // 创建新的 Sprite 对象
+                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), 64f, 1); // 创建新的 Sprite 对象
                     sprite.name = $"hit_fx_external_{y * numColumns + x}"; // 自定义 Sprite 的名字
 
                     hitFx.Add(sprite);

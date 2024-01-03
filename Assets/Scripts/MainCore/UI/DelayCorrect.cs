@@ -33,6 +33,8 @@ namespace MainCore.UI
         private float delay;
         private float ElapsedTime => stopwatch.ElapsedMilliseconds / 1000f - delay;
 
+        private float volume = 0.5f;
+
         async void Start()
         {
             tapTransform = tap.transform;
@@ -47,6 +49,7 @@ namespace MainCore.UI
             }
 
             sfx = GetComponent<AudioSource>();
+            sfx.volume = volume;
             await UniTask.Delay(3000);
             speed = 1400 / beatTime;
             if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
@@ -128,13 +131,18 @@ namespace MainCore.UI
             if (state)
             {
                 stopwatch.Restart();
-                if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
+                if (!sfx) return;
+                sfx.volume = volume;
+                sfx.PlayScheduled(AudioSettings.dspTime);
             }
             else
             {
                 lastFrame = -1;
                 stopwatch.Stop();
-                if (sfx) sfx.Stop();
+                if (!sfx) return;
+                sfx.volume = 0f;
+                sfx.Stop();
+                sfx.time = 0f;
             }
         }
 

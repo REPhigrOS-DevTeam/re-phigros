@@ -306,7 +306,7 @@ namespace MainCore.UI
             if (infoDropdown.options.Count == 0) return;
             string t = infoDropdown.captionText.text;
 
-            tempPath = Path.Combine(PlayerPrefs.GetString("file_path") /*Application.persistentDataPath*/, t);
+            tempPath = Path.Combine(Util.DataPath /*Application.persistentDataPath*/, t);
 
             if (t.Sum(x => x == '.' ? 1 : 0) >= 2)
             {
@@ -344,7 +344,7 @@ namespace MainCore.UI
         private void OnLoadPezSucceeded(string zipFile)
         {
             string songFolderName = Path.GetFileNameWithoutExtension(zipFile);
-            string destFolderPath = Path.Combine(PlayerPrefs.GetString("file_path"), songFolderName);
+            string destFolderPath = Path.Combine(Util.DataPath, songFolderName);
             if (Directory.Exists(destFolderPath))
             {
                 InGameUIManager.ShowModalWindow("提示", $"歌曲“{songFolderName}已存在，确认覆盖？”", () =>

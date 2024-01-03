@@ -85,7 +85,7 @@ namespace MainCore.Utilities
         {
             FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             byte[] data = new byte[4];
-            Array.Clear(data, 0 , data.Length);
+            Array.Clear(data, 0, data.Length);
             fileStream.Read(data, 0, data.Length);
             fileStream.Close();
             if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
@@ -345,7 +345,7 @@ namespace MainCore.Utilities
             }
         }
 
-        public static string DataPath => PlayerPrefs.GetString("file_path", Application.persistentDataPath);
+        public static string DataPath => PlayerPrefs.GetString("file_path", GetGameFilePath());
 
         public static bool Contains(this int[] arr, int i)
         {
@@ -354,7 +354,7 @@ namespace MainCore.Utilities
 
         public static async void DisplayException(Exception exception)
         {
-            InGameUIManager.ShowModalWindow("错误", exception.Message + "\n" + exception.StackTrace, confirmtext:"确定");
+            InGameUIManager.ShowModalWindow("错误", exception.Message + "\n" + exception.StackTrace, confirmtext: "确定");
             await UniTask.Delay(1000);
             InGameUIManager.HideModalWindow();
         }
@@ -366,7 +366,7 @@ namespace MainCore.Utilities
             if (lastIndexOf != -1) original = original.Substring(0, lastIndexOf);
             InGameUIManager.ShowModalWindowWithClose("错误", original, () => { }, "确定");
         }
-        
+
         public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
         {
             foreach (FileSystemInfo fi in source.GetFileSystemInfos())
@@ -388,6 +388,41 @@ namespace MainCore.Utilities
                     }
                 }
             }
+        }
+
+        public static Color ToColor(this string str)
+        {
+            if (str.StartsWith("#")) str = str[1..];
+            else if (str.StartsWith("0x")) str = str[2..];
+            if (str.Length != 6 && str.Length != 8)
+            {
+                throw new ArgumentException();
+            }
+
+            byte[] colorByte = {255, 255, 255, 255};
+            for (int i = 0; i < str.Length / 2; i++)
+            {
+                colorByte[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
+            }
+            
+            return new Color(colorByte[0] / 255f, colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f);
+        }
+
+        public static string GetGameFilePath()
+        {
+            return Application.platform switch
+            {
+                RuntimePlatform.OSXEditor => Application.persistentDataPath,
+                RuntimePlatform.OSXPlayer => Application.persistentDataPath,
+                RuntimePlatform.WindowsPlayer => Application.persistentDataPath,
+                RuntimePlatform.WindowsEditor => Application.persistentDataPath,
+                RuntimePlatform.IPhonePlayer => Application.persistentDataPath,
+                RuntimePlatform.LinuxPlayer => Application.persistentDataPath,
+                RuntimePlatform.LinuxEditor => Application.persistentDataPath,
+                RuntimePlatform.Android => new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data")
+                    .FullName,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 }

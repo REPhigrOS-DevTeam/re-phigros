@@ -189,7 +189,7 @@ namespace MainCore.Settings
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
             PlayerPrefs.Save();
 
-            if (!Directory.Exists(PlayerPrefs.GetString("file_path", Application.persistentDataPath)))
+            if (!Directory.Exists(Util.DataPath))
             {
                 InGameUIManager.ShowModalWindowWithClose("故意的是吧", "你这文件夹都不存在啊", () => { }, "确认");
                 return;
@@ -204,7 +204,7 @@ namespace MainCore.Settings
             if (isExternal && id == "")
             {
                 OpenFile.LoadFile(AddSkinFromPackage, () => { },
-                    new[] { new ExtensionFilter("Skin Package", "zip") }, null, "选择皮肤包…", "确定");
+                    new[] { new ExtensionFilter("Phira皮肤包", "zip") }, null, "选择皮肤包…", "确定");
                 return;
             }
 
@@ -261,7 +261,13 @@ namespace MainCore.Settings
                 return;
             }
 
-            SkinManager.Instance.AddSkinInfo(dirPath, await GameUtils.ReadSkin(dirPath));
+            SkinInfo readSkin = await GameUtils.ReadSkin(dirPath);
+            if (readSkin == null)
+            {
+                Directory.Delete(tmpDirPath + $"/{Path.GetFileNameWithoutExtension(path)}", true);
+                return;
+            }
+            SkinManager.Instance.AddSkinInfo(dirPath, readSkin);
             RefreshExternalSkins();
         }
 

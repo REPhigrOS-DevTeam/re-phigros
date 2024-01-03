@@ -63,7 +63,11 @@ namespace Network
             }
             catch (Exception e) when (e is WebException or TaskCanceledException)
             {
-                if (switched) return false;
+                if (switched)
+                {
+                    Debug.Log("访问两个站点都超时");
+                    return false;
+                }
                 switched = true;
                 PlayerPrefs.SetInt("useMirror", useMirror ? 0 : 1);
                 Debug.Log(!useMirror ? "访问主站超时，切换到镜像站点" : "访问镜像站超时，切换到主站点");

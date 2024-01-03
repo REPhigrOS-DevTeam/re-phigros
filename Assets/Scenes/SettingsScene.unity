@@ -4072,7 +4072,7 @@ AudioSource:
     type: 2}
   m_audioClip: {fileID: 8300000, guid: 21254258f84e7064a82cea9a19f4f1a1, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.5
+  m_Volume: 0
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -14328,6 +14328,7 @@ MonoBehaviour:
   displaySkinInfo: {fileID: 2095842847}
   deleteSkin: {fileID: 588166131}
   hitEffectPos: {fileID: 1704392818}
+  hitFx: []
 --- !u!4 &1629454478
 Transform:
   m_ObjectHideFlags: 0

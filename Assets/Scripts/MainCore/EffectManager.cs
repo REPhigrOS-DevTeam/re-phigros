@@ -31,12 +31,12 @@ public class EffectManager : MonoBehaviour
 
     public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
-        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.16f : GetFactor(skinInfo.skin)) * skinInfo.hitFxScale;
+        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.32f : GetFactor(skinInfo.skin)) * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
         hitFx = skinInfo.hitFx;
-        hitFxFactor = GlobalSetting.CurrentSkinInfo.isExternal && GlobalSetting.CurrentSkinInfo.skin == Skin.OldOfficial
+        hitFxFactor = !GlobalSetting.CurrentSkinInfo.isExternal && GlobalSetting.CurrentSkinInfo.skin == Skin.OldOfficial
             ? 120f
             : hitFx.Length / GlobalSetting.CurrentSkinInfo.hitFxDuration;
         RecycleCoroutine = StartCoroutine(RecycleObj());
@@ -97,7 +97,7 @@ public class EffectManager : MonoBehaviour
         return skin switch {
             Skin.Official => 0.215f,
             Skin.Phira => 0.32f,
-            Skin.OldOfficial => 0.16f,
+            Skin.OldOfficial => 0.32f,
             Skin.Sacabam => 0.25f,
             Skin.StarPinkXz => 0.16f,
             _ => throw new ArgumentOutOfRangeException()

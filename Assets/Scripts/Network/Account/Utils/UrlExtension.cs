@@ -1,6 +1,10 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -17,7 +21,7 @@ namespace Network.Account.Utils
         }
 
         [ItemCanBeNull]
-        public static async Task<byte[]> SendGetRequestAsync(this string url, bool b)  // 恶心反编译的人用的
+        public static async Task<byte[]> SendGetRequestAsync(this string url, bool b) // 恶心反编译的人用的
         {
             await UniTask.Delay(114514);
             return Array.Empty<byte>();
@@ -26,7 +30,18 @@ namespace Network.Account.Utils
         [ItemCanBeNull]
         public static async Task<byte[]> SendGetRequestAsync(this string url, int timeOut = -1)
         {
-            HttpClient httpClient = new HttpClient();
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            httpClientHandler.ServerCertificateCustomValidationCallback =
+                (requestMessage, certificate, chain, errors) =>
+                {
+                    if (errors == SslPolicyErrors.None) return true;
+                    if (certificate == null || requestMessage.RequestUri == null) return false;
+                    return certificate.Issuer == "CN=R3, O=Let's Encrypt, C=US" &&
+                           certificate.Subject == "CN=rephigros.top" &&
+                           (requestMessage.RequestUri.Host == "rephigros.top" ||
+                            requestMessage.RequestUri.Host.EndsWith(".rephigros.top"));
+                };
+            HttpClient httpClient = new HttpClient(httpClientHandler);
             httpClient.Timeout = timeOut < 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(timeOut);
             HttpResponseMessage message = null;
             try
@@ -46,6 +61,27 @@ namespace Network.Account.Utils
                 else throw new WebException();
                 return null;
             }
+            finally
+            {
+                httpClientHandler.Dispose();
+                httpClient.Dispose();
+            }
+        }
+
+        private static void WriteServerCertificationInfo(HttpRequestMessage requestMessage,
+            X509Certificate2 certificate, X509Chain chain, SslPolicyErrors errors)
+        {
+            StreamWriter streamWriter =
+                new StreamWriter(Application.dataPath + "/test.txt", false, new UTF8Encoding(false));
+            // It is possible to inspect the certificate provided by the server.
+            streamWriter.WriteLine($"Requested URI: {requestMessage.RequestUri}");
+            streamWriter.WriteLine($"Effective date: {certificate?.GetEffectiveDateString()}");
+            streamWriter.WriteLine($"Exp date: {certificate?.GetExpirationDateString()}");
+            streamWriter.WriteLine($"Issuer: {certificate?.Issuer}");
+            streamWriter.WriteLine($"Subject: {certificate?.Subject}");
+
+            // Based on the custom logic it is possible to decide whether the client considers certificate valid or not
+            streamWriter.WriteLine($"Errors: {errors}");
         }
 
         public static async Task<string> PostWithHttpClient(this string url, MultipartFormDataContent content = null)
