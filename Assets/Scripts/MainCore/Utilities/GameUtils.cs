@@ -560,7 +560,8 @@ namespace MainCore.Utilities
             skinInfo.hitFxTinted = phiraSkinInfoData.hitFxTinted;
             skinInfo.hideParticles = phiraSkinInfoData.hideParticles;
             skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
-            skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
+            // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
+            skinInfo.holdRepeat = false;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
             skinInfo.perfectColor = phiraSkinInfoData.colorPerfect.ToColor();
             skinInfo.goodColor = phiraSkinInfoData.colorGood.ToColor();
@@ -584,9 +585,8 @@ namespace MainCore.Utilities
                 {
                     Rect rect = new Rect(x * spriteSize.x, (numRows - y - 1) * spriteSize.y, spriteSize.x, spriteSize.y);
 
-                    // TODO: PPU计算
                     Sprite sprite =
-                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), 64f, 1); // 创建新的 Sprite 对象
+                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), spriteSize.x / 2.5f, 1); // 创建新的 Sprite 对象
                     sprite.name = $"hit_fx_external_{y * numColumns + x}"; // 自定义 Sprite 的名字
 
                     hitFx.Add(sprite);

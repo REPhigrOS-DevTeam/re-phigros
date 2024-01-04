@@ -28,7 +28,7 @@ public class SkinManager : MonoSingleton<SkinManager>
             case RuntimePlatform.WindowsPlayer:
                 return new DirectoryInfo(Application.dataPath + "/..").FullName; // exe所在目录
             case RuntimePlatform.WindowsEditor:
-                return Application.persistentDataPath; // 这玩意儿在用户的AppData\Low里
+                return Application.persistentDataPath; // 这玩意儿在用户的AppData\LocalLow里
             case RuntimePlatform.IPhonePlayer:
                 return new DirectoryInfo(Application.temporaryCachePath + "/..").FullName; // 沙盒下/Library
             case RuntimePlatform.Android:

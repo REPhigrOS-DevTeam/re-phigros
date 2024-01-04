@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using DG.Tweening;
 using MainCore;
 using MainCore.ECS_ver;
 using MainCore.Utilities;
@@ -31,7 +29,7 @@ public class EffectManager : MonoBehaviour
 
     public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
-        scale = GlobalSetting.globalNoteScale / (skinInfo.isExternal ? 0.32f : GetFactor(skinInfo.skin)) * skinInfo.hitFxScale;
+        scale = GlobalSetting.globalNoteScale / 0.16f * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
@@ -63,7 +61,7 @@ public class EffectManager : MonoBehaviour
 
     private IEnumerator RecycleObj()
     {
-        yield return new WaitForSeconds(0.49f);
+        yield return new WaitForSeconds(GlobalSetting.CurrentSkinInfo.hitFxDuration);
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
@@ -96,8 +94,8 @@ public class EffectManager : MonoBehaviour
     {
         return skin switch {
             Skin.Official => 0.215f,
-            Skin.Phira => 0.32f,
-            Skin.OldOfficial => 0.32f,
+            Skin.Phira => 0.16f,
+            Skin.OldOfficial => 0.16f,
             Skin.Sacabam => 0.25f,
             Skin.StarPinkXz => 0.16f,
             _ => throw new ArgumentOutOfRangeException()

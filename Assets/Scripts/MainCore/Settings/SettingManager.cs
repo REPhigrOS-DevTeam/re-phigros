@@ -151,6 +151,7 @@ namespace MainCore.Settings
                 Destroy(externalSkinParent.GetChild(i).gameObject);
             }
 
+            externalSkinItems.Clear();
             SkinSummary[] skinSummaries = SkinManager.Instance.GetSkinSummaries();
             foreach (SkinSummary skinSummary in skinSummaries)
             {
@@ -276,13 +277,17 @@ namespace MainCore.Settings
             HitSoundManager.Instance.Play(id, 0.5f);
         }
 
+        private float tmp;
         public void PlayHitEffect(int type)
         {
+            tmp = GlobalSetting.globalNoteScale;
+            GlobalSetting.globalNoteScale = SkinPreview.Size;
             EffectManager hitFxObj = HitEffectManager.GetInstance()
                 .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo);
             hitFxObj.transform.position = hitEffectPos.position;
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
+            GlobalSetting.globalNoteScale = tmp;
         }
     }
 
