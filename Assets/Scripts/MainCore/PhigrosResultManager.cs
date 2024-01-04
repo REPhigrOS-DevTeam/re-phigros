@@ -46,8 +46,7 @@ public class PhigrosResultManager : MonoBehaviour
         bool usePitch = MathF.Round(Mathf.Abs(GlobalSetting.Pitch - 1f), 2) >= 0.01f;
         bool isSlower = usePitch && GlobalSetting.Pitch < 1f;
         if (GlobalSetting.autoPlay)
-            history.text +=
-                GlobalSetting.recordMode ? "RECORD MODE" : "<color=red>AUTO PLAY</color>";
+            history.text = $"1000000   {(GlobalSetting.recordMode ? "RECORD MODE" : "<color=red>AUTO PLAY</color>")}";
         else if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             history.text = "枇杷油单推！ --音楽ゲームちゃん";
         else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
