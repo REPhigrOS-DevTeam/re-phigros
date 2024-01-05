@@ -36,8 +36,8 @@ namespace MainCore
             status = NoteStat.None;
             holdEffect = null;
             var scaleFactor = Note.size;
-            originalSize = new Vector3(GlobalSetting.globalNoteScale * scaleFactor,
-                isAbove * GlobalSetting.globalNoteScale, 1);
+            originalSize = new Vector3(GlobalSetting.GlobalNoteScale * scaleFactor,
+                isAbove * GlobalSetting.GlobalNoteScale, 1);
             gameObject.transform.localScale = originalSize;
             status = NoteStat.None;
 
@@ -151,11 +151,11 @@ namespace MainCore
 
         protected virtual void CheckJudgeStatus()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
             {
                 if (parentLine.PgrTime - Note.time >= 0 && status == NoteStat.None)
                 {
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     status = NoteStat.Perfect;
                     destroyed = true;
                     GlobalSetting.PlayNoteSound(notetype);
@@ -178,7 +178,7 @@ namespace MainCore
 
             if (parentLine.PgrTime >= Note.time + GlobalSetting.GetJudgeTime().bTime && status == NoteStat.None)
             {
-                GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                 status = NoteStat.Miss;
                 destroyed = true;
             }
@@ -187,7 +187,7 @@ namespace MainCore
             {
                 if (parentLine.PgrTime - Note.time > -.001f)
                 {
-                    GlobalSetting.scoreCounter.Add(status);
+                    GlobalSetting.ScoreCounter.Add(status);
                     GlobalSetting.PlayNoteSound(notetype);
                     UpdateEffect();
                     destroyed = true;
@@ -231,7 +231,7 @@ namespace MainCore
                 if (deltaTime > GlobalSetting.GetJudgeTime().bTime)
                 {
                     status = NoteStat.Bad;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Bad);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Bad);
                     GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
                     badTapInstance.transform.localScale = cachedTransform.lossyScale;
                     var spriteRenderer = badTapInstance.GetComponent<SpriteRenderer>();
@@ -241,21 +241,21 @@ namespace MainCore
                 else if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Good;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.scoreCounter.early++;
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Good);
+                    GlobalSetting.ScoreCounter.early++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
                 else if (deltaTime > -GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Perfect;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     GlobalSetting.PlayNoteSound(notetype);
                 }
                 else
                 {
                     status = NoteStat.Good;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.scoreCounter.late++;
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Good);
+                    GlobalSetting.ScoreCounter.late++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
 

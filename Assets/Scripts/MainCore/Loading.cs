@@ -15,7 +15,7 @@ namespace MainCore
         void Start()
         {
             StartCoroutine(AsyncLoading());
-            if (GlobalSetting.chartPath.Contains(".pec"))
+            if (GlobalSetting.ChartPath.Contains(".pec"))
                 GameObject.Find("Text").GetComponent<Text>().text = "Converting PEC to JSON\nBy lchzh3473...";
         }
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MainCore;
 using MainCore.Common;
+using MainCore.UI;
 using MainCore.Utilities;
 using Network.Account.Serialized;
 using Network.Account.Utils;
@@ -22,7 +23,7 @@ namespace Network.Account
         private List<AccountManager.AccountInfo> accountInfos;
         [SerializeField] private InputField usernameInputField, passwordInputField;
         [SerializeField] private Dropdown accountsDropdown;
-        [SerializeField] private Button loginButton;
+        [SerializeField] private Button loginButton, backButton;
         [SerializeField] private Toggle_Button createButton;
         [SerializeField] private GameObject loginMask;
         private bool isCreate;
@@ -36,6 +37,7 @@ namespace Network.Account
                 if (b) Create();
                 else UseSave();
             };
+            backButton.onClick.AddListener(Back);
             usernameInputField.onValueChanged.AddListener(CheckUsername);
             passwordInputField.onValueChanged.AddListener(CheckPassword);
             loginButton.onClick.AddListener(OnLogin);
@@ -97,6 +99,16 @@ namespace Network.Account
             if (clickLock) return;
             clickLock = true;
             await UniTask.SwitchToMainThread();
+            PopupMessageManager.Instance.Message("尝试连接服务器……");
+            if (!RepAPI.Inited)
+            {
+                bool succeeded = await RepAPI.Init();
+                if (!succeeded)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "无法连接至服务器，请检查您的网络连接", () => SceneTransit.Instance.Back(), "确定");
+                    return;
+                }
+            }
             if (isCreate)
             {
                 if (accountInfos.Where(accountInfo => accountInfo.Username == username).ToArray()
@@ -131,7 +143,7 @@ namespace Network.Account
                         accountInfos.Insert(0, accountInfo);
                         AccountManager.SaveAccountList(accountInfos);
                         Finally(accountInfo);
-                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Enter, "确定");
+                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Back, "确定");
                         break;
                     case StatusCode.InvalidParam:
                         InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码：非法参数，请联系开发者\n程序即将退出",
@@ -185,7 +197,7 @@ namespace Network.Account
                         accountInfos.Insert(0, info);
                         AccountManager.SaveAccountList(accountInfos);
                         Finally(info);
-                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Enter, "确定");
+                        InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Back, "确定");
                         break;
                     case StatusCode.InvalidParam:
                         InGameUIManager.ShowModalWindowWithClose("致命错误", "收到了不应出现的状态码：非法参数，请联系开发者\n程序即将退出",
@@ -230,24 +242,13 @@ namespace Network.Account
 
         private void Finally(AccountManager.AccountInfo info)
         {
-            GlobalSetting.username = info.Username;
-            GlobalSetting.verifyToken = info.VerifyToken;
+            GlobalSetting.Username = info.Username;
+            GlobalSetting.VerifyToken = info.VerifyToken;
         }
 
-        private void Enter()
+        private void Back()
         {
-            if (!PlayerPrefs.HasKey("first_start"))
-            {
-                PlayerPrefs.SetInt("first_start", 1);
-                PlayerPrefs.Save();
-                SceneTransit.Instance.AppendScene("MainScene");
-                SceneTransit.Instance.AppendScene("SettingsScene");
-                SceneTransit.Instance.LoadScene("DSPScene");
-            }
-            else
-            {
-                SceneTransit.Instance.JumpScene("MainScene");
-            }
+            SceneTransit.Instance.Back();
         }
 
         public static async Task<(StatusCode, AccountManager.AccountInfo)> Login(string username, string password)

@@ -34,7 +34,7 @@ namespace MainCore
         public Image illustration;
         public Text comboText;
         public Text comboIndicator;
-        public Text scoreText;
+        public Text scoreText, accText;
         public GameObject managers;
         public Transform instantiateTransform;
         public DoubleTapButton pauseButton;
@@ -66,16 +66,16 @@ namespace MainCore
         // Start is called before the first frame update
         protected override void OnAwake()
         {
-            GlobalSetting.lineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
-            GlobalSetting.lineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
-            GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
+            GlobalSetting.LineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
+            GlobalSetting.LineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
+            GlobalSetting.LineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
             progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
             InitChart();
 
-            if (GlobalSetting.extraEvents != null)
+            if (GlobalSetting.ExtraEvents != null)
             {
-                if (GlobalSetting.extraEvents.Effects != null)
+                if (GlobalSetting.ExtraEvents.Effects != null)
                 {
                     Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                     uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
@@ -142,23 +142,23 @@ namespace MainCore
 
         void Start()
         {
-            if (GlobalSetting.disableBlur)
+            if (GlobalSetting.DisableBlur)
             {
                 GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
             }
 
             if (Screen.width * 1f / Screen.height >= aspect)
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.height * aspect;
-                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
                 maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
             }
             else
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.width;
-                GlobalSetting.widthOffset = 0;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
@@ -173,47 +173,49 @@ namespace MainCore
             audio.pitch = GlobalSetting.Pitch;
             GlobalSetting.MusicLength = music.length;
 
-            illustration.sprite = GlobalSetting.backgroundImage;
-            GlobalSetting.formatVersion = json.formatVersion;
-            GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
+            illustration.sprite = GlobalSetting.BackgroundImage;
+            GlobalSetting.FormatVersion = json.formatVersion;
+            GlobalSetting.ScoreCounter.numOfNotes = json.numOfNotes;
 
             foreach (GameObject i in GameObject.FindGameObjectsWithTag("Lines"))
             {
-                GlobalSetting.lines.Add(i.GetComponentInChildren<JudgeLineMovement>());
+                GlobalSetting.Lines.Add(i.GetComponentInChildren<JudgeLineMovement>());
                 i.GetComponentInChildren<Animation>().Play("StartGradient");
             }
 
             foreach (GameObject i in GameObject.FindGameObjectsWithTag("UI"))
             {
                 i.GetComponent<Animation>().Play("StartGradientChartName");
-                i.GetComponent<Text>().text = $"{GlobalSetting.chartName}\n\n";
+                i.GetComponent<Text>().text = $"{GlobalSetting.ChartName}\n\n";
             }
 
-            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.chartName;
-            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.difficulty + "  ";
+            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.ChartName;
+            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.Difficulty + "  ";
 
-            if (GlobalSetting.lineImage != null)
+            if (GlobalSetting.LineImage != null)
             {
                 LoadCsvLineImage();
             }
 
             Camera.main.orthographic = true;
-            Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.fxaaEnabled
+            Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.FxaaEnabled
                 ? PostProcessLayer.Antialiasing.FastApproximateAntialiasing
                 : PostProcessLayer.Antialiasing.None;
-            Camera.main.GetComponent<PostProcessLayer>().fastApproximateAntialiasing = GlobalSetting.fxaaEnabled
+            Camera.main.GetComponent<PostProcessLayer>().fastApproximateAntialiasing = GlobalSetting.FxaaEnabled
                 ? new FastApproximateAntialiasing
                 {
                     fastMode = true,
                     keepAlpha = false
                 }
                 : null;
-            postProcessVolume.enabled = GlobalSetting.postProcessing;
+            postProcessVolume.enabled = GlobalSetting.PostProcessing;
 
-            if (!GlobalSetting.postProcessing && !GlobalSetting.fxaaEnabled)
+            if (!GlobalSetting.PostProcessing && !GlobalSetting.FxaaEnabled)
             {
                 Camera.main.GetComponent<PostProcessLayer>().enabled = false;
             }
+            
+            accText.gameObject.SetActive(GlobalSetting.DisplayAcc);
 
             StartPlay();
         }
@@ -222,16 +224,16 @@ namespace MainCore
         {
             if (Screen.width * 1f / Screen.height >= aspect)
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.height * aspect;
-                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
                 maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
             }
             else
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.width;
-                GlobalSetting.widthOffset = 0;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
@@ -260,16 +262,16 @@ namespace MainCore
             TEST_COUNT = 0;
             if (Camera.main.aspect >= aspect)
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.height * aspect;
-                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
                 maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
             }
             else
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.width;
-                GlobalSetting.widthOffset = 0;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
@@ -289,8 +291,8 @@ namespace MainCore
                 progressManager.AddTime(1f);
             }
 #endif
-            comboText.text = GlobalSetting.scoreCounter.combo < 3 ? "" : $"{GlobalSetting.scoreCounter.combo}";
-            if (GlobalSetting.scoreCounter.combo < 3)
+            comboText.text = GlobalSetting.ScoreCounter.combo < 3 ? "" : $"{GlobalSetting.ScoreCounter.combo}";
+            if (GlobalSetting.ScoreCounter.combo < 3)
             {
                 comboIndicator.text = "";
             }
@@ -302,16 +304,17 @@ namespace MainCore
             {
                 comboIndicator.text = "YAYA KAWAII";
             }
-            else if (GlobalSetting.autoPlay)
+            else if (GlobalSetting.AutoPlay)
             {
-                comboIndicator.text = GlobalSetting.recordMode ? "RECORD" : "AUTOPLAY";
+                comboIndicator.text = "AUTOPLAY";
             }
             else
             {
                 comboIndicator.text = "COMBO";
             }
 
-            scoreText.text = $"{Mathf.RoundToInt(GlobalSetting.scoreCounter.Score).ToString().PadLeft(7, '0')} ";
+            scoreText.text = $"{Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score).ToString().PadLeft(7, '0')} ";
+            accText.text = $"{100f * GlobalSetting.ScoreCounter.RuntimeAccuracy:0.00}%";
         }
 
 #if !UNITY_EDITOR
@@ -339,16 +342,20 @@ namespace MainCore
             //GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutIn");
 
             // We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
-            // 预生成一个HitFX，避免读取prefab时吃硬盘
+            // 预生成HitFX，避免读取prefab时吃硬盘
             var hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
-            hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
+            hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
+            hitFX.PlayEffect();
+            hitFX.PlayParticle();
             hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
-            hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
+            hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
+            hitFX.PlayEffect();
+            hitFX.PlayParticle();
 
-            totalOffset = json.offset + GlobalSetting.userOffset;
-            maskSprite.DOFade(GlobalSetting.maskAlpha, 3f);
+            totalOffset = json.offset + GlobalSetting.UserOffset;
+            maskSprite.DOFade(GlobalSetting.MaskAlpha, 3f);
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
             progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
@@ -374,7 +381,7 @@ namespace MainCore
                 audio.time = 0;
                 progressManager.AddTime(audio.clip.length);
             });
-            if (GlobalSetting.isMultiplayer)
+            if (GlobalSetting.IsMultiplayer)
             {
                 backButton.OnClick.AddListener(() => SocketManager.QuitGame());
                 terminateButton.OnClick.AddListener(() => SocketManager.QuitGame());
@@ -419,7 +426,7 @@ namespace MainCore
                 ? Resources.Load<TextAsset>(path).text
                 : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
-            GlobalSetting.chart = ch;
+            GlobalSetting.Chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))
             {
                 await InitPecChart(ch);
@@ -461,7 +468,7 @@ namespace MainCore
                 var jlm = t.GetComponentInChildren<JudgeLineMovement>();
                 jlm.ID = i;
                 jlm.Line = l;
-                GlobalSetting.lines.Add(jlm);
+                GlobalSetting.Lines.Add(jlm);
                 i++;
             }
 
@@ -470,20 +477,20 @@ namespace MainCore
                 foreach (note n in l.notesAbove)
                 {
                     int t;
-                    if (GlobalSetting.highLightedNotes.TryGetValue(n.time, out t))
-                        GlobalSetting.highLightedNotes[n.time]++;
+                    if (GlobalSetting.HighLightedNotes.TryGetValue(n.time, out t))
+                        GlobalSetting.HighLightedNotes[n.time]++;
                     else
-                        GlobalSetting.highLightedNotes.Add(n.time, 1);
+                        GlobalSetting.HighLightedNotes.Add(n.time, 1);
                     n.isAbove = true;
                 }
 
                 foreach (note n in l.notesBelow)
                 {
                     int t;
-                    if (GlobalSetting.highLightedNotes.TryGetValue(n.time, out t))
-                        GlobalSetting.highLightedNotes[n.time]++;
+                    if (GlobalSetting.HighLightedNotes.TryGetValue(n.time, out t))
+                        GlobalSetting.HighLightedNotes[n.time]++;
                     else
-                        GlobalSetting.highLightedNotes.Add(n.time, 1);
+                        GlobalSetting.HighLightedNotes.Add(n.time, 1);
                     n.isAbove = false;
                 }
             }
@@ -492,7 +499,7 @@ namespace MainCore
             {
                 foreach (note n in l.notesAbove)
                 {
-                    if (GlobalSetting.highLightedNotes[n.time] > 1 && GlobalSetting.highLight)
+                    if (GlobalSetting.HighLightedNotes[n.time] > 1 && GlobalSetting.HighLight)
                     {
                         n.isMulti = true;
                     }
@@ -500,15 +507,15 @@ namespace MainCore
 
                 foreach (note n in l.notesBelow)
                 {
-                    if (GlobalSetting.highLightedNotes[n.time] > 1 && GlobalSetting.highLight)
+                    if (GlobalSetting.HighLightedNotes[n.time] > 1 && GlobalSetting.HighLight)
                     {
                         n.isMulti = true;
                     }
                 }
             }
 
-            GlobalSetting.highLightedNotes.Clear();
-            GlobalSetting.maximumZOrder = json.judgeLineList.Count;
+            GlobalSetting.HighLightedNotes.Clear();
+            GlobalSetting.MaximumZOrder = json.judgeLineList.Count;
         }
 
         private static void PreparationPgrChart()
@@ -571,14 +578,14 @@ namespace MainCore
 
         private static void LoadCsvLineImage()
         {
-            for (int i = 0; i < GlobalSetting.lines.Count; i++)
+            for (int i = 0; i < GlobalSetting.Lines.Count; i++)
             {
                 try
                 {
-                    int lineId = int.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 1));
-                    var t1 = float.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 3));
+                    int lineId = int.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 1));
+                    var t1 = float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 3));
                     WWW a = new WWW("file://" + Path.Combine(PlayerPrefs.GetString("chartFolderPath", ""),
-                        GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 2)));
+                        GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 2)));
                     while (!a.isDone)
                     {
                     }
@@ -586,12 +593,12 @@ namespace MainCore
                     ;
                     t1 = t1 > 0 ? t1 : Mathf.Abs(t1);
                     t1 = (200 * t1 * Camera.main.orthographicSize / a.texture.height);
-                    var t2 = t1 / float.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 4));
+                    var t2 = t1 / float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 4));
                     Sprite sprite = Sprite.Create(a.texture, new Rect(0, 0, a.texture.width, a.texture.height),
                         Vector2.one / 2f);
-                    GlobalSetting.lines[lineId].GetComponent<SpriteRenderer>().sprite = sprite;
-                    GlobalSetting.lines[lineId].TargetScale = new Vector3(t1, t2, 1);
-                    GlobalSetting.lines[lineId].IsImage = true;
+                    GlobalSetting.Lines[lineId].GetComponent<SpriteRenderer>().sprite = sprite;
+                    GlobalSetting.Lines[lineId].TargetScale = new Vector3(t1, t2, 1);
+                    GlobalSetting.Lines[lineId].IsImage = true;
                 }
                 catch
                 {
@@ -702,17 +709,23 @@ namespace MainCore
 
     public class ScoreCounter
     {
+        public int perfectCnt;
+        public int goodCnt;
         public int badCnt;
+        public int missCnt;
         public int combo;
         public int early;
-        public int goodCnt;
         public int late;
         public int maxcombo;
-        public int missCnt;
         public int numOfNotes;
-        public int perfectCnt;
-        public float Score => 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes;
+
+        private int elapsedNoteCnt => perfectCnt + badCnt + goodCnt + missCnt;
+        public float Score => GlobalSetting.NewScoreCalcType
+            ? 1e6f * (perfectCnt + goodCnt * 0.65f) / numOfNotes // 判定分100w
+            : 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes; // 判定分90w 连击分10w
+
         public float Accuracy => (perfectCnt + goodCnt * 0.65f) / numOfNotes;
+        public float RuntimeAccuracy => elapsedNoteCnt == 0 ? 1f : (perfectCnt + goodCnt * 0.65f) / elapsedNoteCnt;
 
         public void Add(NoteStat status)
         {
@@ -748,10 +761,10 @@ namespace MainCore
 
             if (combo > maxcombo)
                 maxcombo = combo;
-            if (GlobalSetting.lineStat == JudgeLineStat.AP && goodCnt != 0)
-                GlobalSetting.lineStat = JudgeLineStat.FC;
-            if (GlobalSetting.lineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
-                GlobalSetting.lineStat = JudgeLineStat.None;
+            if (GlobalSetting.LineStat == JudgeLineStat.AP && goodCnt != 0)
+                GlobalSetting.LineStat = JudgeLineStat.FC;
+            if (GlobalSetting.LineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
+                GlobalSetting.LineStat = JudgeLineStat.None;
         }
     }
 }

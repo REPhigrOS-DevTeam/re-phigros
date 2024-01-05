@@ -34,34 +34,34 @@ namespace MainCore.UI
         {
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             {
-                GlobalSetting.chartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";
-                GlobalSetting.difficulty = "枇杷油嘿嘿枇杷油";
+                GlobalSetting.ChartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";
+                GlobalSetting.Difficulty = "枇杷油嘿嘿枇杷油";
             }
             else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
             {
-                GlobalSetting.chartName = "夜夜爱的嗫中毒";
-                GlobalSetting.difficulty = "夜夜ღ醉可爱";
+                GlobalSetting.ChartName = "夜夜爱的嗫中毒";
+                GlobalSetting.Difficulty = "夜夜ღ醉可爱";
             }
 
-            chartName.text = GlobalSetting.chartName;
+            chartName.text = GlobalSetting.ChartName;
 
-            songCover.sprite = GlobalSetting.backgroundImage;
-            backgroundImage.sprite = GlobalSetting.backgroundImage;
+            songCover.sprite = GlobalSetting.BackgroundImage;
+            backgroundImage.sprite = GlobalSetting.BackgroundImage;
 
             try //Try Parse difficulty
             {
-                string s = GlobalSetting.difficulty.Substring(GlobalSetting.difficulty.LastIndexOf(' ') + 1);
+                string s = GlobalSetting.Difficulty.Substring(GlobalSetting.Difficulty.LastIndexOf(' ') + 1);
                 difficultyNumber.text = s.Substring(s.LastIndexOf('.') + 1).Trim();
-                difficulty.text = GlobalSetting.difficulty.Substring(0, GlobalSetting.difficulty.LastIndexOf(' ')).Trim();
+                difficulty.text = GlobalSetting.Difficulty.Substring(0, GlobalSetting.Difficulty.LastIndexOf(' ')).Trim();
             }
             catch
             {
-                difficultyNumber.text = GlobalSetting.difficulty;
+                difficultyNumber.text = GlobalSetting.Difficulty;
             }
 
-            Charter = GlobalSetting.charter;
-            Composer = GlobalSetting.composer;
-            Illustrator = GlobalSetting.illustrator;
+            Charter = GlobalSetting.Charter;
+            Composer = GlobalSetting.Composer;
+            Illustrator = GlobalSetting.Illustrator;
 
             charter.text = Charter;
             composer.text = Composer;

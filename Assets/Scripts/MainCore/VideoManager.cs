@@ -28,7 +28,7 @@ namespace MainCore
              List<Video> list = videos.ToList();
              list.Sort((v1, v2) => v1.time.Frac() < v2.time.Frac() ? -1 : 1);
              this.videos = list.ToArray();
-             if (videos.Any(video => !File.Exists(Path.Combine(GlobalSetting.chartFolderPath, video.path))))
+             if (videos.Any(video => !File.Exists(Path.Combine(GlobalSetting.ChartFolderPath, video.path))))
              {
                  Destroy(gameObject);
                  return;
@@ -54,7 +54,7 @@ namespace MainCore
                  mediaPlayer.AutoStart = false;
                  mediaPlayer.AudioMuted = true;
                  mediaPlayer.OpenMedia(MediaPathType.AbsolutePathOrURL,
-                     Path.Combine(GlobalSetting.chartFolderPath, video.path), false);
+                     Path.Combine(GlobalSetting.ChartFolderPath, video.path), false);
                  durations[i] = mediaPlayer.Info.GetDuration();
              }
 

@@ -27,7 +27,7 @@ namespace MainCore.PostProcessing
 
         private void Awake()
         {
-            data = GlobalSetting.extraEvents;
+            data = GlobalSetting.ExtraEvents;
             Arrangement();
             totalMaterials = new Material[data.Effects.Count];
             for (var i = 0; i < data.Effects.Count; i++)

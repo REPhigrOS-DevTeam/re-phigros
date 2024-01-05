@@ -4,11 +4,13 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
+using Network;
 using Newtonsoft.Json;
 using SFB;
 using SimpleFileBrowser;
 using Unimage;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MainCore.UI
@@ -16,11 +18,10 @@ namespace MainCore.UI
     public class MainManager : MonoBehaviour
     {
         [SerializeField] private Button settings;
-        [SerializeField] private Button singlePlay, multiPlay;
+        [SerializeField] private Button singlePlay, multiPlay, login;
         [SerializeField] private GameObject characterSelectionObj;
         [SerializeField] private Button openCharaPreview, closeCharaPreview;
         [SerializeField] private DatuPreviewFadeInOut datuPreviewFadeInOut;
-
         [SerializeField] private Button openCharacterSelections,
             deleteCharacter,
             selectCharacter,
@@ -37,6 +38,7 @@ namespace MainCore.UI
             settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
+            login.onClick.AddListener(() => SceneTransit.Instance.LoadScene("LoginScene"));
             openCharaPreview.onClick.AddListener(() =>
             {
                 datuPreviewFadeInOut.FadeIn(0.15f, 0.05f);
@@ -66,7 +68,8 @@ namespace MainCore.UI
             editCharacter.interactable = false;
             editCharacter.transform.Find("Mask").Find("Icon").gameObject.GetComponent<Image>().SetAlpha(0.5f);
 #endif
-            multiPlay.interactable = true;
+            multiPlay.gameObject.SetActive(RepAPI.Inited);
+            login.gameObject.SetActive(!RepAPI.Inited);
         }
 
 

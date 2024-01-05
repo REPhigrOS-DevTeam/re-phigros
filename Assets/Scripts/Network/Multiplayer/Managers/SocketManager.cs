@@ -191,8 +191,8 @@ namespace Network.Multiplayer.Managers
                 LoginSendData pack = new LoginSendData
                 {
                     Operate = currentClientOperate.ToString(),
-                    Username = GlobalSetting.username,
-                    VerifyToken = GlobalSetting.verifyToken
+                    Username = GlobalSetting.Username,
+                    VerifyToken = GlobalSetting.VerifyToken
                 };
                 socket.Send(pack);
                 return 0;
@@ -361,7 +361,7 @@ namespace Network.Multiplayer.Managers
         {
             SendDataWithToken pack = new SendDataWithToken
             {
-                Username = GlobalSetting.username,
+                Username = GlobalSetting.Username,
                 LoginToken = token
             };
             return pack;
@@ -625,7 +625,7 @@ namespace Network.Multiplayer.Managers
                     else
                     {
                         ChatManager.AddMessage(receive.Author, receive.Message,
-                            receive.Author == GlobalSetting.username ? MessageType.Self : MessageType.Common);
+                            receive.Author == GlobalSetting.Username ? MessageType.Self : MessageType.Common);
                     }
 
                     break;

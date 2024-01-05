@@ -105,10 +105,10 @@ namespace MainCore.UI
             if (!loaded) return;
             if (!loading) return;
 
-            GlobalSetting.isMultiplayer = false;
+            GlobalSetting.IsMultiplayer = false;
 
             loading = false;
-            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.illustrationPath),
+            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.IllustrationPath),
                 out Exception exception);
             if (exception != null)
             {
@@ -118,14 +118,14 @@ namespace MainCore.UI
                 return;
             }
 
-            GlobalSetting.backgroundImage = sprite;
+            GlobalSetting.BackgroundImage = sprite;
 
             UniTask a = UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
                 try
                 {
-                    Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
+                    Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
                 }
                 catch (ArgumentException)
                 {
@@ -141,7 +141,7 @@ namespace MainCore.UI
             });
             UniTask.WhenAll(a);
 
-            GlobalSetting.usingApi = false;
+            GlobalSetting.UsingApi = false;
 
             PopupMessageManager.Instance.Clear();
             SceneTransit.Instance.LoadScene("LoadInto");
@@ -154,39 +154,39 @@ namespace MainCore.UI
             loading = true;
             PlayerPrefs.SetString("chartFolderPath", tempPath);
 
-            GlobalSetting.chartFolderPath = tempPath;
+            GlobalSetting.ChartFolderPath = tempPath;
 
             SongInfo songInfo;
             GameFilePathInfo pathInfo;
             object obj;
-            (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
+            (songInfo, GlobalSetting.InfoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
 
-            switch (GlobalSetting.infoType)
+            switch (GlobalSetting.InfoType)
             {
                 case InfoType.Empty:
-                    GlobalSetting.chartName = chartNameUI.GetComponent<InputField>().text.Trim();
-                    GlobalSetting.difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
-                    GlobalSetting.charter = "Unknown";
-                    GlobalSetting.composer = "Unknown";
-                    GlobalSetting.illustrator = "Unknown";
-                    GlobalSetting.chartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text);
-                    GlobalSetting.musicPath =
+                    GlobalSetting.ChartName = chartNameUI.GetComponent<InputField>().text.Trim();
+                    GlobalSetting.Difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
+                    GlobalSetting.Charter = "Unknown";
+                    GlobalSetting.Composer = "Unknown";
+                    GlobalSetting.Illustrator = "Unknown";
+                    GlobalSetting.ChartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text);
+                    GlobalSetting.MusicPath =
                         Path.Combine(tempPath, musicPathDropdown.captionText.text);
-                    GlobalSetting.illustrationPath = Path.Combine(tempPath,
+                    GlobalSetting.IllustrationPath = Path.Combine(tempPath,
                         illustrationPathDropdown.captionText.text);
                     break;
                 case InfoType.InfoTxt:
                 case InfoType.InfoCsv:
                 case InfoType.InfoCsvOld:
                 case InfoType.InfoYml:
-                    GlobalSetting.chartName = songInfo.SongName;
-                    GlobalSetting.difficulty = songInfo.SongDifficulty;
-                    GlobalSetting.charter = songInfo.SongCharter;
-                    GlobalSetting.composer = songInfo.SongComposer;
-                    GlobalSetting.illustrator = songInfo.SongIllustrator;
-                    GlobalSetting.chartPath = Path.Combine(tempPath, pathInfo.Chart);
-                    GlobalSetting.musicPath = Path.Combine(tempPath, pathInfo.Music);
-                    GlobalSetting.illustrationPath = Path.Combine(tempPath, pathInfo.Illustration);
+                    GlobalSetting.ChartName = songInfo.SongName;
+                    GlobalSetting.Difficulty = songInfo.SongDifficulty;
+                    GlobalSetting.Charter = songInfo.SongCharter;
+                    GlobalSetting.Composer = songInfo.SongComposer;
+                    GlobalSetting.Illustrator = songInfo.SongIllustrator;
+                    GlobalSetting.ChartPath = Path.Combine(tempPath, pathInfo.Chart);
+                    GlobalSetting.MusicPath = Path.Combine(tempPath, pathInfo.Music);
+                    GlobalSetting.IllustrationPath = Path.Combine(tempPath, pathInfo.Illustration);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -211,20 +211,20 @@ namespace MainCore.UI
             {
                 try
                 {
-                    GlobalSetting.extraEvents =
+                    GlobalSetting.ExtraEvents =
                         JsonConvert.DeserializeObject<Extra>(await File.ReadAllTextAsync(extraJsonPath));
                 }
                 catch (Exception)
                 {
-                    GlobalSetting.extraEvents = null;
+                    GlobalSetting.ExtraEvents = null;
                 }
             }
             else
             {
-                GlobalSetting.extraEvents = null;
+                GlobalSetting.ExtraEvents = null;
             }
 
-            if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
+            if (GlobalSetting.ExtraEvents is { Videos: { Count: > 0 } })
             {
                 InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金",
                     () => { }, "确定");
@@ -232,12 +232,12 @@ namespace MainCore.UI
             }
 
             //We load chart from here.
-            await Main.InitChartAuto(GlobalSetting.chartPath, false).ConfigureAwait(false);
-            if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+            await Main.InitChartAuto(GlobalSetting.ChartPath, false).ConfigureAwait(false);
+            if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
 
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
-                (GlobalSetting.composer.ToLowerInvariant().Contains("pepoyo") ||
-                 GlobalSetting.composer.Contains("ぺぽよ") || GlobalSetting.composer.Contains("ペポヨ")))
+                (GlobalSetting.Composer.ToLowerInvariant().Contains("pepoyo") ||
+                 GlobalSetting.Composer.Contains("ぺぽよ") || GlobalSetting.Composer.Contains("ペポヨ")))
             {
                 GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Yande;
             }
@@ -264,11 +264,11 @@ namespace MainCore.UI
             illustrationPathDropdown.AddOptions(GetFileName(tempPath, ".png", ".bmp", ".jpg", ".jpeg"));
             if (File.Exists(tempPath + "/line.csv"))
             {
-                GlobalSetting.lineImage = new CSVReader(tempPath + "/line.csv");
+                GlobalSetting.LineImage = new CSVReader(tempPath + "/line.csv");
             }
             else
             {
-                GlobalSetting.lineImage = null;
+                GlobalSetting.LineImage = null;
             }
         }
 
@@ -298,7 +298,7 @@ namespace MainCore.UI
         public void SpeedChange()
         {
             speed = float.Parse(GameObject.Find("SpeedDropdown").GetComponent<Dropdown>().captionText.text.Trim('x'));
-            GlobalSetting.noteSpeedFactor = speed;
+            GlobalSetting.NoteSpeedFactor = speed;
         }
 
         public void OnChangeDropdown()

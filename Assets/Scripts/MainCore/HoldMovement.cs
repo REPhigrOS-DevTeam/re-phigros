@@ -76,7 +76,7 @@ namespace MainCore
                 holdRenders[1].drawMode = SpriteDrawMode.Tiled;
                 holdRenders[1].tileMode = SpriteTileMode.Continuous;
                 float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
-                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.globalNoteScale);
+                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.GlobalNoteScale);
                 // holdRenders[3].sprite = Instantiate(holdRenders[1].sprite);
                 // holdRenders[3].drawMode = SpriteDrawMode.Tiled;
                 // holdRenders[3].tileMode = SpriteTileMode.Continuous;
@@ -98,9 +98,9 @@ namespace MainCore
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
             cachedTransform.localPosition = new Vector3(Note.positionX, 0, 0);
 
-            holdParts[0].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
-            holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
-            holdParts[2].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
+            holdParts[0].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
+            holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
+            holdParts[2].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
         }
 
         public void GiveSortId(int id)
@@ -131,7 +131,7 @@ namespace MainCore
 
         protected override void CheckJudgeStatus()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
             {
                 if (parentLine.PgrTime >= Note.time && !holdCatched)
                 {
@@ -143,7 +143,7 @@ namespace MainCore
                 if (parentLine.PgrTime >=
                     Note.time + Math.Max(0, Note.holdTime - GlobalSetting.GetJudgeTime().judgeTime) && !holdOK)
                 {
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     holdOK = true;
                 }
 
@@ -165,12 +165,12 @@ namespace MainCore
             if (Note.time <= parentLine.PgrTime)
             {
                 if (parentLine.PgrTime - Note.time >= GlobalSetting.GetJudgeTime().bTime && !holdCatched &&
-                    !GlobalSetting.autoPlay)
+                    !GlobalSetting.AutoPlay)
                 {
                     holdMissed = true;
                     if (status != NoteStat.Miss)
                     {
-                        GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                        GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                         status = NoteStat.Miss;
                     }
 
@@ -190,7 +190,7 @@ namespace MainCore
             if (Note.time - parentLine.PgrTime < -GlobalSetting.GetJudgeTime().bTime && !holdCatched &&
                 status == NoteStat.None) //没接住miss
             {
-                GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                 status = NoteStat.Miss;
                 holdMissed = true;
             }
@@ -301,12 +301,12 @@ namespace MainCore
             holdRealLength = Note.time <= parentLine.PgrTime ? nowLength : originalLength;
             if (GlobalSetting.CurrentSkinInfo.holdRepeat)
             {
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdCompactFactor + holdRealLength <= 0 ? 0f : GlobalSetting.globalNoteScale, 1.0f);
+                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdCompactFactor + holdRealLength <= 0 ? 0f : GlobalSetting.GlobalNoteScale, 1.0f);
             }
             else
             {
                 holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + holdLengthFactor);
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
+                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
             }
 
             holdParts[1].localPosition = new Vector3(0, holdRealLength + holdEndHalf, 0);
@@ -318,7 +318,7 @@ namespace MainCore
             if (Note.time + Note.holdTime - GlobalSetting.GetJudgeTime().judgeTime <= parentLine.PgrTime)
             {
                 holdOK = true;
-                GlobalSetting.scoreCounter.Add(status);
+                GlobalSetting.ScoreCounter.Add(status);
                 return;
             }
 
@@ -344,7 +344,7 @@ namespace MainCore
                 {
                     holdCatched = false;
                     holdMissed = true;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                     status = NoteStat.Miss;
                 }
             }

@@ -123,7 +123,7 @@ namespace MainCore
 
         public static void Init()
         {
-            _hitSoundVolume = GlobalSetting.hitVolume;
+            _hitSoundVolume = GlobalSetting.HitVolume;
 
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             if (NativeAudio.OnSupportedPlatform)
@@ -140,7 +140,7 @@ namespace MainCore
 
         public static void UpdateVolume()
         {
-            _hitSoundVolume = GlobalSetting.hitVolume;
+            _hitSoundVolume = GlobalSetting.HitVolume;
         }
 
         private async UniTaskVoid InitNativeAudio()

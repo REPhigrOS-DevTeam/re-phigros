@@ -374,17 +374,17 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.infoType < InfoType.RpeJson)
+            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType < InfoType.RpeJson)
             {
-                GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
+                GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
                     rpeChartData.META.song);
-                GlobalSetting.illustrationPath =
-                    Path.Combine(GlobalSetting.chartFolderPath, rpeChartData.META.background);
-                GlobalSetting.charter = rpeChartData.META.charter;
-                GlobalSetting.composer = rpeChartData.META.composer;
-                GlobalSetting.illustrator = "Unknown";
-                GlobalSetting.chartName = rpeChartData.META.name;
-                GlobalSetting.difficulty = rpeChartData.META.level;
+                GlobalSetting.IllustrationPath =
+                    Path.Combine(GlobalSetting.ChartFolderPath, rpeChartData.META.background);
+                GlobalSetting.Charter = rpeChartData.META.charter;
+                GlobalSetting.Composer = rpeChartData.META.composer;
+                GlobalSetting.Illustrator = "Unknown";
+                GlobalSetting.ChartName = rpeChartData.META.name;
+                GlobalSetting.Difficulty = rpeChartData.META.level;
             }
 
             //Convert BPM
@@ -419,7 +419,7 @@ namespace MainCore.Utilities
                 //Convert extended
                 if (rpeChartData.judgeLineList[i].Texture != "line.png")
                 {
-                    var path = Path.Combine(GlobalSetting.chartFolderPath,
+                    var path = Path.Combine(GlobalSetting.ChartFolderPath,
                         rpeChartData.judgeLineList[i].Texture);
                     if (File.Exists(path))
                     {

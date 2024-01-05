@@ -32,6 +32,7 @@ namespace Network
             { 109, 97, 110, 105, 102, 101, 115, 116, 46, 106, 115, 111, 110 }); // manifest.json
 
         private static bool inited = false;
+        public static bool Inited => inited;
         
         public static string GetAPIBase()
         {
@@ -66,6 +67,7 @@ namespace Network
                 if (switched)
                 {
                     Debug.Log("访问两个站点都超时");
+                    inited = false;
                     return false;
                 }
                 switched = true;

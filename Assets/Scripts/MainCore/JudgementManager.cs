@@ -118,7 +118,7 @@ namespace MainCore
         // Update is called once per frame
         void Update()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
                 return;
 
 #if UNITY_EDITOR
@@ -193,7 +193,7 @@ namespace MainCore
         {
             if (numOfFingers == 0)
                 return;
-            foreach (var i in GlobalSetting.lines)
+            foreach (var i in GlobalSetting.Lines)
             {
                 for (int k = 0; k < numOfFingers; k++)
                 {
@@ -209,7 +209,7 @@ namespace MainCore
                 var judgedFlickTime = 9999f;
                 notesInJudge.Clear();
                 notesDistances.Clear();
-                foreach (var line in GlobalSetting.lines)
+                foreach (var line in GlobalSetting.Lines)
                 {
                     var (n, flickTime, absDistance) = line.GetNearestNote(fingers[i], line.PositionX[i]);
                     if (n != null)

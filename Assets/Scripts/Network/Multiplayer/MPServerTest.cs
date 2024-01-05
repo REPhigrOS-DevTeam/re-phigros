@@ -407,7 +407,7 @@ public class MPServerTest : MonoBehaviour
     private async Task<bool> ProcessChart(string directory)
     {
 #if true
-        GlobalSetting.chartFolderPath = directory;
+        GlobalSetting.ChartFolderPath = directory;
         string originalPath = PlayerPrefs.GetString("chartFolderPath", Application.persistentDataPath);
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
@@ -415,24 +415,24 @@ public class MPServerTest : MonoBehaviour
         SongInfo songInfo;
         GameFilePathInfo pathInfo;
         object obj;
-        (songInfo, GlobalSetting.infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(directory);
+        (songInfo, GlobalSetting.InfoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(directory);
 
-        switch (GlobalSetting.infoType)
+        switch (GlobalSetting.InfoType)
         {
             case InfoType.Empty:
-                GlobalSetting.chartName = "Unknown";
-                GlobalSetting.difficulty = "SP  Lv.?";
-                GlobalSetting.charter = "Unknown";
-                GlobalSetting.composer = "Unknown";
-                GlobalSetting.illustrator = "Unknown";
+                GlobalSetting.ChartName = "Unknown";
+                GlobalSetting.Difficulty = "SP  Lv.?";
+                GlobalSetting.Charter = "Unknown";
+                GlobalSetting.Composer = "Unknown";
+                GlobalSetting.Illustrator = "Unknown";
 
                 try
                 {
-                    GlobalSetting.chartPath = Path.Combine(directory,
+                    GlobalSetting.ChartPath = Path.Combine(directory,
                         GameUtils.SelectGivenExtensionsFileNames(directory, ".json", ".pec")[0]);
-                    GlobalSetting.musicPath = Path.Combine(directory,
+                    GlobalSetting.MusicPath = Path.Combine(directory,
                         GameUtils.SelectGivenExtensionsFileNames(directory, ".wav", ".ogg", ".mp3")[0]);
-                    GlobalSetting.illustrationPath = Path.Combine(directory,
+                    GlobalSetting.IllustrationPath = Path.Combine(directory,
                         GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg")[0]);
                 }
                 catch (ArgumentOutOfRangeException)
@@ -448,21 +448,21 @@ public class MPServerTest : MonoBehaviour
             case InfoType.InfoCsv:
             case InfoType.InfoCsvOld:
             case InfoType.InfoYml:
-                GlobalSetting.chartName = songInfo.SongName;
-                GlobalSetting.difficulty = songInfo.SongDifficulty;
-                GlobalSetting.charter = songInfo.SongCharter;
-                GlobalSetting.composer = songInfo.SongComposer;
-                GlobalSetting.illustrator = songInfo.SongIllustrator;
-                GlobalSetting.chartPath = Path.Combine(directory, pathInfo.Chart);
-                GlobalSetting.musicPath = Path.Combine(directory, pathInfo.Music);
-                GlobalSetting.illustrationPath = Path.Combine(directory, pathInfo.Illustration);
+                GlobalSetting.ChartName = songInfo.SongName;
+                GlobalSetting.Difficulty = songInfo.SongDifficulty;
+                GlobalSetting.Charter = songInfo.SongCharter;
+                GlobalSetting.Composer = songInfo.SongComposer;
+                GlobalSetting.Illustrator = songInfo.SongIllustrator;
+                GlobalSetting.ChartPath = Path.Combine(directory, pathInfo.Chart);
+                GlobalSetting.MusicPath = Path.Combine(directory, pathInfo.Music);
+                GlobalSetting.IllustrationPath = Path.Combine(directory, pathInfo.Illustration);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        await Main.InitChartAuto(GlobalSetting.chartPath, false, false).ConfigureAwait(false);
-        if (GlobalSetting.infoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+        await Main.InitChartAuto(GlobalSetting.ChartPath, false, false).ConfigureAwait(false);
+        if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
 
         // extra init
         string extraJsonPath = directory + "/extra.json";
@@ -470,38 +470,38 @@ public class MPServerTest : MonoBehaviour
         {
             try
             {
-                GlobalSetting.extraEvents =
+                GlobalSetting.ExtraEvents =
                     JsonConvert.DeserializeObject<Extra>(await File.ReadAllTextAsync(extraJsonPath));
             }
             catch (Exception)
             {
-                GlobalSetting.extraEvents = null;
+                GlobalSetting.ExtraEvents = null;
             }
         }
         else
         {
-            GlobalSetting.extraEvents = null;
+            GlobalSetting.ExtraEvents = null;
         }
 
-        if (GlobalSetting.extraEvents is { Videos: { Count: > 0 } })
+        if (GlobalSetting.ExtraEvents is { Videos: { Count: > 0 } })
         {
             InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n除非你愿意捐400美金", () => { }, "确定");
             await UniTask.WaitWhile(() => InGameUIManager.IsActive);
         }
 
         // chart init
-        GlobalSetting.lineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
+        GlobalSetting.LineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         // convert illustration & music
         await UniTask.SwitchToMainThread();
-        GlobalSetting.backgroundImage =
-            Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.illustrationPath), out Exception e);
+        GlobalSetting.BackgroundImage =
+            Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath), out Exception e);
         if (e != null)
         {
             Debug.LogError(e);
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
         }
 
-        Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.musicPath);
+        Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
         if (chartInfo.Chart == null)
@@ -526,14 +526,14 @@ public class MPServerTest : MonoBehaviour
     private void EnterGame()
     {
         // other
-        GlobalSetting.isMultiplayer = true;
+        GlobalSetting.IsMultiplayer = true;
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
-        GlobalSetting.usingApi = false;
+        GlobalSetting.UsingApi = false;
         GlobalSetting.ReadUserSettings();
-        GlobalSetting.recordMode = false;
-        GlobalSetting.autoPlay = false;
-        GlobalSetting.useCourseMode = false;
+        GlobalSetting.AutoPlay = false;
+        GlobalSetting.StrictJudgeMode = false;
+        GlobalSetting.NewScoreCalcType = false;
         GlobalSetting.Pitch = 1.0f;
         HitSoundManager.Init();
         PopupMessageManager.Instance.Clear();

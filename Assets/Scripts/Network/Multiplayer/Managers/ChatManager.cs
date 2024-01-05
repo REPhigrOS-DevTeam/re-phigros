@@ -184,43 +184,43 @@ namespace Network.Multiplayer.Managers
                 string id = ifMessage.text.Substring(10);
                 if (internalCharts.TryGet(id, out var chart))
                 {
-                    GlobalSetting.infoType = InfoType.Internal;
-                    GlobalSetting.chartName = chart.SongInfo.SongName;
-                    GlobalSetting.difficulty = chart.SongInfo.SongDifficulty;
-                    GlobalSetting.charter = chart.SongInfo.SongCharter;
-                    GlobalSetting.composer = chart.SongInfo.SongComposer;
-                    GlobalSetting.illustrator = chart.SongInfo.SongIllustrator;
-                    GlobalSetting.chartPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Chart)}";
-                    GlobalSetting.musicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
-                    GlobalSetting.illustrationPath =
+                    GlobalSetting.InfoType = InfoType.Internal;
+                    GlobalSetting.ChartName = chart.SongInfo.SongName;
+                    GlobalSetting.Difficulty = chart.SongInfo.SongDifficulty;
+                    GlobalSetting.Charter = chart.SongInfo.SongCharter;
+                    GlobalSetting.Composer = chart.SongInfo.SongComposer;
+                    GlobalSetting.Illustrator = chart.SongInfo.SongIllustrator;
+                    GlobalSetting.ChartPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Chart)}";
+                    GlobalSetting.MusicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
+                    GlobalSetting.IllustrationPath =
                         $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Illustration)}";
-                    await Main.InitChartAuto(GlobalSetting.chartPath, true).ConfigureAwait(false);
+                    await Main.InitChartAuto(GlobalSetting.ChartPath, true).ConfigureAwait(false);
                     TextAsset extraJsonObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/extra");
                     if (extraJsonObject != null)
                     {
                         try
                         {
-                            GlobalSetting.extraEvents =
+                            GlobalSetting.ExtraEvents =
                                 JsonConvert.DeserializeObject<Extra>(extraJsonObject.text);
                         }
                         catch (Exception)
                         {
-                            GlobalSetting.extraEvents = null;
+                            GlobalSetting.ExtraEvents = null;
                         }
                     }
                     else
                     {
-                        GlobalSetting.extraEvents = null;
+                        GlobalSetting.ExtraEvents = null;
                     }
                     TextAsset lineCsvObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/line");
-                    GlobalSetting.lineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
+                    GlobalSetting.LineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
                     await UniTask.SwitchToMainThread();
-                    GlobalSetting.backgroundImage = Resources.Load<Sprite>(GlobalSetting.illustrationPath);
-                    Main.music = Resources.Load<AudioClip>(GlobalSetting.musicPath);
-                    GlobalSetting.isMultiplayer = false;
+                    GlobalSetting.BackgroundImage = Resources.Load<Sprite>(GlobalSetting.IllustrationPath);
+                    Main.music = Resources.Load<AudioClip>(GlobalSetting.MusicPath);
+                    GlobalSetting.IsMultiplayer = false;
                     GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
-                    GlobalSetting.usingApi = false;
+                    GlobalSetting.UsingApi = false;
                     GlobalSetting.ReadUserSettings();
                     HitSoundManager.Init();
                     PopupMessageManager.Instance.Clear();

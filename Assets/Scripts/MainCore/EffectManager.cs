@@ -19,7 +19,7 @@ public class EffectManager : MonoBehaviour
 
     public Coroutine RecycleCoroutine = null;
 
-    float scale = GlobalSetting.globalNoteScale / 0.16f;
+    float scale = GlobalSetting.GlobalNoteScale / 0.16f;
 
     // Start is called before the first frame update 
     private void Awake()
@@ -29,7 +29,7 @@ public class EffectManager : MonoBehaviour
 
     public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
-        scale = GlobalSetting.globalNoteScale / 0.16f * skinInfo.hitFxScale;
+        scale = GlobalSetting.GlobalNoteScale / 0.16f * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;

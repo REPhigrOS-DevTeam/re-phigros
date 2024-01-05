@@ -56,23 +56,23 @@ namespace MainCore.UI
             GlobalSetting.ReadUserSettings();
         }
 
-        private async UniTask<bool> InitAPI()
-        {
-            PopupMessageManager.Instance.Message("尝试连接服务器……");
-            // LoginManagerOld.ReadAccountFromPlayerPrefs();
-            bool succeeded = await RepAPI.Init();
-            if (!succeeded)
-            {
-                Debug.Log("我是扇贝");
-                InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
-            }
-            else
-            {
-                PopupMessageManager.Instance.Message("连接成功");
-            }
-
-            return succeeded;
-        }
+        // private async UniTask<bool> InitAPI()
+        // {
+        //     PopupMessageManager.Instance.Message("尝试连接服务器……");
+        //     // LoginManagerOld.ReadAccountFromPlayerPrefs();
+        //     bool succeeded = await RepAPI.Init();
+        //     if (!succeeded)
+        //     {
+        //         Debug.Log("我是扇贝");
+        //         InGameUIManager.ShowModalWindowWithClose("致命错误", "无法连接至服务器\n程序即将退出", Util.QuitApp, "确定");
+        //     }
+        //     else
+        //     {
+        //         PopupMessageManager.Instance.Message("连接成功");
+        //     }
+        //
+        //     return succeeded;
+        // }
 
         private void Start()
         {
@@ -143,7 +143,19 @@ namespace MainCore.UI
             }
 
 //#endif
-            if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
+            if (!PlayerPrefs.HasKey("first_start"))
+            {
+                PlayerPrefs.SetInt("first_start", 1);
+                PlayerPrefs.Save();
+                SceneTransit.Instance.AppendScene("MainScene");
+                SceneTransit.Instance.AppendScene("SettingsScene");
+                SceneTransit.Instance.LoadScene("DSPScene");
+            }
+            else
+            {
+                SceneTransit.Instance.JumpScene("MainScene");
+            }
+            //if (await InitAPI()) SceneTransit.Instance.JumpScene("LoginScene");
         }
     }
 }

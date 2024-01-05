@@ -166,6 +166,11 @@ namespace MainCore.Settings
             add.name = "Add";
             SkinItem skinItem1 = add.GetComponent<SkinItem>();
             skinItem1.Init(this, true, "", "＋");
+
+            if (selectedIsExternal)
+            {
+                externalSkinItems[selectedId]?.SetSelected(true, selectedId);
+            }
         }
 
         private void IntoDSP()
@@ -280,14 +285,14 @@ namespace MainCore.Settings
         private float tmp;
         public void PlayHitEffect(int type)
         {
-            tmp = GlobalSetting.globalNoteScale;
-            GlobalSetting.globalNoteScale = SkinPreview.Size;
+            tmp = GlobalSetting.GlobalNoteScale;
+            GlobalSetting.GlobalNoteScale = SkinPreview.Size;
             EffectManager hitFxObj = HitEffectManager.GetInstance()
                 .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo);
             hitFxObj.transform.position = hitEffectPos.position;
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
-            GlobalSetting.globalNoteScale = tmp;
+            GlobalSetting.GlobalNoteScale = tmp;
         }
     }
 

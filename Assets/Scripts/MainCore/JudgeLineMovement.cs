@@ -72,7 +72,7 @@ namespace MainCore
 
         void Awake()
         {
-            SpeedFactor = GlobalSetting.noteSpeedFactor * 6f;
+            SpeedFactor = GlobalSetting.NoteSpeedFactor * 6f;
         }
 
         void Start()
@@ -86,7 +86,7 @@ namespace MainCore
             if (!GlobalSetting.Playing)
             {
                 sr.color = Color.clear;
-                sr.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
+                sr.sortingOrder = Line.zOrder * GlobalSetting.MaximumZOrder + ID;
                 // sr2.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
                 return;
             }
@@ -143,9 +143,9 @@ namespace MainCore
 
             if (!IsImage)
                 TargetScale = new Vector2(
-                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.aspect / sr.sprite.texture.width,
+                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
                     220 * 0.008f * Camera.main.orthographicSize / sr.sprite.texture.height);
-            if (GlobalSetting.formatVersion == 1)
+            if (GlobalSetting.FormatVersion == 1)
             {
                 foreach (judgeLineSpeedEvent b in Line.speedEvents)
                 {
@@ -161,7 +161,7 @@ namespace MainCore
                 PositionX.Add(0f);
             ProcessingNotes = Line.notesBelow.Concat(Line.notesAbove).ToList();
             ArrangeFloorPosition();
-            if (GlobalSetting.isMirror)
+            if (GlobalSetting.IsMirror)
             {
                 for (var layer = 0; layer < Line.rpeLayers.Count; layer++)
                 {
@@ -173,7 +173,7 @@ namespace MainCore
 
                     foreach (var i in Line.rpeLayers[layer].moveXEvents)
                     {
-                        if (GlobalSetting.formatVersion != 1)
+                        if (GlobalSetting.FormatVersion != 1)
                         {
                             i.start = 1 - i.start;
                             i.end = 1 - i.end;
@@ -194,7 +194,7 @@ namespace MainCore
         {
             ProcessingNotes.Remove(i);
             NoteMovement t;
-            if (GlobalSetting.isMirror)
+            if (GlobalSetting.IsMirror)
                 i.positionX = -i.positionX;
             switch (type)
             {
@@ -368,7 +368,7 @@ namespace MainCore
         {
             yield return new WaitForSeconds(0.2f);
             transform.localScale = TargetScale;
-            if (GlobalSetting.is3D)
+            if (GlobalSetting.Is3D)
             {
                 JudgeLineTopTransform.eulerAngles = new Vector3(30, 0, 0);
             }
@@ -486,8 +486,8 @@ namespace MainCore
             MoveEventValue = GameUtils.GetTransformedXY(new Vector2(x * 160f / 9f, y * 10f));
             if (Line.father > -1)
             {
-                var t = GlobalSetting.lines[Line.father].MoveEventValue;
-                var r = GlobalSetting.lines[Line.father].RotateEventValue;
+                var t = GlobalSetting.Lines[Line.father].MoveEventValue;
+                var r = GlobalSetting.Lines[Line.father].RotateEventValue;
                 var matrix = Matrix4x4.TRS(t, Quaternion.Euler(0, 0, r), Vector3.one);
                 t = matrix.MultiplyPoint3x4(MoveEventValue);
                 transform1.position = t;
@@ -548,7 +548,7 @@ namespace MainCore
 
             var i = GameUtils.GetEventFromCurrentTime(Line.rpeLayers[layer].moveXEvents, PgrTime);
 
-            if (GlobalSetting.formatVersion is not 1)
+            if (GlobalSetting.FormatVersion is not 1)
             {
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
                 i.endTime = i.endTime > 10000000 ? i.startTime + 1 : i.endTime;
@@ -583,7 +583,7 @@ namespace MainCore
 
             var i = GameUtils.GetEventFromCurrentTime(Line.rpeLayers[layer].moveYEvents, PgrTime);
 
-            if (GlobalSetting.formatVersion is not 1)
+            if (GlobalSetting.FormatVersion is not 1)
             {
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
                 i.endTime = i.endTime > 10000000 ? i.startTime + 1 : i.endTime;
@@ -690,7 +690,7 @@ namespace MainCore
                 int easeType = 0;
 
                 if (Line.extended.colorEvents.Count == 0)
-                    return GlobalSetting.lineColors[GlobalSetting.lineStat].SetAlpha(alphaVal);
+                    return GlobalSetting.LineColors[GlobalSetting.LineStat].SetAlpha(alphaVal);
 
                 var i = GameUtils.GetEventFromCurrentTime(Line.extended.colorEvents, PgrTime);
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
