@@ -71,7 +71,7 @@ namespace MainCore
         public static Dictionary<JudgeLineStat, Color> LineColors = new Dictionary<JudgeLineStat, Color>();
         public static float ScreenHeight;
         public static float ScreenWidth;
-        // public static float WidthOffset = 0f;
+        public static float WidthOffset = 0f;
         public static string Chart = "";
         public static Extra ExtraEvents = null;
         public static CSVReader LineImage;
@@ -178,7 +178,6 @@ namespace MainCore
             NoteSpeedFactor = 1f;
             Lines.Clear();
             LineColors.Clear();
-            TAP_SOUNDS.Clear();
             LineStat = JudgeLineStat.AP;
             // ObjectPool.GetInstance().reset();
             HitEffectManager.GetInstance().Reset();
