@@ -151,7 +151,7 @@ namespace MainCore.Settings
             }
             else
             {
-                internalSkinItems[GlobalSetting.CurrentSkinInfo.skin].GetComponent<Button>().onClick.Invoke();
+                internalSkinItems[GlobalSetting.CurrentSkinInfo.skin]?.GetComponent<Button>().onClick.Invoke();
             }
         }
 

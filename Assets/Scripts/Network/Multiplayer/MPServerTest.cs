@@ -273,7 +273,7 @@ public class MPServerTest : MonoBehaviour
         
         bDownloadSong.interactable = false;
         OwnerOperation();
-        ChatManager.AddMessage("downloadSucceeded", $"正在处理..." + id, MessageType.Server);
+        ChatManager.AddMessage("downloadSucceeded", $"正在处理...", MessageType.Server);
         async void OwnerOperation()
         {
             if (await MoveSong())

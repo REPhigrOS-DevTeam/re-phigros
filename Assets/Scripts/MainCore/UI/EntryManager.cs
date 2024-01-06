@@ -5,8 +5,6 @@ using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
-using LeanCloud;
-using LeanCloud.Storage;
 using MainCore.Common;
 using MainCore.Utilities;
 using Network;
@@ -49,27 +47,7 @@ namespace MainCore.UI
 #endif
 #endif
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
-            LCApplication.Initialize("iIOds0wITw7kHcLEX6u39Moo-gzGzoHsz", "sn3gIRQAP47rSCI3GvcxUJpl",
-                "https://iiods0wi.lc-cn-n1-shared.com");
             SocketManager.Init();
-            LCLogger.LogDelegate = (level, info) =>
-            {
-                switch (level)
-                {
-                    case LCLogLevel.Debug:
-                        Debug.Log($"[DEBUG] {DateTime.Now} {info}\n");
-                        break;
-                    case LCLogLevel.Warn:
-                        Debug.Log($"[WARNING] {DateTime.Now} {info}\n");
-                        break;
-                    case LCLogLevel.Error:
-                        Debug.Log($"[ERROR] {DateTime.Now} {info}\n");
-                        break;
-                    default:
-                        Debug.Log(info);
-                        break;
-                }
-            };
             // splashCanvas.SetActive(true);
             // splashBgCanvas.SetActive(true);
             // splashPlayer.loopPointReached += async _ =>
