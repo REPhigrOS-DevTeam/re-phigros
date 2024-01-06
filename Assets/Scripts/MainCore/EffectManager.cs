@@ -6,12 +6,11 @@ using MainCore;
 using MainCore.ECS_ver;
 using MainCore.Utilities;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class EffectManager : MonoBehaviour
 {
     public SpriteRenderer sr;
-    [SerializeField] private Color color;
+    private Color color;
     [SerializeField] private int cnt;
     public Coroutine AnimationCoroutine;
     private Sprite[] hitFx;
@@ -29,6 +28,14 @@ public class EffectManager : MonoBehaviour
 
     public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
+        color = skinInfo.hitFxTinted
+            ? JudgeType switch
+            {
+                HitFxJudgeType.Perfect => skinInfo.perfectColor,
+                HitFxJudgeType.Good => skinInfo.goodColor,
+                _ => throw new ArgumentOutOfRangeException(nameof(JudgeType), JudgeType, null)
+            }
+            : Color.white;
         scale = GlobalSetting.GlobalNoteScale / 0.16f * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
@@ -38,14 +45,7 @@ public class EffectManager : MonoBehaviour
             ? 120f
             : hitFx.Length / GlobalSetting.CurrentSkinInfo.hitFxDuration;
         RecycleCoroutine = StartCoroutine(RecycleObj());
-        sr.color = skinInfo.hitFxTinted
-            ? JudgeType switch
-            {
-                HitFxJudgeType.Perfect => skinInfo.perfectColor,
-                HitFxJudgeType.Good => skinInfo.goodColor,
-                _ => throw new ArgumentOutOfRangeException(nameof(JudgeType), JudgeType, null)
-            }
-            : Color.white;
+        sr.color = color;
     }
 
     public void PlayEffect()
@@ -87,18 +87,5 @@ public class EffectManager : MonoBehaviour
     public void StopEffect()
     {
         if (AnimationCoroutine != null) StopCoroutine(AnimationCoroutine);
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetFactor(Skin skin)
-    {
-        return skin switch {
-            Skin.Official => 0.215f,
-            Skin.Phira => 0.16f,
-            Skin.OldOfficial => 0.16f,
-            Skin.Sacabam => 0.25f,
-            Skin.StarPinkXz => 0.16f,
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 }

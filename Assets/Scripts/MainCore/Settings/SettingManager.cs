@@ -17,6 +17,7 @@ namespace MainCore.Settings
     {
         [SerializeField] private LeanButton saveNExit;
         [SerializeField] private LeanButton dspEnter;
+        [SerializeField] private LeanButton logOut;
         [SerializeField] private InputField_File_Selector dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
@@ -74,6 +75,16 @@ namespace MainCore.Settings
                 skinPreview.SetActive(false);
                 delayCorrect.SetRunning(true);
             });
+            if (GlobalSetting.IsOffline)
+            {
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
+                logOut.OnClick.AddListener(LogIn);
+            }
+            else
+            {
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登出";
+                logOut.OnClick.AddListener(LogOut);
+            }
             if (!PlayerPrefs.HasKey(dataPath.BaseData.DataTag))
             {
                 dataPath.BaseData.SetValue($"{Application.persistentDataPath}");
@@ -142,6 +153,23 @@ namespace MainCore.Settings
             {
                 internalSkinItems[GlobalSetting.CurrentSkinInfo.skin].GetComponent<Button>().onClick.Invoke();
             }
+        }
+
+        private void LogOut()
+        {
+            InGameUIManager.ShowModalWindowWithClose("提示", "确定要登出吗？", () =>
+            {
+                GlobalSetting.Username = "";
+                GlobalSetting.VerifyToken = "";
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
+                logOut.OnClick.RemoveListener(LogOut);
+                logOut.OnClick.AddListener(LogIn);
+            }, "确定", () => { }, "取消");
+        }
+
+        private void LogIn()
+        {
+            SceneTransit.Instance.JumpScene("LoginScene");
         }
 
         private void RefreshExternalSkins()
@@ -293,6 +321,11 @@ namespace MainCore.Settings
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
             GlobalSetting.GlobalNoteScale = tmp;
+        }
+
+        public void Test(string text)
+        {
+            Debug.Log(text);
         }
     }
 

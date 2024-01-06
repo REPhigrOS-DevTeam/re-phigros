@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MainCore.Utilities;
 using Network.Account.Serialized;
 using Network.Account.Utils;
@@ -54,13 +55,16 @@ namespace Network
                 throw new ArgumentException("Has inited");
             }
 
+            await UniTask.SwitchToMainThread();
             inited = true;
             useMirror = PlayerPrefs.GetInt("useMirror", 0) == 1;
 
             byte[] data;
             try
             {
-                data = await GetAPIBase().SendGetRequestAsync(3000);
+                await UniTask.SwitchToThreadPool();
+                data = await GetAPIBase().SendGetRequestAsync(4000);
+                await UniTask.SwitchToMainThread();
             }
             catch (Exception e) when (e is WebException or TaskCanceledException)
             {
@@ -71,7 +75,9 @@ namespace Network
                     return false;
                 }
                 switched = true;
+                await UniTask.SwitchToMainThread();
                 PlayerPrefs.SetInt("useMirror", useMirror ? 0 : 1);
+                await UniTask.SwitchToThreadPool();
                 Debug.Log(!useMirror ? "访问主站超时，切换到镜像站点" : "访问镜像站超时，切换到主站点");
                 inited = false;
                 return await Init();

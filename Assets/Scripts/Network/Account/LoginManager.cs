@@ -50,7 +50,7 @@ namespace Network.Account
             {
                 accountInfos.Add(new AccountManager.AccountInfo(PlayerPrefs.GetString("repapi_playername", ""),
                     PlayerPrefs.GetString("repapi_verifytoken", "")));
-                AccountManager.SaveAccountList(accountInfos);
+                AccountManager.SaveAccountList(accountInfos, PlayerPrefs.GetString("repapi_playername", ""));
                 PlayerPrefs.DeleteKey("repapi_playername");
                 PlayerPrefs.DeleteKey("repapi_verifytoken");
                 PlayerPrefs.DeleteKey("repapi_rememberme");
@@ -67,6 +67,16 @@ namespace Network.Account
             else
             {
                 createButton.IsOn = false;
+                string lastUser = AccountManager.GetLastUser();
+                if (lastUser != "")
+                {
+                    for (int i = 0; i < accountsDropdown.options.Count; i++)
+                    {
+                        if (accountsDropdown.options[i].text != lastUser) continue;
+                        accountsDropdown.value = i;
+                        break;
+                    }
+                }
             }
         }
 
@@ -102,9 +112,11 @@ namespace Network.Account
             PopupMessageManager.Instance.Message("尝试连接服务器……");
             if (!RepAPI.Inited)
             {
+                await UniTask.SwitchToThreadPool();
                 bool succeeded = await RepAPI.Init();
                 if (!succeeded)
                 {
+                    await UniTask.SwitchToMainThread();
                     InGameUIManager.ShowModalWindowWithClose("错误", "无法连接至服务器，请检查您的网络连接", () => SceneTransit.Instance.Back(), "确定");
                     return;
                 }
@@ -130,8 +142,10 @@ namespace Network.Account
                     return;
                 }
 
+                await UniTask.SwitchToThreadPool();
                 (StatusCode code, AccountManager.AccountInfo accountInfo) =
                     await Login(username, password);
+                await UniTask.SwitchToMainThread();
                 loginMask.SetActive(false);
                 switch (code)
                 {
@@ -141,7 +155,7 @@ namespace Network.Account
                         break;
                     case StatusCode.OK:
                         accountInfos.Insert(0, accountInfo);
-                        AccountManager.SaveAccountList(accountInfos);
+                        AccountManager.SaveAccountList(accountInfos, accountInfo.Username);
                         Finally(accountInfo);
                         InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Back, "确定");
                         break;
@@ -195,7 +209,7 @@ namespace Network.Account
                         accountInfos.Remove(info);
                         info.VerifyToken = token;
                         accountInfos.Insert(0, info);
-                        AccountManager.SaveAccountList(accountInfos);
+                        AccountManager.SaveAccountList(accountInfos, info.Username);
                         Finally(info);
                         InGameUIManager.ShowModalWindowWithClose("提示", "登录成功", Back, "确定");
                         break;
@@ -214,7 +228,7 @@ namespace Network.Account
                         break;
                     case StatusCode.InvalidToken:
                         accountInfos[i].VerifyToken = "";
-                        AccountManager.SaveAccountList(accountInfos);
+                        AccountManager.SaveAccountList(accountInfos, info.Username);
                         accountInfos.Remove(info);
                         InGameUIManager.ShowModalWindowWithClose("错误", "Token无效，请重新登录", () =>
                         {
@@ -300,6 +314,7 @@ namespace Network.Account
 
         public static async Task<(StatusCode, string?)> Verify(AccountManager.AccountInfo accountInfo)
         {
+            await UniTask.SwitchToMainThread();
 #if !UNITY_EDITOR
             Debug.Log("Try verify");
 #endif
@@ -316,7 +331,9 @@ namespace Network.Account
 #if UNITY_EDITOR
             Debug.Log("Try send for verify: " + uri);
 #endif
+            await UniTask.SwitchToThreadPool();
             byte[] data = await uri.SendGetRequestAsync();
+            await UniTask.SwitchToMainThread();
             if (data == null)
             {
                 Debug.LogError($"RePhigros API: Unable to connect to server when verifying");

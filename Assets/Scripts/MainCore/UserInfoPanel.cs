@@ -13,7 +13,7 @@ public class UserInfoPanel : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        usernameText.text = RepAPI.Inited ? $"@{GlobalSetting.Username}" : "Offline...";
+        usernameText.text = GlobalSetting.IsOffline ? "Offline..." : $"@{GlobalSetting.Username}";
         displayNameText.text = PlayerPrefs.GetString("player_name", "kagari939");
         float width = Mathf.Max(usernameText.preferredWidth, displayNameText.preferredWidth);
         avatarBackGround.sizeDelta = new Vector2(Offset1 + width, avatarBackGround.sizeDelta.y);

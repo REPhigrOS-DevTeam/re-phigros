@@ -68,8 +68,8 @@ namespace MainCore.UI
             editCharacter.interactable = false;
             editCharacter.transform.Find("Mask").Find("Icon").gameObject.GetComponent<Image>().SetAlpha(0.5f);
 #endif
-            multiPlay.gameObject.SetActive(RepAPI.Inited);
-            login.gameObject.SetActive(!RepAPI.Inited);
+            multiPlay.gameObject.SetActive(!GlobalSetting.IsOffline);
+            login.gameObject.SetActive(GlobalSetting.IsOffline);
         }
 
 

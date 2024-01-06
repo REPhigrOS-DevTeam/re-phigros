@@ -93,6 +93,7 @@ namespace MainCore
         public static InfoType InfoType = InfoType.Empty;
         public static string Username;
         public static string VerifyToken;
+        public static bool IsOffline => string.IsNullOrEmpty(Username);
 
         public static YayaMode YayaKawaii = YayaMode.冲;
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;

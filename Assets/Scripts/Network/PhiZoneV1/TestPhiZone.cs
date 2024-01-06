@@ -58,7 +58,7 @@ namespace Network.PhiZoneV1.Data
                 { "password", password }
             };
 
-            StartCoroutine("/auth/token".RequestPhiZone("POST", LoginResponse, false, body));
+            await "/auth/token".RequestPhiZone("POST", LoginResponse, false, body);
         }
 
         private void LoginResponse(Response response)

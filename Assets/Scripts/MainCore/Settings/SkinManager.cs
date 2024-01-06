@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Cysharp.Threading.Tasks;
 using MainCore.Common;
 using MainCore.Utilities;
 using Newtonsoft.Json;
@@ -17,6 +18,8 @@ public class SkinManager : MonoSingleton<SkinManager>
     private Dictionary<string, SkinInfo> externalSkinInfos = new Dictionary<string, SkinInfo>();
 
     public string skinPath;
+
+    public bool Inited { get; private set; } = false;
 
     private string GetBasePath()
     {
@@ -41,22 +44,24 @@ public class SkinManager : MonoSingleton<SkinManager>
         }
     }
 
-    protected override void OnAwake()
+    protected override async void OnAwake()
     {
         skinPath = GetBasePath() + "/Skins";
         if (Directory.Exists(skinPath) && !File.Exists(skinPath + "/info.json")) Directory.Delete(skinPath, true);
         Directory.CreateDirectory(skinPath);
         if (!File.Exists(skinPath + "/info.json"))
         {
-            File.WriteAllBytes(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins(), Formatting.None)));
+            await File.WriteAllBytesAsync(skinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins(), Formatting.None)));
         }
         else
         {
-            ReadLocalSkins();
+           await ReadLocalSkins();
         }
+
+        Inited = true;
     }
 
-    private async void ReadLocalSkins()
+    private async UniTask ReadLocalSkins()
     {
         Skins skins = JsonConvert.DeserializeObject<Skins>(await File.ReadAllTextAsync(skinPath + "/info.json"));
         foreach (SkinSummary skinSummary in skins.skins)

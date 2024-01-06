@@ -361,12 +361,12 @@ namespace MainCore
 
         public void ResetScale()
         {
-            StartCoroutine(ResetScaleCoroutine());
+            ResetScaleCoroutine();
         }
 
-        private IEnumerator ResetScaleCoroutine()
+        private async void ResetScaleCoroutine()
         {
-            yield return new WaitForSeconds(0.2f);
+            await new WaitForSeconds(0.2f);
             transform.localScale = TargetScale;
             if (GlobalSetting.Is3D)
             {

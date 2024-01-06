@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using Network.PhiZoneV1.Data;
 using Newtonsoft.Json.Linq;
@@ -45,7 +46,7 @@ namespace Network.PhiZoneV1.Utils
             return new Response((int) httpWebResponse.StatusCode, JObject.Parse(data));
         }
 
-        public static IEnumerator RequestPhiZone(this string path, string method, ResponseReceiver response,
+        public static async UniTask RequestPhiZone(this string path, string method, ResponseReceiver response,
             bool useToken = true, Dictionary<string, object> body = null)
         {
             UnityWebRequest unityWebRequest = new UnityWebRequest(ApiHost + path);
@@ -65,7 +66,7 @@ namespace Network.PhiZoneV1.Utils
 
             unityWebRequest.downloadHandler = new DownloadHandlerBuffer();
 
-            yield return unityWebRequest.SendWebRequest();
+            await unityWebRequest.SendWebRequest();
 
             response?.Invoke(unityWebRequest.result == UnityWebRequest.Result.ConnectionError
                 ? ConnectErrorResponse
