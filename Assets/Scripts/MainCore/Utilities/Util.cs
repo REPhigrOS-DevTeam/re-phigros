@@ -11,6 +11,7 @@ using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
 using Newtonsoft.Json;
+using NLayer;
 using Unimage;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -71,22 +72,37 @@ namespace MainCore.Utilities
             }
         }
 
-        public static async Task<AudioClip> ReadMusicAsAudioClip(string path)
+        public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path)
         {
+            AudioType audioType = await GetAudioTypeFromFile(path);
+            if (audioType == AudioType.MPEG)
+            {
+                using var mpegFile = new MpegFile(path);
+                if (mpegFile.Length % sizeof(float) % mpegFile.Channels != 0) throw new ArgumentException("Illegal MpegFile Instance");
+                int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
+                float[] samples = new float[lengthSamples * mpegFile.Channels];
+                int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
+                await UniTask.SwitchToMainThread();
+                AudioClip ac = AudioClip.Create("", lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
+                ac.SetData(samples, 0);
+                GC.Collect();
+                return ac;
+            }
             await UniTask.SwitchToMainThread();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, GetAudioTypeFromFile(path));
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
             await uwr.SendWebRequest();
+            if (uwr.error != null) throw new ArgumentException();
             AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
             return audioClip;
         }
 
-        private static AudioType GetAudioTypeFromFile(string path)
+        private static async UniTask<AudioType> GetAudioTypeFromFile(string path)
         {
             FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             byte[] data = new byte[4];
             Array.Clear(data, 0, data.Length);
-            fileStream.Read(data, 0, data.Length);
+            await fileStream.ReadAsync(data, 0, data.Length);
             fileStream.Close();
             if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
             if (data.SplitByteArrayToString(4) == "OggS") return AudioType.OGGVORBIS;

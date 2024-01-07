@@ -374,7 +374,7 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType < InfoType.RpeJson)
+            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
             {
                 GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
                     rpeChartData.META.song);

@@ -95,8 +95,23 @@ namespace MainCore.UI
 
         private void RefreshGameFolder()
         {
+            string text = "";
+            if (infoDropdown.value != 1)
+            {
+                text = infoDropdown.captionText.text;
+            }
             infoDropdown.ClearOptions();
             infoDropdown.AddOptions(GetFolders(Util.DataPath));
+            if (text != "")
+            {
+                for (var i = 0; i < infoDropdown.options.Count; i++)
+                {
+                    if (infoDropdown.options[i].text != text) continue;
+                    infoDropdown.value = i;
+                    break;
+                }
+            }
+
             OnChangeDropdown();
         }
 
@@ -164,6 +179,7 @@ namespace MainCore.UI
             switch (GlobalSetting.InfoType)
             {
                 case InfoType.Empty:
+                case InfoType.RpeJson:
                     GlobalSetting.ChartName = chartNameUI.GetComponent<InputField>().text.Trim();
                     GlobalSetting.Difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
                     GlobalSetting.Charter = "Unknown";

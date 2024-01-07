@@ -45,7 +45,7 @@ public class PhigrosSongSearcher : MonoBehaviour
     {
     }
 
-    private string GetSong(string @songName)
+    private string GetSong(string songName)
     {
         var request = (HttpWebRequest) WebRequest.Create("https://dev.phi.zone/get_song/?name=" + @songName);
 

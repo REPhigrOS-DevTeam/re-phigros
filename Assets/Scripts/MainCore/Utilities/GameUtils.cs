@@ -347,12 +347,16 @@ namespace MainCore.Utilities
 
         public static async UniTask<(SongInfo, InfoType, object)> GetSongInfo(string directory)
         {
+#if !RELEASE_VERSION
+            Debug.Log("GetSongInfo");
+#endif
             InfoType infoType = InfoType.Empty;
             string phiraInfoPath = directory + "/info.yml";
             PhiraChartInfoData phiraChartInfoData = null;
             LchzhInfo lchzhInfo = null;
             LchzhInfoOld lchzhInfoOld = null;
             InfoTxtReader infoTxtReader = null;
+            RpeChartData.RpeMeta rpeMeta = null;
             if (File.Exists(phiraInfoPath))
             {
                 IDeserializer deserializer = new DeserializerBuilder().Build();
@@ -405,12 +409,26 @@ namespace MainCore.Utilities
 
                 if (!useLchzh)
                 {
-                    // info init
-                    var infoPath = directory + "/info.txt";
-                    if (File.Exists(infoPath))
+                    string[] jsons = Directory.GetFiles(directory, "*.json")
+                        .Where(str => Path.GetFileName(str) != "extra.json").ToArray();
+                    if (jsons.Length > 0)
                     {
-                        infoTxtReader = new InfoTxtReader(infoPath);
-                        infoType = InfoType.InfoTxt;
+                        string ch = await File.ReadAllTextAsync(jsons[0]);
+                        if (!ch.Contains("formatVersion") && ch.Contains("}") && ch.Contains("numOfNotes"))
+                        {
+                            rpeMeta = JsonUtility.FromJson<RpeChartData>(ch).META;
+                            infoType = InfoType.RpeJson;
+                        }
+                    }
+                    else
+                    {
+                        // info init
+                        var infoPath = directory + "/info.txt";
+                        if (File.Exists(infoPath))
+                        {
+                            infoTxtReader = new InfoTxtReader(infoPath);
+                            infoType = InfoType.InfoTxt;
+                        }
                     }
                 }
             }
@@ -420,11 +438,13 @@ namespace MainCore.Utilities
                                    ? phiraChartInfoData.music
                                    : lchzhInfo != null
                                        ? lchzhInfo.Music
-                                       : infoTxtReader != null
-                                           ? infoTxtReader.GetSongFileName()
-                                           : Path.GetFileName(Directory.GetFiles(directory)
-                                               .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                                   Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+                                       : rpeMeta != null
+                                           ? rpeMeta.song
+                                           : infoTxtReader != null
+                                               ? infoTxtReader.GetSongFileName()
+                                               : Path.GetFileName(Directory.GetFiles(directory)
+                                                   .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+                                                       Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
 
             float musicLength = (await Util.ReadMusicAsAudioClip(musicPath)).length;
             return (new SongInfo
@@ -432,18 +452,22 @@ namespace MainCore.Utilities
                 FolderName = Path.GetFileName(directory),
                 SongName = phiraChartInfoData != null ? phiraChartInfoData.name :
                     lchzhInfo != null ? lchzhInfo.Name :
+                    rpeMeta != null ? rpeMeta.name :
                     infoTxtReader != null ? infoTxtReader.GetName() : Path.GetFileNameWithoutExtension(Directory
                         .GetFiles(directory)
                         .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
                             Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]),
                 SongComposer = phiraChartInfoData != null ? phiraChartInfoData.composer :
                     lchzhInfo != null ? lchzhInfo.Artist :
+                    rpeMeta != null ? rpeMeta.composer :
                     infoTxtReader != null ? infoTxtReader.GetComposer() : "Unknown",
                 SongDifficulty = phiraChartInfoData != null ? phiraChartInfoData.level :
                     lchzhInfo != null ? lchzhInfo.Level :
+                    rpeMeta != null ? rpeMeta.level :
                     infoTxtReader != null ? infoTxtReader.GetDifficulty() : "SP  Lv.?",
                 SongCharter = phiraChartInfoData != null ? phiraChartInfoData.charter :
                     lchzhInfo != null ? lchzhInfo.Charter :
+                    rpeMeta != null ? rpeMeta.charter :
                     infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
                 SongIllustrator = phiraChartInfoData != null ? phiraChartInfoData.illustrator :
                     lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
@@ -455,6 +479,7 @@ namespace MainCore.Utilities
                 InfoType.InfoCsv => lchzhInfo,
                 InfoType.InfoCsvOld => lchzhInfoOld,
                 InfoType.InfoYml => phiraChartInfoData,
+                InfoType.RpeJson => rpeMeta,
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
@@ -462,6 +487,9 @@ namespace MainCore.Utilities
         public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(
             string directory)
         {
+#if !RELEASE_VERSION
+            Debug.Log("GetInfoForPlay");
+#endif
             (SongInfo songInfo, InfoType infoType, object obj) = await GetSongInfo(directory);
             GameFilePathInfo gameFilePathInfo = new GameFilePathInfo();
             switch (infoType)
@@ -494,6 +522,7 @@ namespace MainCore.Utilities
                     gameFilePathInfo.Illustration = phiraChartInfoData.illustration;
                     break;
                 case InfoType.RpeJson:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -583,10 +612,12 @@ namespace MainCore.Utilities
             {
                 for (int x = 0; x < numColumns; ++x)
                 {
-                    Rect rect = new Rect(x * spriteSize.x, (numRows - y - 1) * spriteSize.y, spriteSize.x, spriteSize.y);
+                    Rect rect = new Rect(x * spriteSize.x, (numRows - y - 1) * spriteSize.y, spriteSize.x,
+                        spriteSize.y);
 
                     Sprite sprite =
-                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), spriteSize.x / 2.5f, 1); // 创建新的 Sprite 对象
+                        Sprite.Create(hitFxTexture, rect, new Vector2(0.5f, 0.5f), spriteSize.x / 2.5f,
+                            1); // 创建新的 Sprite 对象
                     sprite.name = $"hit_fx_external_{y * numColumns + x}"; // 自定义 Sprite 的名字
 
                     hitFx.Add(sprite);

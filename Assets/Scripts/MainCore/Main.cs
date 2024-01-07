@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -18,7 +16,6 @@ using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 namespace MainCore
 {
@@ -719,7 +716,7 @@ namespace MainCore
         public int maxcombo;
         public int numOfNotes;
 
-        private int elapsedNoteCnt => perfectCnt + badCnt + goodCnt + missCnt;
+        private int elapsedNoteCnt;
         public float Score => GlobalSetting.NewScoreCalcType
             ? 1e6f * (perfectCnt + goodCnt * 0.65f) / numOfNotes // 判定分100w
             : 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes; // 判定分90w 连击分10w
@@ -734,28 +731,34 @@ namespace MainCore
                 case NoteStat.Perfect:
                     perfectCnt++;
                     combo++;
+                    elapsedNoteCnt++;
                     break;
                 case NoteStat.Good:
                     goodCnt++;
                     combo++;
+                    elapsedNoteCnt++;
                     break;
                 case NoteStat.Bad:
                     badCnt++;
                     combo = 0;
+                    elapsedNoteCnt++;
                     break;
                 case NoteStat.Miss:
                     missCnt++;
                     combo = 0;
+                    elapsedNoteCnt++;
                     break;
                 case NoteStat.Early:
                     goodCnt++;
                     early++;
                     combo++;
+                    elapsedNoteCnt++;
                     break;
                 case NoteStat.Late:
                     goodCnt++;
                     late++;
                     combo++;
+                    elapsedNoteCnt++;
                     break;
             }
 

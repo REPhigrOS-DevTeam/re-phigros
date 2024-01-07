@@ -22,7 +22,8 @@ namespace MainCore.UI
             { "level", 3 },
             { "bar", 4 },
             { "name", 5 },
-            { "pause", 6 }
+            { "pause", 6 },
+            { "accuracy", 7}
         };
         private List<Vector2> originalPositions = new();
 
@@ -49,6 +50,7 @@ namespace MainCore.UI
             transforms[index].localScale = scale.SetZ(1);
             transforms[index].localEulerAngles = new Vector3(0, 0, rotation);
             drawAbles[index].color = color;
+            if (uiName == "score") drawAbles[Mapper["accuracy"]].color = color;
         }
 
         private int IsUp(int i) => new int[] {0, 1, 2, 4, 6}.Contains(i) ? -1 : 1;

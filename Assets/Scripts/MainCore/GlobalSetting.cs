@@ -53,7 +53,7 @@ namespace MainCore
             Yande
         }
 
-        public static string ChartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
+        public static string ChartPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
         public static string ChartFolderPath = "";
         public static string ChartName = "Apollo";
         public static string MusicPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollos.wav";

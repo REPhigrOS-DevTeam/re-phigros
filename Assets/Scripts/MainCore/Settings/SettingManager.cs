@@ -134,6 +134,7 @@ namespace MainCore.Settings
 #else
             int internalMax = 3;
 #endif
+            if (GlobalSetting.Username.ToLowerInvariant() is "sky" or "greenball233" or "debug") internalMax = Math.Max(4, internalMax);
             for (int i = 0; i < internalMax; i++)
             {
                 GameObject o = Instantiate(skinItemPrefab, internalSkinParent);
