@@ -27,8 +27,7 @@ namespace MainCore
         protected EffectManager holdEffect;
         protected Color[] lastColors = new Color[3];
         protected Color[] temporaryColors = new Color[3];
-        private Sprite badTapSprite;
-        private bool paintBad;
+        private Sprite _badTapSprite;
 
         public virtual void OnStart()
         {
@@ -45,14 +44,7 @@ namespace MainCore
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
             cachedTransform.localPosition = new Vector3(Note.positionX, 0, cachedTransform.localPosition.z);
 
-            if (Note.isMulti)
-            {
-                thisRenderer.sprite = HLsprite;
-            }
-            else
-            {
-                thisRenderer.sprite = NormalSprites[0];
-            }
+            thisRenderer.sprite = Note.isMulti ? HLsprite : NormalSprites[0];
         }
 
         public void OnUpdate(float noteHeight)
@@ -106,26 +98,24 @@ namespace MainCore
             }
         }
 
-        public virtual void UpdateNoteSkin(SkinInfo skinInfo, int type)
+        public virtual void UpdateNoteSkin(int type)
         {
             NormalSprites[0] = type switch
             {
-                0 => skinInfo.click,
-                1 => skinInfo.drag,
-                2 => skinInfo.flick,
-                3 => skinInfo.holdHead,
+                0 => GlobalSetting.CurrentSkinInfo.click,
+                1 => GlobalSetting.CurrentSkinInfo.drag,
+                2 => GlobalSetting.CurrentSkinInfo.flick,
+                3 => GlobalSetting.CurrentSkinInfo.holdHead,
                 _ => throw new ArgumentException()
             };
             HLsprite = type switch
             {
-                0 => skinInfo.clickMh,
-                1 => skinInfo.dragMh,
-                2 => skinInfo.flickMh,
-                3 => skinInfo.holdHeadMh,
+                0 => GlobalSetting.CurrentSkinInfo.clickMh,
+                1 => GlobalSetting.CurrentSkinInfo.dragMh,
+                2 => GlobalSetting.CurrentSkinInfo.flickMh,
+                3 => GlobalSetting.CurrentSkinInfo.holdHeadMh,
                 _ => throw new ArgumentException()
             };
-            badTapSprite = skinInfo.click_bad;
-            paintBad = skinInfo.paintBadColor;
         }
 
         protected virtual void OtherWorksOnUpdate()
@@ -259,12 +249,13 @@ namespace MainCore
                 destroyed = true;
                 return true;
             }
-            else if (notetype == 2 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime)
+
+            if (notetype == 2 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime)
             {
                 status = NoteStat.Perfect;
                 return true;
             }
-            else if (notetype == 4 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime && f.IsFlick())
+            if (notetype == 4 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime && f.IsFlick())
             {
                 status = NoteStat.Perfect;
                 return true;
@@ -277,10 +268,7 @@ namespace MainCore
         {
             GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
             badTapInstance.transform.localScale = cachedTransform.lossyScale;
-            badTapInstance.GetComponent<SpriteRenderer>().sprite = badTapSprite;
-            Animation badTapAnimation = badTapInstance.GetComponent<Animation>();
-            badTapAnimation.clip = badTapAnimation.GetClip(paintBad ? "BadTap" : "BadTapWhite");
-            badTapAnimation.Play();
+            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.click_bad);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace MainCore.Utilities
             {
                 //加载预设体
                 prefab = Resources.Load<NoteMovement>("Notes/" + objName);
-                prefab.UpdateNoteSkin(GlobalSetting.CurrentSkinInfo, objName switch
+                prefab.UpdateNoteSkin(objName switch
                 {
                     "Tap" => 0,
                     "Drag" => 1,

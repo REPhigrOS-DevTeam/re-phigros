@@ -196,13 +196,13 @@ namespace MainCore
             }
         }
 
-        public override void UpdateNoteSkin(SkinInfo skinInfo, int type)
+        public override void UpdateNoteSkin(int type)
         {
-            base.UpdateNoteSkin(skinInfo, type);
-            NormalSprites[1] = skinInfo.holdBody;
-            NormalSprites[2] = skinInfo.holdEnd;
-            HLspriteHoldBody = skinInfo.holdBodyMh;
-            HLspriteHoldEnd = skinInfo.holdEndMh;
+            base.UpdateNoteSkin(type);
+            NormalSprites[1] = GlobalSetting.CurrentSkinInfo.holdBody;
+            NormalSprites[2] = GlobalSetting.CurrentSkinInfo.holdEnd;
+            HLspriteHoldBody = GlobalSetting.CurrentSkinInfo.holdBodyMh;
+            HLspriteHoldEnd = GlobalSetting.CurrentSkinInfo.holdEndMh;
         }
 
         protected override void OtherWorksOnUpdate()
