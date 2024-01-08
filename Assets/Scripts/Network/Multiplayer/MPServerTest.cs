@@ -428,23 +428,19 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.Composer = "Unknown";
                 GlobalSetting.Illustrator = "Unknown";
 
-                try
-                {
-                    GlobalSetting.ChartPath = Path.Combine(directory,
-                        GameUtils.SelectGivenExtensionsFileNames(directory, ".json", ".pec")[0]);
-                    GlobalSetting.MusicPath = Path.Combine(directory,
-                        GameUtils.SelectGivenExtensionsFileNames(directory, ".wav", ".ogg", ".mp3")[0]);
-                    GlobalSetting.IllustrationPath = Path.Combine(directory,
-                        GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg")[0]);
-                }
-                catch (ArgumentOutOfRangeException)
+                string[] charts = GameUtils.SelectGivenExtensionsFileNames(directory, ".json", ".pec");
+                string[] songs = GameUtils.SelectGivenExtensionsFileNames(directory, ".wav", ".ogg", ".mp3");
+                string[] illustrations = GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg");
+                if (charts == null || charts.Length == 0 || songs == null || songs.Length == 0)
                 {
                     PlayerPrefs.SetString("chartFolderPath", originalPath);
                     PlayerPrefs.Save();
                     ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
                     return false;
                 }
-
+                GlobalSetting.ChartPath = Path.Combine(directory, charts[0]);
+                GlobalSetting.MusicPath = Path.Combine(directory, songs[0]);
+                GlobalSetting.IllustrationPath = Path.Combine(directory, illustrations == null || illustrations.Length == 0 ? "" : illustrations[0]);
                 break;
             case InfoType.InfoTxt:
             case InfoType.InfoCsv:
@@ -495,8 +491,8 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.LineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         // convert illustration & music
         await UniTask.SwitchToMainThread();
-        GlobalSetting.BackgroundImage =
-            Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath), out Exception e);
+        Exception e = null;
+        GlobalSetting.BackgroundImage = GlobalSetting.IllustrationPath == "" ? Resources.Load<Sprite>("1920x1080_Black") : Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath), out e);
         if (e != null)
         {
             Debug.LogError(e);

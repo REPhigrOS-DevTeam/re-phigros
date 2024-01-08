@@ -53,11 +53,11 @@ namespace MainCore
             Yande
         }
 
-        public static string ChartPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
+        public static string ChartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
         public static string ChartFolderPath = "";
         public static string ChartName = "Apollo";
         public static string MusicPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollos.wav";
-        public static string IllustrationPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollo.png";
+        public static string IllustrationPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\Apollo.png";
         public static int FormatVersion = 3;
         public static Dictionary<float, int> HighLightedNotes = new Dictionary<float, int>();
         public static float GlobalNoteScale = 0.25f;

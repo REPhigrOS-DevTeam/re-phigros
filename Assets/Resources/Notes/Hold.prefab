@@ -160,8 +160,8 @@ MonoBehaviour:
   thisRenderer: {fileID: 0}
   cachedTransform: {fileID: 5892388667819635139}
   parentLine: {fileID: 0}
-  HLspriteHoldBody: {fileID: 21300000, guid: 5f602453bb0bc1a488f673dc5b80e796, type: 3}
-  HLspriteHoldEnd: {fileID: 21300000, guid: e73960b8b8395e84eb2803bde4f83beb, type: 3}
+  HLspriteHoldBody: {fileID: 0}
+  HLspriteHoldEnd: {fileID: 0}
   holdRenders:
   - {fileID: 1144284071667138570}
   - {fileID: 8284217919009959085}
@@ -188,7 +188,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8553775192066519458
 Transform:
   m_ObjectHideFlags: 0

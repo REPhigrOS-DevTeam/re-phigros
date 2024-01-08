@@ -423,6 +423,7 @@ namespace MainCore
                 ? Resources.Load<TextAsset>(path).text
                 : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
+            ch = ch.Replace("\r\n", "\n");
             GlobalSetting.Chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))
             {

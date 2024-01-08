@@ -36,7 +36,7 @@ namespace MainCore.UI
         public Button titleButton;
 
         private int clickCounter;
-        private bool loaded;
+        private bool chartLoaded;
         private bool loading;
         private float speed;
         private string tempPath;
@@ -100,6 +100,7 @@ namespace MainCore.UI
             {
                 text = infoDropdown.captionText.text;
             }
+
             infoDropdown.ClearOptions();
             infoDropdown.AddOptions(GetFolders(Util.DataPath));
             if (text != "")
@@ -117,14 +118,16 @@ namespace MainCore.UI
 
         private void Update()
         {
-            if (!loaded) return;
+            if (!chartLoaded) return;
             if (!loading) return;
 
             GlobalSetting.IsMultiplayer = false;
 
             loading = false;
-            Sprite sprite = Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.IllustrationPath),
-                out Exception exception);
+            Exception exception = null;
+            Sprite sprite = GlobalSetting.IllustrationPath == ""
+                ? Resources.Load<Sprite>("1920x1080_Black")
+                : Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.IllustrationPath), out exception);
             if (exception != null)
             {
                 Debug.LogException(exception);
@@ -135,31 +138,38 @@ namespace MainCore.UI
 
             GlobalSetting.BackgroundImage = sprite;
 
-            UniTask a = UniTask.Create(async () =>
+            UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
+                Main.music = null;
+                AudioClip music;
                 try
                 {
-                    Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
-                }
-                catch (ArgumentException)
-                {
-                    InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
-                        () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
+                    music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
                 }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
                     InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
                         "确认");
+                    return;
                 }
+
+                if (!music)
+                {
+                    Debug.Log("不支持的flac格式");
+                    InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
+                        () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
+                    return;
+                }
+
+                Main.music = music;
+                
+                GlobalSetting.UsingApi = false;
+
+                PopupMessageManager.Instance.Clear();
+                SceneTransit.Instance.LoadScene("LoadInto");
             });
-            UniTask.WhenAll(a);
-
-            GlobalSetting.UsingApi = false;
-
-            PopupMessageManager.Instance.Clear();
-            SceneTransit.Instance.LoadScene("LoadInto");
         }
 
         public async void EnterGame()
@@ -188,8 +198,9 @@ namespace MainCore.UI
                     GlobalSetting.ChartPath = Path.Combine(tempPath, chartPathDropdown.captionText.text);
                     GlobalSetting.MusicPath =
                         Path.Combine(tempPath, musicPathDropdown.captionText.text);
-                    GlobalSetting.IllustrationPath = Path.Combine(tempPath,
-                        illustrationPathDropdown.captionText.text);
+                    GlobalSetting.IllustrationPath = illustrationPathDropdown.captionText.text == ""
+                        ? ""
+                        : Path.Combine(tempPath, illustrationPathDropdown.captionText.text);
                     break;
                 case InfoType.InfoTxt:
                 case InfoType.InfoCsv:
@@ -258,7 +269,7 @@ namespace MainCore.UI
                 GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Yande;
             }
 
-            loaded = true;
+            chartLoaded = true;
             await UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
@@ -354,7 +365,8 @@ namespace MainCore.UI
 
         public void UnzipPez()
         {
-            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, new []{new ExtensionFilter("RPE谱包", "pez")}, null, "选择Pez...", "确定");
+            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, new[] { new ExtensionFilter("RPE谱包", "pez") }, null,
+                "选择Pez...", "确定");
         }
 
         private void OnLoadPezSucceeded(string zipFile)

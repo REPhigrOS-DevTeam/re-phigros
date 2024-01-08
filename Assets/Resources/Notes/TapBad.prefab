@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4076665199218670627}
   - component: {fileID: 4076665199218670652}
   - component: {fileID: 4076665199218670653}
-  - component: {fileID: 4076665199218670654}
+  - component: {fileID: -2425561493960911522}
   m_Layer: 0
   m_Name: TapBad
   m_TagString: Untagged
@@ -100,10 +100,10 @@ Animation:
   - {fileID: 7400000, guid: e1745075e804ce6489d25c115744f2fc, type: 2}
   - {fileID: 7400000, guid: da1d3d1d7de0d2e4f98d336efc38d312, type: 2}
   m_WrapMode: 0
-  m_PlayAutomatically: 1
+  m_PlayAutomatically: 0
   m_AnimatePhysics: 0
   m_CullingType: 0
---- !u!114 &4076665199218670654
+--- !u!114 &-2425561493960911522
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

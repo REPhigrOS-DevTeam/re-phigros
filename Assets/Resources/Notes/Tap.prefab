@@ -117,7 +117,7 @@ MonoBehaviour:
   - {fileID: 0}
   HLsprite: {fileID: 0}
   destroyed: 0
-  badTap: {fileID: 4076665199218670655, guid: dbd7b8ccc0c652e478b7bd176129db28, type: 3}
+  badTap: {fileID: 4076665199218670655, guid: 304b69a1a9cc66b45ace628c1ae10b17, type: 3}
   status: 4
   originalSize: {x: 0, y: 0, z: 0}
   thisRenderer: {fileID: 1167125736409841661}

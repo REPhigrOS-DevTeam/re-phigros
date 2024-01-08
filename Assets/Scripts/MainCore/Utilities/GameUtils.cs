@@ -347,9 +347,6 @@ namespace MainCore.Utilities
 
         public static async UniTask<(SongInfo, InfoType, object)> GetSongInfo(string directory)
         {
-#if !RELEASE_VERSION
-            Debug.Log("GetSongInfo");
-#endif
             InfoType infoType = InfoType.Empty;
             string phiraInfoPath = directory + "/info.yml";
             PhiraChartInfoData phiraChartInfoData = null;
@@ -446,7 +443,7 @@ namespace MainCore.Utilities
                                                    .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
                                                        Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
 
-            float musicLength = (await Util.ReadMusicAsAudioClip(musicPath)).length;
+            float? musicLength = (await Util.ReadMusicAsAudioClip(musicPath))?.length;
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
@@ -471,7 +468,7 @@ namespace MainCore.Utilities
                     infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
                 SongIllustrator = phiraChartInfoData != null ? phiraChartInfoData.illustrator :
                     lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
-                MusicLength = musicLength
+                MusicLength = musicLength ?? -1f
             }, infoType, infoType switch
             {
                 InfoType.Empty => null,
@@ -487,9 +484,6 @@ namespace MainCore.Utilities
         public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(
             string directory)
         {
-#if !RELEASE_VERSION
-            Debug.Log("GetInfoForPlay");
-#endif
             (SongInfo songInfo, InfoType infoType, object obj) = await GetSongInfo(directory);
             GameFilePathInfo gameFilePathInfo = new GameFilePathInfo();
             switch (infoType)

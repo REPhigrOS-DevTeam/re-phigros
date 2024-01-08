@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
@@ -74,7 +73,11 @@ namespace MainCore.Utilities
 
         public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path)
         {
-            AudioType audioType = await GetAudioTypeFromFile(path);
+            AudioType? audioType = await GetAudioTypeFromFile(path);
+            if (audioType == null)
+            {
+                return null;
+            }
             if (audioType == AudioType.MPEG)
             {
                 using var mpegFile = new MpegFile(path);
@@ -90,14 +93,14 @@ namespace MainCore.Utilities
             }
             await UniTask.SwitchToMainThread();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType) audioType);
             await uwr.SendWebRequest();
             if (uwr.error != null) throw new ArgumentException();
             AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
             return audioClip;
         }
 
-        private static async UniTask<AudioType> GetAudioTypeFromFile(string path)
+        private static async UniTask<AudioType?> GetAudioTypeFromFile(string path)
         {
             FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             byte[] data = new byte[4];
@@ -107,7 +110,7 @@ namespace MainCore.Utilities
             if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
             if (data.SplitByteArrayToString(4) == "OggS") return AudioType.OGGVORBIS;
             if (data.SplitByteArrayToString(4) == "RIFF") return AudioType.WAV;
-            if (data.SplitByteArrayToString(4) == "fLaC") throw new ArgumentException();
+            if (data.SplitByteArrayToString(4) == "fLaC") return null;
             return AudioType.UNKNOWN;
         }
 

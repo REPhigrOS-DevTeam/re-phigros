@@ -98,5 +98,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sr: {fileID: 5927403883721511957}
-  color: {r: 0.99607843, g: 1, b: 0.6784314, a: 0}
   cnt: 4

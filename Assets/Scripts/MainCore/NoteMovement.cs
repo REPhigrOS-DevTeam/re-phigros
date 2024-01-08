@@ -232,11 +232,7 @@ namespace MainCore
                 {
                     status = NoteStat.Bad;
                     GlobalSetting.ScoreCounter.Add(NoteStat.Bad);
-                    GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
-                    badTapInstance.transform.localScale = cachedTransform.lossyScale;
-                    var spriteRenderer = badTapInstance.GetComponent<SpriteRenderer>();
-                    spriteRenderer.color = paintBad ? new Color(108f / 255f, 67f / 255f, 67f / 255f) : Color.white;
-                    spriteRenderer.sprite = badTapSprite;
+                    GenerateBad();
                 }
                 else if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                 {
@@ -275,6 +271,16 @@ namespace MainCore
             }
 
             return false;
+        }
+
+        private void GenerateBad()
+        {
+            GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
+            badTapInstance.transform.localScale = cachedTransform.lossyScale;
+            badTapInstance.GetComponent<SpriteRenderer>().sprite = badTapSprite;
+            Animation badTapAnimation = badTapInstance.GetComponent<Animation>();
+            badTapAnimation.clip = badTapAnimation.GetClip(paintBad ? "BadTap" : "BadTapWhite");
+            badTapAnimation.Play();
         }
     }
 }
