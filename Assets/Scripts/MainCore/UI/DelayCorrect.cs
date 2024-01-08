@@ -86,7 +86,7 @@ namespace MainCore.UI
                 //AudioSource.PlayClipAtPoint(tapSound, Camera.main.transform.position);
                 HitSoundManager.Instance.Play(1, hitSfxVolumeGetter.value);
                 tapTransform.localPosition = new Vector2(0f, -400f);
-                EffectManager hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
+                EffectManager hitFxObj = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo, true);
                 hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.transform.rotation = Quaternion.identity;
                 hitFxObj.PlayEffect();

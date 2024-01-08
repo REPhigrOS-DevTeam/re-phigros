@@ -23,16 +23,12 @@ namespace MainCore
 
         private HitEffectManager()
         {
+            
         }
 
         public static HitEffectManager GetInstance()
         {
-            if (instance == null)
-            {
-                instance = new HitEffectManager();
-            }
-
-            return instance;
+            return instance ??= new HitEffectManager();
         }
 
         /// <summary>
@@ -41,9 +37,10 @@ namespace MainCore
         /// <param name="type"></param>
         /// <param name="judgeType"></param>
         /// <returns></returns>
-        public EffectManager GetObj(HitFxJudgeType judgeType, SkinInfo skinInfo)
+        public EffectManager GetObj(HitFxJudgeType judgeType, SkinInfo skinInfo, bool ignoreMask = false)
         {
-            string objName = $"clickRaw_{(skinInfo.isExternal ? "External" : "Internal")}_{(skinInfo.isExternal ? skinInfo.skinName : skinInfo.skin.ToString())}";
+            string objName =
+                $"clickRaw_{(skinInfo.isExternal ? "External" : "Internal")}_{(skinInfo.isExternal ? skinInfo.skinName : skinInfo.skin.ToString())}";
             //结果对象
             EffectManager result = null;
             //判断是否有该名字的对象池
@@ -64,6 +61,7 @@ namespace MainCore
                     //从池中移除该对象
                     pool[objName].Remove(result);
                     objectsInUse[objName].Add(result);
+                    if (ignoreMask) result.sr.maskInteraction = SpriteMaskInteraction.None;
                     result.Enable(skinInfo, judgeType);
                     //返回结果
                     return result;
@@ -90,6 +88,7 @@ namespace MainCore
             result = Object.Instantiate(prefab);
             //改名（去除 Clone）
             result.name = objName;
+            if (ignoreMask) result.sr.maskInteraction = SpriteMaskInteraction.None;
             result.Enable(skinInfo, judgeType);
             //返回
             return result;
@@ -114,7 +113,7 @@ namespace MainCore
             else
             {
                 //创建该类型的池子，并将对象放入
-                pool.Add(obj.name, new List<EffectManager>() {obj});
+                pool.Add(obj.name, new List<EffectManager>() { obj });
             }
         }
 

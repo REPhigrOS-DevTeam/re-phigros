@@ -317,7 +317,7 @@ namespace MainCore.Settings
             tmp = GlobalSetting.GlobalNoteScale;
             GlobalSetting.GlobalNoteScale = SkinPreview.Size;
             EffectManager hitFxObj = HitEffectManager.GetInstance()
-                .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo);
+                .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo, true);
             hitFxObj.transform.position = hitEffectPos.position;
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
