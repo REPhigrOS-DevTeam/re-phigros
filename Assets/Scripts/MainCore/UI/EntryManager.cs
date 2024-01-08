@@ -53,54 +53,26 @@ namespace MainCore.UI
 
         private void LoadIn()
         {
-            if (PlayerPrefs.GetInt("anomaly_mode", 0) == 1)
-            {
-                NeedUpdate();
-                return;
-            }
-            StartCoroutine(TimeBomb.IsInRange(new DateTime(2023, 9, 28, 0, 0, 0, DateTimeKind.Utc), true, b =>
-            {
 //#if !UNITY_EDITOR
-                if (!b)
-                {
-                    PlayerPrefs.SetInt("anomaly_mode", 1);
-                    PlayerPrefs.Save();
-                    NeedUpdate();
-                    return;
-                }
-
-                Application.targetFrameRate = 120;
-                GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
-                if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
-                {
-                    var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
-                    t.Dispose();
-                    File.WriteAllText(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
-                }
+            Application.targetFrameRate = 120;
+            GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
+            if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
+            {
+                var t = File.Create(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"));
+                t.Dispose();
+                File.WriteAllText(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）"), "Fucking IOS...");
+            }
 //#endif
 
-                if (!PlayerPrefs.HasKey("first_start"))
-                {
-                    PlayerPrefs.SetInt("first_start", 1);
-                    SceneTransit.Instance.TransitTo("SettingsScene");
-                }
-                else
-                {
-                    SceneTransit.Instance.TransitTo("ChartSelectorScene");
-                }
-            }));
-        }
-
-        private void NeedUpdate()
-        {
-            InGameUIManager.ShowModalWindowWithClose("错误", "请升级到最新版", () =>
+            if (!PlayerPrefs.HasKey("first_start"))
             {
-#if UNITY_EDITOR
-                EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
-            }, "退出");
+                PlayerPrefs.SetInt("first_start", 1);
+                SceneTransit.Instance.TransitTo("SettingsScene");
+            }
+            else
+            {
+                SceneTransit.Instance.TransitTo("ChartSelectorScene");
+            }
         }
     }
 }
