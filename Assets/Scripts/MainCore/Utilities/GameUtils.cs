@@ -620,20 +620,19 @@ namespace MainCore.Utilities
 
             skinInfo.hitFx = hitFx.ToArray();
             // 读取note们
-            skinInfo.click_bad =
-                skinInfo.click = Util.ReadFileAsSprite(await File.ReadAllBytesAsync($"{dirPath}/click.png"), out _);
-            skinInfo.clickMh = Util.ReadFileAsSprite(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"), out _);
-            Texture2D dragTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/drag.png"));
+            (skinInfo.click_bad, _) = (skinInfo.click, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
+            (skinInfo.clickMh, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
+            Texture2D dragTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag.png"));
             skinInfo.drag = Sprite.Create(dragTex, new Rect(0, 0, dragTex.width, dragTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * dragTex.width / skinInfo.click.rect.width, 1);
-            Texture2D dragMhTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
+            Texture2D dragMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
             skinInfo.dragMh = Sprite.Create(dragMhTex, new Rect(0, 0, dragMhTex.width, dragMhTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.clickMh.pixelsPerUnit * dragMhTex.width / skinInfo.clickMh.rect.width,
                 1);
-            Texture2D flickTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
+            Texture2D flickTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
             skinInfo.flick = Sprite.Create(flickTex, new Rect(0, 0, flickTex.width, flickTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * flickTex.width / skinInfo.click.rect.width, 1);
-            Texture2D flickMhTex = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
+            Texture2D flickMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
             skinInfo.flickMh = Sprite.Create(flickMhTex, new Rect(0, 0, flickMhTex.width, flickMhTex.height),
                 new Vector2(0.5f, 0.5f),
                 skinInfo.clickMh.pixelsPerUnit * flickMhTex.width / skinInfo.clickMh.rect.width,
@@ -641,7 +640,7 @@ namespace MainCore.Utilities
             try
             {
                 // hold
-                Texture2D holdTexture = Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
+                Texture2D holdTexture = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
                 Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
                     phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width);
                 skinInfo.holdHead = holdSprites[0];
@@ -649,7 +648,7 @@ namespace MainCore.Utilities
                 skinInfo.holdEnd = holdSprites[2];
                 skinInfo.holdLengthFactor = skinInfo.holdBody.rect.height / skinInfo.holdBody.pixelsPerUnit;
                 Texture2D holdMhTexture =
-                    Util.ReadFileAsTexture(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
+                    await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
                 Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[0],
                     phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width);
                 skinInfo.holdHeadMh = holdMhSprites[0];

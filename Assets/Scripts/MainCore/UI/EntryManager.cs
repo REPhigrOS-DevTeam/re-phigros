@@ -61,6 +61,11 @@ namespace MainCore.UI
             // };
             // splashPlayer.prepareCompleted += _ => prepared = true;
             // splashPlayer.Prepare();
+            UniTask.Void(async () =>
+            {
+                await new WaitForSeconds(0.01f);
+                Resources.Load<Sprite>("1920x1080_Black");
+            });
         }
 
         // private async UniTask<bool> InitAPI()

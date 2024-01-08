@@ -65,7 +65,7 @@ public class MPServerTest : MonoBehaviour
         buttonToState = new()
         {
             { bCreateRoom.gameObject, RoomState.NotInRoom },
-            { bSelectRoom.gameObject, RoomState.NotInRoom},
+            { bSelectRoom.gameObject, RoomState.NotInRoom },
             { bCloseRoom.gameObject, RoomState.RoomOwner },
             { bQuitRoom.gameObject, RoomState.RoomMember },
             { bDownloadSong.gameObject, RoomState.RoomMember | RoomState.RoomOwner },
@@ -272,10 +272,11 @@ public class MPServerTest : MonoBehaviour
                 MessageType.Room);
         OnUpdateSongReceived(id, type, JObject.FromObject(info));
         if (!SocketManager.IsOwner) return;
-        
+
         bDownloadSong.interactable = false;
         OwnerOperation();
         ChatManager.AddMessage("downloadSucceeded", $"正在处理...", MessageType.Server);
+
         async void OwnerOperation()
         {
             if (await MoveSong())
@@ -430,7 +431,8 @@ public class MPServerTest : MonoBehaviour
 
                 string[] charts = GameUtils.SelectGivenExtensionsFileNames(directory, ".json", ".pec");
                 string[] songs = GameUtils.SelectGivenExtensionsFileNames(directory, ".wav", ".ogg", ".mp3");
-                string[] illustrations = GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg");
+                string[] illustrations =
+                    GameUtils.SelectGivenExtensionsFileNames(directory, ".png", ".bmp", ".jpg", ".jpeg");
                 if (charts == null || charts.Length == 0 || songs == null || songs.Length == 0)
                 {
                     PlayerPrefs.SetString("chartFolderPath", originalPath);
@@ -438,9 +440,11 @@ public class MPServerTest : MonoBehaviour
                     ChatManager.AddMessage("Server", "错误：谱面包缺失某些文件", MessageType.Error);
                     return false;
                 }
+
                 GlobalSetting.ChartPath = Path.Combine(directory, charts[0]);
                 GlobalSetting.MusicPath = Path.Combine(directory, songs[0]);
-                GlobalSetting.IllustrationPath = Path.Combine(directory, illustrations == null || illustrations.Length == 0 ? "" : illustrations[0]);
+                GlobalSetting.IllustrationPath = Path.Combine(directory,
+                    illustrations == null || illustrations.Length == 0 ? "" : illustrations[0]);
                 break;
             case InfoType.InfoTxt:
             case InfoType.InfoCsv:
@@ -491,8 +495,10 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.LineImage = File.Exists(directory + "/line.csv") ? new CSVReader(directory + "/line.csv") : null;
         // convert illustration & music
         await UniTask.SwitchToMainThread();
-        Exception e = null;
-        GlobalSetting.BackgroundImage = GlobalSetting.IllustrationPath == "" ? Resources.Load<Sprite>("1920x1080_Black") : Util.ReadFileAsSprite(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath), out e);
+        Exception e;
+        (GlobalSetting.BackgroundImage, e) = GlobalSetting.IllustrationPath == ""
+            ? (Resources.Load<Sprite>("1920x1080_Black"), null)
+            : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath));
         if (e != null)
         {
             Debug.LogError(e);

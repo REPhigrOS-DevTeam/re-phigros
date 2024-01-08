@@ -36,8 +36,7 @@ namespace MainCore.UI
         public Button titleButton;
 
         private int clickCounter;
-        private bool chartLoaded;
-        private bool loading;
+        private bool chartLoading, otherLoading;
         private float speed;
         private string tempPath;
 
@@ -118,65 +117,18 @@ namespace MainCore.UI
 
         private void Update()
         {
-            if (!chartLoaded) return;
-            if (!loading) return;
-
-            GlobalSetting.IsMultiplayer = false;
-
-            loading = false;
-            Exception exception = null;
-            Sprite sprite = GlobalSetting.IllustrationPath == ""
-                ? Resources.Load<Sprite>("1920x1080_Black")
-                : Util.ReadFileAsSprite(File.ReadAllBytes(GlobalSetting.IllustrationPath), out exception);
-            if (exception != null)
-            {
-                Debug.LogException(exception);
-                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace,
-                    () => { }, "确认");
-                return;
-            }
-
-            GlobalSetting.BackgroundImage = sprite;
-
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                Main.music = null;
-                AudioClip music;
-                try
-                {
-                    music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
-                        "确认");
-                    return;
-                }
-
-                if (!music)
-                {
-                    Debug.Log("不支持的flac格式");
-                    InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
-                        () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
-                    return;
-                }
-
-                Main.music = music;
-                
-                GlobalSetting.UsingApi = false;
-
-                PopupMessageManager.Instance.Clear();
-                SceneTransit.Instance.LoadScene("LoadInto");
-            });
         }
 
-        public async void EnterGame()
+        public void EnterGame()
         {
-            if (loading || infoDropdown.options.Count == 0)
+            UniTask.Void(EnterGameInternal);
+        }
+
+        private async UniTaskVoid EnterGameInternal()
+        {
+            if (chartLoading || infoDropdown.options.Count == 0)
                 return;
-            loading = true;
+            chartLoading = true;
             PlayerPrefs.SetString("chartFolderPath", tempPath);
 
             GlobalSetting.ChartFolderPath = tempPath;
@@ -190,8 +142,10 @@ namespace MainCore.UI
             {
                 case InfoType.Empty:
                 case InfoType.RpeJson:
+                    await UniTask.SwitchToMainThread();
                     GlobalSetting.ChartName = chartNameUI.GetComponent<InputField>().text.Trim();
                     GlobalSetting.Difficulty = GameObject.Find("DiffInput").GetComponent<InputField>().text;
+                    await UniTask.SwitchToThreadPool();
                     GlobalSetting.Charter = "Unknown";
                     GlobalSetting.Composer = "Unknown";
                     GlobalSetting.Illustrator = "Unknown";
@@ -227,11 +181,12 @@ namespace MainCore.UI
             // chart settings
 
 //#endif
+            await UniTask.SwitchToMainThread();
             PlayerPrefs.Save();
             GlobalSetting.ReadUserSettings();
+            await UniTask.SwitchToThreadPool();
 
             HitSoundManager.Init();
-
 
             var extraJsonPath = tempPath + "/extra.json";
             if (File.Exists(extraJsonPath))
@@ -253,9 +208,11 @@ namespace MainCore.UI
 
             if (GlobalSetting.ExtraEvents is { Videos: { Count: > 0 } })
             {
+                await UniTask.SwitchToMainThread();
                 InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金",
                     () => { }, "确定");
                 await UniTask.WaitWhile(() => InGameUIManager.IsActive);
+                await UniTask.SwitchToThreadPool();
             }
 
             //We load chart from here.
@@ -269,16 +226,58 @@ namespace MainCore.UI
                 GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Yande;
             }
 
-            chartLoaded = true;
-            await UniTask.Create(async () =>
+            await UniTask.SwitchToMainThread();
+            PopupMessageManager.Instance.ChangeContent("loading...");
+            await UniTask.SwitchToThreadPool();
+
+            GlobalSetting.IsMultiplayer = false;
+            
+            (Sprite sprite, Exception exception) = GlobalSetting.IllustrationPath == ""
+                ? (Resources.Load<Sprite>("1920x1080_Black"), null)
+                : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath));
+            if (exception != null)
             {
                 await UniTask.SwitchToMainThread();
-                PopupMessageManager.Instance.ChangeContent("loading...");
-            });
-            for (int i = 0; i < 41; i++)
-            {
-                await new WaitForEndOfFrame();
+                Debug.LogException(exception);
+                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", exception.Message + "\n" + exception.StackTrace,
+                    () => { }, "确认");
+                return;
             }
+
+            GlobalSetting.BackgroundImage = sprite;
+
+            await UniTask.SwitchToMainThread();
+            Main.music = null;
+            AudioClip music;
+            try
+            {
+                music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
+            }
+            catch (Exception e)
+            {
+                await UniTask.SwitchToMainThread();
+                Debug.LogException(e);
+                InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
+                    "确认");
+                return;
+            }
+
+            if (!music)
+            {
+                await UniTask.SwitchToMainThread();
+                Debug.Log("不支持的flac格式");
+                InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
+                    () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
+                return;
+            }
+
+            Main.music = music;
+
+            GlobalSetting.UsingApi = false;
+
+            await UniTask.SwitchToMainThread();
+            PopupMessageManager.Instance.Clear();
+            SceneTransit.Instance.LoadScene("LoadInto");
         }
 
         public void OnClickPath()

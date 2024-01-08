@@ -47,27 +47,47 @@ namespace MainCore.Utilities
         {
             return type.IsSubclassOf(type1) || type == type1;
         }
-
+        
         public static Texture2D ReadFileAsTexture(byte[] data)
         {
             using UnimageProcessor unimageProcessor = new UnimageProcessor();
             unimageProcessor.Load(data);
             return unimageProcessor.GetTexture(noLongerReadable: false);
         }
+        
+        public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
+        {
+            using UnimageProcessor unimageProcessor = new UnimageProcessor();
+            await unimageProcessor.LoadAsync(data);
+            await UniTask.SwitchToMainThread();
+            return unimageProcessor.GetTexture(noLongerReadable: false);
+        }
 
-        public static Sprite ReadFileAsSprite(byte[] data, out Exception exception, float ppu = 100f)
+        public static (Sprite, Exception) ReadFileAsSprite(byte[] data, float ppu = 100f)
         {
             try
             {
-                exception = null;
                 Texture2D texture = ReadFileAsTexture(data);
-                return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f), ppu, 1);
+                return (Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f), ppu, 1), null);
             }
             catch (Exception e)
             {
-                exception = e;
-                return null;
+                return (null, e);
+            }
+        }
+        
+        public static async UniTask<(Sprite, Exception)> ReadFileAsSpriteAsync(byte[] data, float ppu = 100f)
+        {
+            try
+            {
+                Texture2D texture = await ReadFileAsTextureAsync(data);
+                return (Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f), ppu, 1), null);
+            }
+            catch (Exception e)
+            {
+                return (null, e);
             }
         }
 
@@ -80,16 +100,15 @@ namespace MainCore.Utilities
             }
             if (audioType == AudioType.MPEG)
             {
-                using var mpegFile = new MpegFile(path);
-                if (mpegFile.Length % sizeof(float) % mpegFile.Channels != 0) throw new ArgumentException("Illegal MpegFile Instance");
-                int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-                float[] samples = new float[lengthSamples * mpegFile.Channels];
-                int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-                await UniTask.SwitchToMainThread();
-                AudioClip ac = AudioClip.Create("", lengthSamples, mpegFile.Channels, mpegFile.SampleRate, false);
-                ac.SetData(samples, 0);
-                GC.Collect();
-                return ac;
+                MpegFile mpegFile = new MpegFile(path);
+                
+                return AudioClip.Create("",
+                    (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels),
+                    mpegFile.Channels,
+                    mpegFile.SampleRate,
+                    true,
+                    data => { int _ = mpegFile.ReadSamples(data, 0, data.Length); }
+                );
             }
             await UniTask.SwitchToMainThread();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
@@ -188,11 +207,11 @@ namespace MainCore.Utilities
 
             return frac.Length > 0 ? frac[0] : 0f;
         }
-
-        public static Sprite ReadSprite(byte[] data, Vector2 pivot, float pixelsPerUnit = 100f)
-        {
-            return ReadSprite(ReadFileAsTexture(data), pivot, pixelsPerUnit);
-        }
+        
+        // public static Sprite ReadSprite(byte[] data, Vector2 pivot, float pixelsPerUnit = 100f)
+        // {
+        //     return ReadSprite(ReadFileAsTexture(data), pivot, pixelsPerUnit);
+        // }
 
         public static Sprite ReadSprite(Texture2D texture2D, Vector2 pivot, float pixelsPerUnit = 100f)
         {
