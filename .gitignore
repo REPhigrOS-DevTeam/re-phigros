@@ -37,7 +37,8 @@ Thumbs.db
 # Build logs #
 # ========= #
 BuildLog.htm
-# *.txt
+*.txt
+!ProjectSettings/ProjectVersion.txt
 *.xml
 *.log
 *.xsl
