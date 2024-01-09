@@ -45,7 +45,7 @@ namespace MainCore.UI
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0f, 0f, 1f);
                 effectManager.PlayEffect();
-                if (!skinInfo.hideParticles) effectManager.PlayParticle();
+                effectManager.PlayParticles();
             }
 
             sfx = GetComponent<AudioSource>();
@@ -54,7 +54,7 @@ namespace MainCore.UI
             speed = 1400 / beatTime;
             if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
             delay = beatTime / 2f;
-            auxiliaryLineTransform.localPosition = new Vector2(0f, 1000f);
+            // auxiliaryLineTransform.localPosition = new Vector2(0f, 1000f);
             HeartBeat();
         }
 
@@ -90,7 +90,7 @@ namespace MainCore.UI
                 hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.transform.rotation = Quaternion.identity;
                 hitFxObj.PlayEffect();
-                if (!GlobalSetting.CurrentSkinInfo.hideParticles) hitFxObj.PlayParticle();
+                hitFxObj.PlayParticles();
                 played = true;
                 StartCoroutine(ReleaseCondition());
             }
@@ -98,26 +98,26 @@ namespace MainCore.UI
             lastFrame = percentage;
         }
 
-        private bool CheckInput()
-        {
-#if UNITY_EDITOR || UNITY_STANDALONE
-            if (Input.GetMouseButtonDown(0) &&
-                1 - Input.mousePosition.x / Screen.width is > 0 and < 500f / 1920f) // 500是背景宽度，1920是参考分辨率宽度
-            {
-                return true;
-            }
-#endif
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                Touch touch = Input.GetTouch(i);
-                if (touch.phase == TouchPhase.Began && 1 - touch.position.x / Screen.width is > 0 and < 500f / 1920f)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+//         private bool CheckInput()
+//         {
+// #if UNITY_EDITOR || UNITY_STANDALONE
+//             if (Input.GetMouseButtonDown(0) &&
+//                 1 - Input.mousePosition.x / Screen.width is > 0 and < 500f / 1920f) // 500是背景宽度，1920是参考分辨率宽度
+//             {
+//                 return true;
+//             }
+// #endif
+//             for (int i = 0; i < Input.touchCount; i++)
+//             {
+//                 Touch touch = Input.GetTouch(i);
+//                 if (touch.phase == TouchPhase.Began && 1 - touch.position.x / Screen.width is > 0 and < 500f / 1920f)
+//                 {
+//                     return true;
+//                 }
+//             }
+//
+//             return false;
+//         }
 
         void HeartBeat()
         {

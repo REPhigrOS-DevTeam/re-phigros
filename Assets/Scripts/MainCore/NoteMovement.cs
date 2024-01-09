@@ -204,8 +204,8 @@ namespace MainCore
             holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             holdEffect.transform.position = cachedTransform.position;
             holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
-            holdEffect.PlayParticle();
             holdEffect.PlayEffect();
+            holdEffect.PlayParticles();
             cachedTransform.localPosition = cachedlocalPosition;
             temporaryColors[0] = Color.clear;
         }

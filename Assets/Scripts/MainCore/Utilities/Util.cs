@@ -47,14 +47,14 @@ namespace MainCore.Utilities
         {
             return type.IsSubclassOf(type1) || type == type1;
         }
-        
+
         public static Texture2D ReadFileAsTexture(byte[] data)
         {
             using UnimageProcessor unimageProcessor = new UnimageProcessor();
             unimageProcessor.Load(data);
             return unimageProcessor.GetTexture(noLongerReadable: false);
         }
-        
+
         public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
         {
             using UnimageProcessor unimageProcessor = new UnimageProcessor();
@@ -76,7 +76,7 @@ namespace MainCore.Utilities
                 return (null, e);
             }
         }
-        
+
         public static async UniTask<(Sprite, Exception)> ReadFileAsSpriteAsync(byte[] data, float ppu = 100f)
         {
             try
@@ -91,32 +91,108 @@ namespace MainCore.Utilities
             }
         }
 
-        public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path)
+        public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path, string clipName = "",
+            bool readAll = false)
         {
             AudioType? audioType = await GetAudioTypeFromFile(path);
-            if (audioType == null)
+            switch (audioType)
             {
-                return null;
+                case null:
+                    return null;
+                case AudioType.MPEG:
+                {
+                    MpegFile mpegFile = new MpegFile(path);
+
+                    if (readAll)
+                    {
+                        int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
+                        float[] samples = new float[lengthSamples * mpegFile.Channels];
+                        int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
+                        AudioClip ac = AudioClip.Create(clipName, lengthSamples, mpegFile.Channels, mpegFile.SampleRate,
+                            false);
+                        ac.SetData(samples, 0);
+                        mpegFile.Dispose();
+                        return ac;
+                    }
+
+                    AudioClip ac1 = AudioClip.Create(clipName,
+                        (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels),
+                        mpegFile.Channels,
+                        mpegFile.SampleRate,
+                        true,
+                        data =>
+                        {
+                            float[] f = new float[data.Length];
+                            int _ = mpegFile.ReadSamples(f, 0, data.Length);
+                            for (int i = 0; i < data.Length; i++)
+                            {
+                                data[i] = f[i];
+                            }
+                        },
+                        position =>
+                        {
+                            mpegFile.Dispose();
+                            mpegFile = new MpegFile(path);
+                            mpegFile.Position = position * sizeof(float) * mpegFile.Channels;
+                        }
+                    );
+
+                    return ac1;
+                }
+                case AudioType.OGGVORBIS:
+                {
+                    // Load the data into a stream
+
+                    NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+
+                    int samplecount = (int)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds);
+
+                    if (readAll)
+                    {
+                        float[] samples = new float[samplecount * vorbis.Channels];
+
+                        int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                        AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                            false);
+                        ac.SetData(samples, 0);
+                        vorbis.Dispose();
+                        return ac;
+                    }
+
+                    AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
+                        data =>
+                        {
+                            var f = new float[data.Length];
+                            int _ = vorbis.ReadSamples(f, 0, data.Length);
+                            for (int i = 0; i < data.Length; i++)
+                            {
+                                data[i] = f[i];
+                            }
+                        }, position =>
+                        {
+                            vorbis.Dispose();
+                            vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                            int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
+                            vorbis.SamplePosition = position + offset;
+                        });
+                    // Return the clip
+                    return ac1;
+                }
+                case AudioType.WAV:
+                case AudioType.UNKNOWN:
+                {
+                    await UniTask.SwitchToMainThread();
+                    Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
+                    UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType)audioType);
+                    await uwr.SendWebRequest();
+                    if (uwr.error != null) throw new ArgumentException();
+                    AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
+                    audioClip.name = clipName;
+                    return audioClip;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            if (audioType == AudioType.MPEG)
-            {
-                MpegFile mpegFile = new MpegFile(path);
-                
-                return AudioClip.Create("",
-                    (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels),
-                    mpegFile.Channels,
-                    mpegFile.SampleRate,
-                    true,
-                    data => { int _ = mpegFile.ReadSamples(data, 0, data.Length); }
-                );
-            }
-            await UniTask.SwitchToMainThread();
-            Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType) audioType);
-            await uwr.SendWebRequest();
-            if (uwr.error != null) throw new ArgumentException();
-            AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
-            return audioClip;
         }
 
         private static async UniTask<AudioType?> GetAudioTypeFromFile(string path)
@@ -124,7 +200,7 @@ namespace MainCore.Utilities
             FileStream fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
             byte[] data = new byte[4];
             Array.Clear(data, 0, data.Length);
-            await fileStream.ReadAsync(data, 0, data.Length);
+            int _ = await fileStream.ReadAsync(data, 0, data.Length);
             fileStream.Close();
             if (data.SplitByteArrayToString(3) == "ID3") return AudioType.MPEG;
             if (data.SplitByteArrayToString(4) == "OggS") return AudioType.OGGVORBIS;
@@ -207,7 +283,7 @@ namespace MainCore.Utilities
 
             return frac.Length > 0 ? frac[0] : 0f;
         }
-        
+
         // public static Sprite ReadSprite(byte[] data, Vector2 pivot, float pixelsPerUnit = 100f)
         // {
         //     return ReadSprite(ReadFileAsTexture(data), pivot, pixelsPerUnit);
@@ -437,12 +513,12 @@ namespace MainCore.Utilities
                 throw new ArgumentException();
             }
 
-            byte[] colorByte = {255, 255, 255, 255};
+            byte[] colorByte = { 255, 255, 255, 255 };
             for (int i = 0; i < str.Length / 2; i++)
             {
                 colorByte[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
             }
-            
+
             return new Color(colorByte[0] / 255f, colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f);
         }
 

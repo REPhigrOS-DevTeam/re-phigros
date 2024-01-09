@@ -664,13 +664,13 @@ namespace MainCore.Utilities
             }
 
             skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg", "click", true)
                 : SkinManager.Instance.defaultClickAC;
             skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/drag.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/drag.ogg", "drag", true)
                 : SkinManager.Instance.defaultDragAC;
             skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg")
+                ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg", "flick", true)
                 : SkinManager.Instance.defaultFlickAC;
             return skinInfo;
         }

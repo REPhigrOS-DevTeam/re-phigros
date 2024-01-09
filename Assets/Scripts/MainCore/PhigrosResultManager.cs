@@ -134,6 +134,7 @@ public class PhigrosResultManager : MonoBehaviour
             SocketManager.EndGame(score, acc);
         }
 
+        GC.Collect();
         SceneTransit.Instance.Back();
     }
 
@@ -141,6 +142,8 @@ public class PhigrosResultManager : MonoBehaviour
     {
         GlobalSetting.Reset();
         //SceneManager.LoadSceneAsync("PlayingScene");
+        
+        GC.Collect();
         SceneTransit.Instance.JumpScene("PlayingScene");
     }
 }

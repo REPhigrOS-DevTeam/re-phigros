@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
@@ -28,6 +30,7 @@ namespace Network.Multiplayer.Components
         private bool isInternal, isSelected;
         private static readonly int[] AvailableVersions = { 6 };
         public bool Available { get; private set; } = false;
+        private CancellationTokenSource cts;
 
         public void Init(int id, ServerManager serverManager, string serverUrl, string customName, bool isInternal)
         {
@@ -38,6 +41,7 @@ namespace Network.Multiplayer.Components
             serverName.text = isInternal ? "等待响应..." : customName;
             tServerId.text = isInternal ? "内置服务器" : "等待响应...";
             button.onClick.AddListener(OnClicked);
+            cts = new CancellationTokenSource();
             Refresh();
         }
 
@@ -46,7 +50,7 @@ namespace Network.Multiplayer.Components
 
         public async void Refresh()
         {
-            await UniTask.Create(async () =>
+            await Task.Run(async () =>
             {
                 if (!button.interactable) button.onClick.AddListener(OnClicked);
                 button.interactable = true;
@@ -148,7 +152,7 @@ namespace Network.Multiplayer.Components
                 online = data.IsOnline;
                 chart = data.EnableChartUpload;
                 Available = true;
-            });
+            }, cts.Token);
         }
 
         public void OnClicked()
@@ -165,6 +169,11 @@ namespace Network.Multiplayer.Components
         {
             isSelected = state;
             iBorder.color = state ? new Color(0.4f, 0.4f, 0.4f) : new Color(1, 1, 1, 0);
+        }
+
+        private void OnDestroy()
+        {
+            cts?.Cancel();
         }
     }
 

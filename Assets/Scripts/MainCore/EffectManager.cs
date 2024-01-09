@@ -15,6 +15,7 @@ public class EffectManager : MonoBehaviour
     public Coroutine AnimationCoroutine;
     private Sprite[] hitFx;
     private float hitFxFactor;
+    private bool hideParticles = true;
 
     public Coroutine RecycleCoroutine = null;
 
@@ -41,9 +42,10 @@ public class EffectManager : MonoBehaviour
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
         hitFx = skinInfo.hitFx;
-        hitFxFactor = !GlobalSetting.CurrentSkinInfo.isExternal && GlobalSetting.CurrentSkinInfo.skin == Skin.OldOfficial
+        hitFxFactor = !skinInfo.isExternal && skinInfo.skin == Skin.OldOfficial
             ? 120f
-            : hitFx.Length / GlobalSetting.CurrentSkinInfo.hitFxDuration;
+            : hitFx.Length / skinInfo.hitFxDuration;
+        hideParticles = skinInfo.hideParticles;
         RecycleCoroutine = StartCoroutine(RecycleObj());
         sr.color = color;
     }
@@ -54,8 +56,9 @@ public class EffectManager : MonoBehaviour
         AnimationCoroutine = StartCoroutine(PlayEffectE());
     }
 
-    public void PlayParticle()
+    public void PlayParticles()
     {
+        if (hideParticles) return;
         EffectSystemManager.Instance.CreateParticle(cnt, color, transform.position, scale);
     }
 

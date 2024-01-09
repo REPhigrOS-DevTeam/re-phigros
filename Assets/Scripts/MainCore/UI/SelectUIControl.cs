@@ -301,9 +301,9 @@ namespace MainCore.UI
         private static List<Dropdown.OptionData> GetFileName(string path, params string[] typeE) => GameUtils
             .SelectGivenExtensionsFileNames(path, typeE).Select(str => new Dropdown.OptionData(str)).ToList();
 
-        public static List<Dropdown.OptionData> GetFolders(string path)
+        private static List<string> GetFolders(string path)
         {
-            List<Dropdown.OptionData> list = new List<Dropdown.OptionData>();
+            List<string> list = new List<string>();
             DirectoryInfo root = new DirectoryInfo(path);
             if (!root.Exists) return list;
             foreach (DirectoryInfo f in root.GetDirectories())
@@ -311,12 +311,13 @@ namespace MainCore.UI
 #if UNITY_IPHONE && !UNITY_EDITOR
                 if (!f.Name.Trim().StartsWith('.'))
                 {
-                    list.Add(new Dropdown.OptionData(f.Name.Trim()));
+                    list.Add(f.Name.Trim());
                 }
 #else
-                list.Add(new Dropdown.OptionData(f.Name.Trim()));
+                list.Add(f.Name.Trim());
 #endif
             }
+            list.Sort();
 
             return list;
         }

@@ -199,12 +199,10 @@ namespace MainCore
             for (var i = 0; i < hitSounds.Length; i++)
             {
                 hitSounds[i].LoadAudioData();
-                while (hitSounds[i].loadState != AudioDataLoadState.Loaded)
-                {
-                    await Task.Delay(20);
-                }
-
-                _nativeAudios.Add(i, NativeAudio.Load(hitSounds[i]));
+                var i1 = i;
+                await new WaitUntil(() => hitSounds[i1].loadState == AudioDataLoadState.Loaded || hitSounds[i1].loadState == AudioDataLoadState.Failed);
+                if (hitSounds[i].loadState == AudioDataLoadState.Failed) Debug.Log("???");
+                _nativeAudios.Add(i, hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MainCore.Common;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -12,7 +13,7 @@ using Random = UnityEngine.Random;
 
 namespace MainCore.ECS_ver
 {
-    public class EffectSystemManager : MonoBehaviour
+    public class EffectSystemManager : MonoSingleton<EffectSystemManager>
     {
         public Mesh mesh;
         [SerializeField] private Material materialPrefab;
@@ -32,11 +33,9 @@ namespace MainCore.ECS_ver
         //private GameObjectConversionSettings settings;
         private EntityManager manager;
         private static readonly int MainTextureId = Shader.PropertyToID("_MainTex");
-        public static EffectSystemManager Instance { get; private set; }
 
-        private void Awake()
+        protected override void OnAwake()
         {
-            Instance = this;
             LoadAllInternalParticle();
             UpdateSkin();
             //settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);

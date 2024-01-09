@@ -72,21 +72,19 @@ namespace MainCore.UI
             login.gameObject.SetActive(GlobalSetting.IsOffline);
         }
 
+        private AudioSource fuck;
 
         public void Start()
         {
-            if (PlayerPrefs.GetInt("half_res", 0) == 1)
+            var currentRes = GlobalSetting.OriginResolution;
+            if (PlayerPrefsExtension.GetBoolean("half_res", false))
             {
                 Debug.Log("Half Resolution Mode Enabled");
-                var currentRes = GlobalSetting.OriginResolution;
-                currentRes.height /= 2;
-                currentRes.width /= 2;
-                Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
+                Screen.SetResolution(currentRes.width /= 2, currentRes.height /= 2, Screen.fullScreenMode);
             }
             else
             {
                 Debug.Log("Half Resolution Mode Disabled");
-                var currentRes = GlobalSetting.OriginResolution;
                 Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
             }
 
@@ -141,10 +139,20 @@ namespace MainCore.UI
             CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
             Update();
+            
+            Qwq();
+        }
+
+        private async void Qwq()
+        {
+            AudioSource audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.clip = (await GameUtils.ReadSkin(@"C:\Users\钱灏\AppData\LocalLow\totorowldox\RE_PhityOS\Skins\fb9b788f-a417-4b00-bbec-b30f8081d951")).clickAC;
+            fuck = audioSource;
         }
 
         private void Update()
         {
+            if (fuck && Input.GetMouseButtonUp(1)) fuck.PlayScheduled(AudioSettings.dspTime);
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
             if (!InGameUIManager.IsActive) InGameUIManager.ShowModalWindowWithClose("提示", "确定要退出吗？", Util.QuitApp, "是", () => {},  "否");
