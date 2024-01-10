@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using IngameDebugConsole;
 using MainCore.Common;
@@ -12,10 +10,8 @@ using Network;
 using Network.Account;
 using Network.Account.Utils;
 using Network.Multiplayer.Managers;
-using NLayer;
 using UnityEngine;
 using UnityEngine.Video;
-using Debug = UnityEngine.Debug;
 
 namespace MainCore.UI
 {

@@ -367,6 +367,15 @@ namespace Network.Multiplayer.Managers
             return pack;
         }
 
+        private static void LocalQuitRoom()
+        {
+            ChatManager.AddMessage("Server", "已退出房间" + roomId, MessageType.Server);
+            roomId = "";
+            isReady = false;
+            isOwner = false;
+            OnQuitRoomSucceeded.Invoke();
+        }
+
         private static int StartReceive()
         {
             if (!socket.Connected) return -1; // 未连接
@@ -500,15 +509,6 @@ namespace Network.Multiplayer.Managers
                 default:
                     throw new ArgumentOutOfRangeException(nameof(clientOperate), clientOperate, null);
             }
-        }
-
-        private static void LocalQuitRoom()
-        {
-            ChatManager.AddMessage("Server", "已退出房间" + roomId, MessageType.Server);
-            roomId = "";
-            isReady = false;
-            isOwner = false;
-            OnQuitRoomSucceeded.Invoke();
         }
 
         private static void DealWithLogin(JObject jObject)
