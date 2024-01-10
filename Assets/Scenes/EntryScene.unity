@@ -841,7 +841,7 @@ MonoBehaviour:
   defaultClickAC: {fileID: 8300000, guid: f96fd9fe71d1a1d4e984935aa8caffb5, type: 3}
   defaultDragAC: {fileID: 8300000, guid: 623cd11fa4d3b224ba59a2798cfbffec, type: 3}
   defaultFlickAC: {fileID: 8300000, guid: abadfa0f11d2c2e49acb72e5b122ce73, type: 3}
-  defaultParticle: {fileID: 0}
+  defaultParticle: {fileID: 21300000, guid: d6c034779a9f09a4da83d67d5aef2859, type: 3}
   skinPath: 
 --- !u!1 &498091656
 GameObject:

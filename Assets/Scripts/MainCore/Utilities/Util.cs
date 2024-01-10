@@ -94,6 +94,7 @@ namespace MainCore.Utilities
         public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path, string clipName = "",
             bool readAll = false)
         {
+            Debug.Log("awa");
             AudioType? audioType = await GetAudioTypeFromFile(path);
             switch (audioType)
             {
@@ -151,7 +152,7 @@ namespace MainCore.Utilities
                     {
                         float[] samples = new float[samplecount * vorbis.Channels];
 
-                        int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                        if (vorbis.ReadSamples(samples, 0, samples.Length) != samples.Length) await File.WriteAllTextAsync(Application.dataPath + "/../dhfsjfhsfks.txt", "qwq");
                         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
                             false);
                         ac.SetData(samples, 0);

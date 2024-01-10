@@ -57,7 +57,7 @@ public class SkinManager : MonoSingleton<SkinManager>
         {
            await ReadLocalSkins();
         }
-
+        
         Inited = true;
     }
 
@@ -107,7 +107,12 @@ public class SkinManager : MonoSingleton<SkinManager>
 
     public SkinInfo GetExternalSkinInfo(string id)
     {
-        return externalSkinInfos.ContainsKey(id) ? externalSkinInfos[id] : null;
+        if (externalSkinInfos.ContainsKey(id))
+        {
+            return externalSkinInfos[id];
+        }
+
+        return null;
     }
 
     public SkinSummary[] GetSkinSummaries() => JsonConvert.DeserializeObject<Skins>(File.ReadAllText(skinPath + "/info.json")).skins;
