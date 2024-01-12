@@ -1,9 +1,10 @@
 ﻿#define DISABLE_NATIVE_AUDIO
 // #define USE_MA_AUDIO
 using System.Collections.Generic;
-using System.Threading.Tasks;
+#if !DISABLE_NATIVE_AUDIO
 using Cysharp.Threading.Tasks;
 using E7.Native;
+#endif
 using MainCore.Common;
 using MainCore.Utilities;
 #if USE_MA_AUDIO
@@ -15,19 +16,24 @@ namespace MainCore
 {
     public class HitSoundManager : MonoSingleton<HitSoundManager>
     {
-        private static Dictionary<int, NativeAudioPointer> _nativeAudios;
         private static Dictionary<int, AudioSource[]> _unityAudios;
+#if !DISABLE_NATIVE_AUDIO
+        private static Dictionary<int, NativeAudioPointer> _nativeAudios;
+#endif
 #if USE_MA_AUDIO
         private static Dictionary<int, AudioSample[]> _maAudios;
 #endif
         private static Dictionary<int, int> _audioIndexes;
-        private static NativeSource.PlayOptions _nativeAudioOptions;
+
         private static float _hitSoundVolume = 1f;
 
         [SerializeField] private AudioClip[] hitSounds;
         [SerializeField] private int[] hitSoundsLength;
 
+#if !DISABLE_NATIVE_AUDIO
+        private static NativeSource.PlayOptions _nativeAudioOptions;
         private List<int> nativeIndexes = new();
+#endif
 
         protected override void OnAwake()
         {
@@ -43,6 +49,7 @@ namespace MainCore
         //Handle NativeAudio's sounds later to achieve a sync.
         void LateUpdate()
         {
+#if !DISABLE_NATIVE_AUDIO
             if (nativeIndexes.Count == 0) return;
 
             int tapCnt = 0, dragCnt = 0, flickCnt = 0;
@@ -119,11 +126,13 @@ namespace MainCore
             }
 
             nativeIndexes.Clear();
+
+#endif
         }
 
         public static void Init()
         {
-            _hitSoundVolume = GlobalSetting.HitVolume;
+            UpdateVolume();
 
 #if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
             if (NativeAudio.OnSupportedPlatform)
@@ -143,6 +152,7 @@ namespace MainCore
             _hitSoundVolume = GlobalSetting.HitVolume;
         }
 
+#if !DISABLE_NATIVE_AUDIO
         private async UniTaskVoid InitNativeAudio()
         {
             if (!NativeAudio.OnSupportedPlatform) return;
@@ -155,6 +165,7 @@ namespace MainCore
 
             await RefreshNativeAudio();
         }
+#endif
 
         private void InitUnityAudio()
         {
@@ -193,6 +204,7 @@ namespace MainCore
 #endif
         }
 
+#if !DISABLE_NATIVE_AUDIO
         private async UniTask RefreshNativeAudio()
         {
             _nativeAudios.Clear();
@@ -200,11 +212,16 @@ namespace MainCore
             {
                 hitSounds[i].LoadAudioData();
                 var i1 = i;
-                await new WaitUntil(() => hitSounds[i1].loadState == AudioDataLoadState.Loaded || hitSounds[i1].loadState == AudioDataLoadState.Failed);
+                await new WaitUntil(() =>
+                    hitSounds[i1].loadState == AudioDataLoadState.Loaded ||
+                    hitSounds[i1].loadState == AudioDataLoadState.Failed);
                 if (hitSounds[i].loadState == AudioDataLoadState.Failed) Debug.Log("???");
-                _nativeAudios.Add(i, hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));
+                _nativeAudios.Add(i,
+                    hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));
             }
         }
+#endif
+
 
         private void RefreshUnityAudio()
         {
@@ -267,12 +284,14 @@ namespace MainCore
             _hitSoundVolume = orgVlm;
         }
 
+#if !DISABLE_NATIVE_AUDIO
         private void PlayByNativeAudio(int soundIndex)
         {
             if (_hitSoundVolume <= 0.01f) return;
 
             nativeIndexes.Add(soundIndex);
         }
+#endif
 
         private void PlayByUnityAudio(int soundIndex)
         {
