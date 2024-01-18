@@ -3655,7 +3655,22 @@ PrefabInstance:
     - target: {fileID: 19666696582162632, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
       propertyPath: m_Text
-      value: "\u591A\u4EBA"
+      value: "\u591A\u4EBA\u6E38\u620F"
+      objectReference: {fileID: 0}
+    - target: {fileID: 19666696582162632, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 85
+      objectReference: {fileID: 0}
+    - target: {fileID: 19666696582162632, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_FontData.m_LineSpacing
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 136499416845470222, guid: e46083903506fab499da8de4aadc01fa,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 5152953713206275753, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
@@ -4392,7 +4407,7 @@ PrefabInstance:
     - target: {fileID: 19666696582162632, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}
       propertyPath: m_Text
-      value: "\u5355\u4EBA"
+      value: "\u672C\u5730"
       objectReference: {fileID: 0}
     - target: {fileID: 5703260545348070100, guid: e46083903506fab499da8de4aadc01fa,
         type: 3}

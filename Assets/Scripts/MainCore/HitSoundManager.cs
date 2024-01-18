@@ -1,16 +1,23 @@
-﻿#define DISABLE_NATIVE_AUDIO
-// #define USE_MA_AUDIO
-using System.Collections.Generic;
-#if !DISABLE_NATIVE_AUDIO
-using Cysharp.Threading.Tasks;
-using E7.Native;
+﻿#if UNITY_EDITOR || !UNITY_ANDROID
+#define DISABLE_NATIVE_AUDIO
 #endif
+// #define USE_MA_AUDIO
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 using MainCore.Common;
 using MainCore.Utilities;
+using UnityEngine;
+#if !DISABLE_NATIVE_AUDIO || USE_MA_AUDIO
+using Cysharp.Threading.Tasks;
+#endif
 #if USE_MA_AUDIO
 using MaTech.Audio;
 #endif
-using UnityEngine;
+#if !DISABLE_NATIVE_AUDIO
+using E7.Native;
+#endif
 
 namespace MainCore
 {
@@ -39,7 +46,7 @@ namespace MainCore
         {
 #if USE_MA_AUDIO
             InitMaAudio().Forget();
-#elif (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+#elif !DISABLE_NATIVE_AUDIO
             InitNativeAudio().Forget();
 #else
             InitUnityAudio();
@@ -130,11 +137,11 @@ namespace MainCore
 #endif
         }
 
-        public static void Init()
+        public static void UpdateVolume()
         {
-            UpdateVolume();
-
-#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+            _hitSoundVolume = GlobalSetting.HitVolume;
+            
+#if !DISABLE_NATIVE_AUDIO
             if (NativeAudio.OnSupportedPlatform)
             {
                 for (var i = 0; i < NativeAudio.GetNativeSourceCount(); i++)
@@ -145,11 +152,6 @@ namespace MainCore
 
             _nativeAudioOptions.volume = _hitSoundVolume;
 #endif
-        }
-
-        public static void UpdateVolume()
-        {
-            _hitSoundVolume = GlobalSetting.HitVolume;
         }
 
 #if !DISABLE_NATIVE_AUDIO
@@ -186,7 +188,7 @@ namespace MainCore
         }
 #endif
 
-        public void RefreshHitSounds()
+        public async void RefreshHitSounds()
         {
             Resources.UnloadUnusedAssets();
             SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
@@ -197,7 +199,7 @@ namespace MainCore
             hitSounds[4] = skinInfo.flickAC;
 #if USE_MA_AUDIO
             await RefreshMaAudio();
-#elif (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+#elif !DISABLE_NATIVE_AUDIO
             await RefreshNativeAudio();
 #else
             RefreshUnityAudio();
@@ -210,11 +212,10 @@ namespace MainCore
             _nativeAudios.Clear();
             for (var i = 0; i < hitSounds.Length; i++)
             {
+                if (!hitSounds[i]) continue;
                 hitSounds[i].LoadAudioData();
                 var i1 = i;
-                await new WaitUntil(() =>
-                    hitSounds[i1].loadState == AudioDataLoadState.Loaded ||
-                    hitSounds[i1].loadState == AudioDataLoadState.Failed);
+                await new WaitUntil(() => hitSounds[i1].loadState is AudioDataLoadState.Loaded or AudioDataLoadState.Failed);
                 if (hitSounds[i].loadState == AudioDataLoadState.Failed) Debug.Log("???");
                 _nativeAudios.Add(i,
                     hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));
@@ -225,6 +226,13 @@ namespace MainCore
 
         private void RefreshUnityAudio()
         {
+            foreach (AudioSource[] audioSources in _unityAudios.Values)
+            {
+                foreach (AudioSource audioSource in audioSources)
+                {
+                    Destroy(audioSource.gameObject);
+                }
+            }
             _unityAudios.Clear();
             _audioIndexes.Clear();
 
@@ -234,8 +242,7 @@ namespace MainCore
                 _audioIndexes.Add(i, 0);
                 for (var j = 0; j < hitSoundsLength[i]; j++)
                 {
-                    if (_unityAudios[i][j]) Destroy(_unityAudios[i][j].gameObject);
-                    var obj = new GameObject("Unity Audio - HitSound");
+                    var obj = new GameObject($"Unity Audio - HitSound {i}-{j}");
                     obj.transform.SetParent(transform);
                     obj.transform.position = new Vector3(0, 0, -10);
                     var comp = obj.AddComponent<AudioSource>();
@@ -259,14 +266,39 @@ namespace MainCore
                 _audioIndexes.Add(i, 0);
                 for (var j = 0; j < hitSoundsLength[i]; j++)
                 {
-                    if (!hitSounds[i]) continue;
+                    if (!hitSounds[i] && (!GlobalSetting.CurrentSkinInfo || !GlobalSetting.CurrentSkinInfo.isExternal)) continue;
                     if (_maAudios[i][j] != null) _maAudios[i][j].Unload();
-                    _maAudios[i][j] = await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                    if (i == 0)
+                    {
+                        _maAudios[i][j] = null;
+                    }
+                    else
+                    {
+                        _maAudios[i][j] = GlobalSetting.CurrentSkinInfo.isExternal
+                            ? await AudioSample.LoadFromExternalUrl(UrlEncodePath(SkinManager.Instance.skinPath + "/" + GlobalSetting.CurrentSkinInfo.id + "/" + i switch
+                            {
+                                1 => "click.ogg",
+                                2 => "drag.ogg",
+                                3 => "click.ogg",
+                                4 => "flick.ogg",
+                                _ => throw new ArgumentOutOfRangeException()
+                            }))
+                            : await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                    }
+
+                    if (_maAudios[i][j] == null) continue;
                     _maAudios[i][j].Volume = _hitSoundVolume;
                 }
             }
         }
 #endif
+
+        private string UrlEncodePath(string path)
+        {
+            string str = "file://" + string.Join("/", path.Replace("\\", "/").Split('/').Select(HttpUtility.UrlPathEncode));
+            Debug.Log(str);
+            return str;
+        }
 
         public void Play(int soundIndex, float rewriteVolume = -1)
         {
@@ -275,7 +307,7 @@ namespace MainCore
 
 #if USE_MA_AUDIO
             PlayByMaAudio(soundIndex);
-#elif (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR && !DISABLE_NATIVE_AUDIO
+#elif !DISABLE_NATIVE_AUDIO
             PlayByNativeAudio(soundIndex);
 #else
             PlayByUnityAudio(soundIndex);
@@ -302,6 +334,11 @@ namespace MainCore
             var source = _unityAudios[soundIndex][index];
             _audioIndexes[soundIndex] = index;
 
+            Debug.Log(_hitSoundVolume);
+            Debug.Log(source.clip.samples);
+            float[] f = new float[source.clip.channels * source.clip.samples];
+            source.clip.GetData(f, 0);
+            Debug.Log($"[{string.Join(", ", f.Take(Mathf.Min(f.Length, 20)))}]");
             source.volume = _hitSoundVolume;
             source.PlayScheduled(AudioSettings.dspTime);
         }

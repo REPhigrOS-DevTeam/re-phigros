@@ -315,7 +315,6 @@ namespace MainCore.Settings
             hitFxObj.transform.position = hitEffectPos.position;
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
-            hitFxObj.PlayParticles();
             GlobalSetting.GlobalNoteScale = tmp;
         }
 

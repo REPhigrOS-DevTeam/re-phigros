@@ -21,6 +21,8 @@ public class EffectManager : MonoBehaviour
 
     float scale = GlobalSetting.GlobalNoteScale / 0.16f;
 
+    private Stopwatch hitEffectTime = new Stopwatch();
+
     // Start is called before the first frame update 
     private void Awake()
     {
@@ -50,14 +52,21 @@ public class EffectManager : MonoBehaviour
         sr.color = color;
     }
 
+    private void Start()
+    {
+        Update();
+    }
+
+    private void Update()
+    {
+        int timer = (int) (hitEffectTime.ElapsedMilliseconds / 1000f * hitFxFactor);
+        sr.sprite = hitFx[Mathf.Min(timer, hitFx.Length - 1)];
+    }
+
     public void PlayEffect()
     {
         StopEffect();
-        AnimationCoroutine = StartCoroutine(PlayEffectE());
-    }
-
-    public void PlayParticles()
-    {
+        hitEffectTime.Restart();
         if (hideParticles) return;
         EffectSystemManager.Instance.CreateParticle(cnt, color, transform.position, scale);
     }
@@ -65,30 +74,19 @@ public class EffectManager : MonoBehaviour
     private IEnumerator RecycleObj()
     {
         yield return new WaitForSeconds(GlobalSetting.CurrentSkinInfo.hitFxDuration);
+        StopEffect();
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
     public void ForceRecycle()
     {
         StopCoroutine(RecycleCoroutine);
+        StopEffect();
         HitEffectManager.GetInstance().RecycleObj(this);
     }
-    private IEnumerator PlayEffectE()
-    {
-        if (hitFx == null) yield break;
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
-        float timer;
-        while ((timer = stopwatch.ElapsedMilliseconds / 1000f * hitFxFactor) < hitFx.Length)
-        {
-            sr.sprite = hitFx[(int) timer];
-            yield return null;
-        }
-        sr.sprite = hitFx[^1];
-    }
-    
+
     public void StopEffect()
     {
-        if (AnimationCoroutine != null) StopCoroutine(AnimationCoroutine);
+        hitEffectTime.Reset();
     }
 }

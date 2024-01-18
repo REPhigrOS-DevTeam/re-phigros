@@ -222,7 +222,7 @@ namespace Network.Multiplayer.Managers
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
                     GlobalSetting.UsingApi = false;
                     GlobalSetting.ReadUserSettings();
-                    HitSoundManager.Init();
+                    HitSoundManager.UpdateVolume();
                     PopupMessageManager.Instance.Clear();
                     SceneTransit.Instance.LoadScene("LoadInto", 2);
                     return;

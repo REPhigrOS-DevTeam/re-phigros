@@ -19,8 +19,11 @@ public class SkinManager : MonoSingleton<SkinManager>
 
     public string skinPath;
 
-    public bool Inited { get; private set; } = false;
+    public SkinInfo cnm;
 
+    private bool _inited;
+    public bool Inited => _inited;
+    
     private string GetBasePath()
     {
         switch (Application.platform)
@@ -56,9 +59,10 @@ public class SkinManager : MonoSingleton<SkinManager>
         else
         {
            await ReadLocalSkins();
+           cnm = GetExternalSkinInfo("1ec63be6-3f06-4e48-b609-be724fc962ae");
         }
         
-        Inited = true;
+        _inited = true;
     }
 
     private async UniTask ReadLocalSkins()

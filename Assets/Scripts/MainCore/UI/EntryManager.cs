@@ -44,6 +44,7 @@ namespace MainCore.UI
             if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
 #endif
 #endif
+            GlobalSetting.ReadUserSettings();
             SceneTransit.OnSceneClosing += () => HitEffectManager.GetInstance().Reset();
             SocketManager.Init();
             // splashCanvas.SetActive(true);
@@ -142,7 +143,6 @@ namespace MainCore.UI
         private async void LoadIn()
         {
             await new WaitUntil(() => SkinManager.Instance.Inited);
-            GlobalSetting.ReadUserSettings();
             Application.targetFrameRate = 120;
             GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
             if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))

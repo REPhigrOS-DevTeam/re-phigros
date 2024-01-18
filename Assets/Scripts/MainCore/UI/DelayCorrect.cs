@@ -45,7 +45,6 @@ namespace MainCore.UI
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0f, 0f, 1f);
                 effectManager.PlayEffect();
-                effectManager.PlayParticles();
             }
 
             sfx = GetComponent<AudioSource>();
@@ -90,7 +89,6 @@ namespace MainCore.UI
                 hitFxObj.transform.position = tapTransform.position;
                 hitFxObj.transform.rotation = Quaternion.identity;
                 hitFxObj.PlayEffect();
-                hitFxObj.PlayParticles();
                 played = true;
                 StartCoroutine(ReleaseCondition());
             }

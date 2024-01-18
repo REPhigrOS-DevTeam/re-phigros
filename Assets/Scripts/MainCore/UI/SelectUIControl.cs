@@ -186,7 +186,7 @@ namespace MainCore.UI
             GlobalSetting.ReadUserSettings();
             await UniTask.SwitchToThreadPool();
 
-            HitSoundManager.Init();
+            HitSoundManager.UpdateVolume();
 
             var extraJsonPath = tempPath + "/extra.json";
             if (File.Exists(extraJsonPath))

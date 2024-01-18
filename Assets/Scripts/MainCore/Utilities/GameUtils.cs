@@ -663,6 +663,7 @@ namespace MainCore.Utilities
                 return null;
             }
 
+            // BUG: 无法正常播放打击音
             skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg", "click", true)
                 : SkinManager.Instance.defaultClickAC;
@@ -672,6 +673,12 @@ namespace MainCore.Utilities
             skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg", "flick", true)
                 : SkinManager.Instance.defaultFlickAC;
+            if (!skinInfo.clickAC.LoadAudioData() || !skinInfo.dragAC.LoadAudioData() ||
+                !skinInfo.flickAC.LoadAudioData())
+            {
+                Debug.LogError("Something went wrong while loading ac data");
+            }
+
             return skinInfo;
         }
 

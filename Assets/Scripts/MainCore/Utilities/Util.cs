@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using Cysharp.Threading.Tasks;
@@ -94,7 +95,6 @@ namespace MainCore.Utilities
         public static async UniTask<AudioClip> ReadMusicAsAudioClip(string path, string clipName = "",
             bool readAll = false)
         {
-            Debug.Log("awa");
             AudioType? audioType = await GetAudioTypeFromFile(path);
             switch (audioType)
             {
@@ -143,23 +143,26 @@ namespace MainCore.Utilities
                 case AudioType.OGGVORBIS:
                 {
                     // Load the data into a stream
-
+                
                     NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-
-                    int samplecount = (int)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds);
-
+                    int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                    
                     if (readAll)
                     {
-                        float[] samples = new float[samplecount * vorbis.Channels];
+                        float[] samples = new float[vorbis.TotalSamples];
+                        int _ = vorbis.ReadSamples(samples, 0, samples.Length);
 
-                        if (vorbis.ReadSamples(samples, 0, samples.Length) != samples.Length) await File.WriteAllTextAsync(Application.dataPath + "/../dhfsjfhsfks.txt", "qwq");
                         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
                             false);
                         ac.SetData(samples, 0);
                         vorbis.Dispose();
+                        if (clipName == "click")
+                        {
+                            Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
+                        }
                         return ac;
                     }
-
+                
                     AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
                         data =>
                         {

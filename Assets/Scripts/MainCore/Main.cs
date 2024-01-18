@@ -344,12 +344,10 @@ namespace MainCore
                 .GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
             hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
             hitFX.PlayEffect();
-            hitFX.PlayParticles();
             hitFX = HitEffectManager.GetInstance()
                 .GetObj(HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
             hitFX.PlayEffect();
-            hitFX.PlayParticles();
 
             totalOffset = json.offset + GlobalSetting.UserOffset;
             maskSprite.DOFade(GlobalSetting.MaskAlpha, 3f);

@@ -539,7 +539,7 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.StrictJudgeMode = false;
         GlobalSetting.NewScoreCalcType = false;
         GlobalSetting.Pitch = 1.0f;
-        HitSoundManager.Init();
+        HitSoundManager.UpdateVolume();
         PopupMessageManager.Instance.Clear();
         SceneTransit.Instance.LoadScene("LoadInto");
     }

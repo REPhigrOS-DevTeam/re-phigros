@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using MainCore.Data;
 using MainCore.Utilities;
+using MaTech.Audio;
 using UnityEngine;
 
 namespace MainCore
@@ -205,7 +206,6 @@ namespace MainCore
             holdEffect.transform.position = cachedTransform.position;
             holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
             holdEffect.PlayEffect();
-            holdEffect.PlayParticles();
             cachedTransform.localPosition = cachedlocalPosition;
             temporaryColors[0] = Color.clear;
         }

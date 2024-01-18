@@ -252,7 +252,6 @@ namespace MainCore
                     holdEffect.transform.position = cachedTransform.position;
                     holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
                     holdEffect.PlayEffect();
-                    holdEffect.PlayParticles();
                     holdEffectCnt = 0;
                 }
             }
