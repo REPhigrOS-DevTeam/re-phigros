@@ -186,9 +186,13 @@ public class MPServerTest : MonoBehaviour
                 or ClientOperate.Room_UpdateSong) return;
             sendMask.SetActive(true);
         };
-        SocketManager.OnBackReceived += clientOperate => { sendMask.SetActive(false); };
+        SocketManager.OnBackReceived += _ => { sendMask.SetActive(false); };
         SocketManager.OnUpdateSongReceived += OnSongReceived;
-        SocketManager.OnGameStarted += EnterGame;
+        SocketManager.OnGameStarted += playerList =>
+        {
+            GlobalSetting.playerList = playerList;
+            EnterGame();
+        };
         SocketManager.OnGetRoomListSucceeded += list =>
         {
             roomList = list;

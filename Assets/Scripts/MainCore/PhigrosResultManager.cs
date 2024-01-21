@@ -53,12 +53,13 @@ public class PhigrosResultManager : MonoBehaviour
             history.text = "夜々は俺の嫁！ --kagari939";
         else if (GlobalSetting.NewScoreCalcType)
             history.text =
-                $"SCORE V2   {lastScore.ToString().PadLeft(7, '0')}";
+                "SCORE V2";
         else if (deltaScore > 0)
             history.text =
                 $"NEW BEST   {lastScore.ToString().PadLeft(7, '0')}  +{deltaScore.ToString().PadLeft(7, '0')}";
         else
             history.text = "";
+        GameObject.Find("StrictMode").SetActive(GlobalSetting.StrictJudgeMode);
         if (GlobalSetting.NewScoreCalcType || isSlower)
         {
             other.text = $"UNRECORDED   [x{GlobalSetting.Pitch:0.00}]";

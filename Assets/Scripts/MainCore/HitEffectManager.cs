@@ -140,6 +140,7 @@ namespace MainCore
 
         public SkinInfo GetSkinInfo(bool isExternal, string id)
         {
+            if (isExternal) Debug.Log(id);
             return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }
     }

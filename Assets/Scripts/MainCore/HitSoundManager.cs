@@ -4,8 +4,9 @@
 // #define USE_MA_AUDIO
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Web;
+using System.Text;
 using MainCore.Common;
 using MainCore.Utilities;
 using UnityEngine;
@@ -295,9 +296,33 @@ namespace MainCore
 
         private string UrlEncodePath(string path)
         {
-            string str = "file://" + string.Join("/", path.Replace("\\", "/").Split('/').Select(HttpUtility.UrlPathEncode));
+            string str = "file://" + string.Join("/", path.Replace("\\", "/").Split('/').Select(UrlEncode));
             Debug.Log(str);
             return str;
+        }
+
+        private string UrlEncode(string str)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            TextElementEnumerator textElementEnumerator = StringInfo.GetTextElementEnumerator(str);
+            UTF8Encoding utf8Encoding = new UTF8Encoding(false);
+            while (textElementEnumerator.MoveNext())
+            {
+                string qwq = textElementEnumerator.GetTextElement();
+                if (qwq.Length == 1)
+                {
+                    char c = qwq[0];
+                    if (c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '-' or '_' or '.' or '~')
+                    {
+                        stringBuilder.Append(c);
+                        continue;
+                    }
+                }
+
+                stringBuilder.Append(string.Join("", utf8Encoding.GetBytes(qwq).Select(b => "%" + Convert.ToString(b, 16))));
+            }
+
+            return stringBuilder.ToString();
         }
 
         public void Play(int soundIndex, float rewriteVolume = -1)

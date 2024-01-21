@@ -143,6 +143,8 @@ namespace MainCore
 
         public static bool DisplayAcc = false;
 
+        public static string[] playerList;
+
         public static void PlayNoteSound(int notetype)
         {
             /*if (hitVolume < .01f) return;
@@ -188,6 +190,7 @@ namespace MainCore
             Charter = "Unknown";
             Illustrator = "Unknown";
             InfoType = InfoType.Empty;
+            playerList = null;
         }
 
         public static void ReadUserSettings()

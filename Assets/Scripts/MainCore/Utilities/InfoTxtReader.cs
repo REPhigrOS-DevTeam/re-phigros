@@ -7,11 +7,26 @@ namespace MainCore.Utilities
 {
     public class InfoTxtReader
     {
-        private List<string> _text;
+        private Dictionary<string, string> _text;
 
         public InfoTxtReader(string fileName)
         {
-            _text = File.ReadLines(fileName).ToList();
+            _text = new Dictionary<string, string>();
+            List<string> list = File.ReadLines(fileName).ToList();
+            foreach (string str in list)
+            {
+                int length = 2;
+                int indexOf = str.IndexOf(": ", StringComparison.Ordinal);
+                if (indexOf < 0)
+                {
+                    indexOf = str.IndexOf(":", StringComparison.Ordinal);
+                    length = 1;
+                }
+                if (indexOf < 0) continue;
+                string key = str.Substring(0, indexOf).Trim();
+                string value = str.Substring(indexOf + length).Trim();
+                if (!_text.ContainsKey(key)) _text.Add(key, value);
+            }
         }
 
         public string GetComposer() => Get("Composer");
@@ -30,15 +45,7 @@ namespace MainCore.Utilities
 
         private string Get(string identifier)
         {
-            try
-            {
-                var text = _text.First((x) => x.StartsWith($"{identifier}: "));
-                return text.Substring(text.IndexOf(" ", StringComparison.Ordinal) + 1);
-            }
-            catch
-            {
-                return "";
-            }
+            return _text.ContainsKey(identifier) ? _text[identifier] : "";
         }
     }
 }

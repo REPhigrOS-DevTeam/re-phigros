@@ -574,7 +574,7 @@ namespace MainCore.Utilities
             }
 
             SkinInfo skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
-            skinInfo.skinName = phiraSkinInfoData.name;
+            skinInfo.name = skinInfo.skinName = phiraSkinInfoData.name;
             skinInfo.author = phiraSkinInfoData.author;
             skinInfo.description = phiraSkinInfoData.description == "" ? "无" : phiraSkinInfoData.description;
             skinInfo.hitFxDuration = phiraSkinInfoData.hitFxDuration;
@@ -586,8 +586,16 @@ namespace MainCore.Utilities
             // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
             skinInfo.holdRepeat = false;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
-            skinInfo.perfectColor = phiraSkinInfoData.colorPerfect.ToColor();
-            skinInfo.goodColor = phiraSkinInfoData.colorGood.ToColor();
+            if (phiraSkinInfoData.colorPerfect.ToLowerInvariant() == "0xe1ffec9f")
+                phiraSkinInfoData.colorPerfect = "0xfffeffad";
+            if (phiraSkinInfoData.colorGood.ToLowerInvariant() == "0xebb4e1ff")
+                phiraSkinInfoData.colorGood = "0xff8cecff";
+            if (phiraSkinInfoData.colorGood.ToLowerInvariant() == "0xe1ffec9f")
+                phiraSkinInfoData.colorGood = "0xfffeffad";
+            if (phiraSkinInfoData.colorPerfect.ToLowerInvariant() == "0xebb4e1ff")
+                phiraSkinInfoData.colorPerfect = "0xff8cecff";
+            skinInfo.perfectColor = phiraSkinInfoData.colorPerfect.ARGBToColor();
+            skinInfo.goodColor = phiraSkinInfoData.colorGood.ARGBToColor();
             // 读取Hit Fx
             List<Sprite> hitFx = new List<Sprite>();
             int numColumns = phiraSkinInfoData.hitFx[0];
@@ -664,20 +672,15 @@ namespace MainCore.Utilities
             }
 
             // BUG: 无法正常播放打击音
-            skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+            skinInfo.clickAC = false && File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg", "click", true)
                 : SkinManager.Instance.defaultClickAC;
-            skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
+            skinInfo.dragAC = false && File.Exists($"{dirPath}/drag.ogg")
                 ? await Util.ReadMusicAsAudioClip($"{dirPath}/drag.ogg", "drag", true)
                 : SkinManager.Instance.defaultDragAC;
-            skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
+            skinInfo.flickAC = false && File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg", "flick", true)
                 : SkinManager.Instance.defaultFlickAC;
-            if (!skinInfo.clickAC.LoadAudioData() || !skinInfo.dragAC.LoadAudioData() ||
-                !skinInfo.flickAC.LoadAudioData())
-            {
-                Debug.LogError("Something went wrong while loading ac data");
-            }
 
             return skinInfo;
         }

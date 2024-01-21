@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
+using Network.Account;
 using Network.Account.Utils;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
@@ -52,6 +53,7 @@ namespace Network.Multiplayer.Managers
         public static Action<RoomInfo> OnGetRoomInfoSucceeded = _ => { };
 
         public static Action<RoomSummary[]> OnGetRoomListSucceeded = _ => { };
+
         public static Action
             OnConnecting = () => { },
             OnConnectSucceeded = () => { },
@@ -65,9 +67,14 @@ namespace Network.Multiplayer.Managers
             OnQuitRoomSucceeded = () => { },
             OnUpdateSongSucceeded = () => { },
             OnStartGameSucceeded = () => { },
-            OnGameStarted = () => { },
             OnSendMessageSucceeded = () => { },
             OnGetRoomSongIdSucceeded = () => { };
+
+        public static Action<(string, string)> OnUpdateScoreReceived = _ => { };
+
+        public static Action<string> OnUserQuitGame = _ => { };
+
+        public static Action<string[]> OnGameStarted = _ => { };
 
         public static string ChartUrlBase => chartServer.UrlCombine("/api");
 
@@ -104,9 +111,11 @@ namespace Network.Multiplayer.Managers
                 OnQuitRoomSucceeded = () => { };
                 OnUpdateSongSucceeded = () => { };
                 OnStartGameSucceeded = () => { };
-                OnGameStarted = () => { };
+                OnGameStarted = _ => { };
                 OnSendMessageSucceeded = () => { };
                 OnGetRoomSongIdSucceeded = () => { };
+                OnUpdateScoreReceived = _ => { };
+                OnUserQuitGame = _ => { };
             };
         }
 
@@ -275,7 +284,8 @@ namespace Network.Multiplayer.Managers
         public static int UpdateSong(string songId, SongType type, SongInfo songInfo = null)
         {
             if (type == SongType.empty) return -4; // ????
-            return GeneralSend(ClientOperate.Room_UpdateSong, ("songId", songId), ("songType", type.ToString()), ("songInfo",
+            return GeneralSend(ClientOperate.Room_UpdateSong, ("songId", songId), ("songType", type.ToString()), (
+                "songInfo",
                 type == SongType.rep ? songInfo : null));
         }
 
@@ -310,7 +320,7 @@ namespace Network.Multiplayer.Managers
             //         fuckSky.Add("score", pack.Addition["score"]); // 写到外层
             //         fuckSky.Add("acc", pack.Addition["acc"]); // 写到外层
             //         messageToSend = fuckSky.ToString();
-            //         Debug.Log("尝试发送" + messageToSend);
+            //         Logger.Log("尝试发送" + messageToSend);
             //         socket.Send(new UTF8Encoding(false).GetBytes(messageToSend));
             //         return 0;
             //     }
@@ -323,13 +333,18 @@ namespace Network.Multiplayer.Managers
             return GeneralSend(ClientOperate.User_GameEnd, ("score", score), ("acc", acc));
         }
 
+        public static int UploadScoreForSync(float score)
+        {
+            return GeneralSend(ClientOperate.Game_ScoreSync, ("Score", score.ToString("F0").PadLeft(7, '0')));
+        }
+
         public static int QuitGame()
         {
             return GeneralSend(ClientOperate.Room_UserQuitGame);
         }
 
         #endregion
-        
+
         private static int GeneralSend(ClientOperate clientOperate, params (string, object)[] additions)
         {
             lock (threadLock)
@@ -339,8 +354,9 @@ namespace Network.Multiplayer.Managers
                 var pack = GetSendDataWithToken();
                 foreach ((string, object) tuple in additions)
                 {
-                    pack.Addition.Add(tuple.Item1, tuple.Item2);                    
+                    pack.Addition.Add(tuple.Item1, tuple.Item2);
                 }
+
                 try
                 {
                     currentClientOperate = clientOperate;
@@ -402,8 +418,8 @@ namespace Network.Multiplayer.Managers
             // await new WaitWhile(() => InGameUIManager.IsActive);
             if (!pack.ContainsKey("Type"))
             {
-                Debug.Log("错误：无法处理接收到的数据");
-                Debug.Log(pack);
+                Logger.Log("错误：无法处理接收到的数据");
+                Logger.Log(pack);
                 return;
             }
 
@@ -425,7 +441,7 @@ namespace Network.Multiplayer.Managers
             {
                 case ClientOperate.Server_Sync:
                     DealWithMsg<SyncServerReceive>(pack, "错误：无法获取房间列表",
-                       succeededCallback: syncRoomReceive =>
+                        succeededCallback: syncRoomReceive =>
                         {
                             chartServer = enableChart ? syncRoomReceive.ChartServerUrl : "";
                             OnGetRoomListSucceeded.Invoke(syncRoomReceive.List);
@@ -481,7 +497,8 @@ namespace Network.Multiplayer.Managers
                         {
                             songId = receive.RoomInfo.SelectedSongID;
                             songType = Enum.Parse<SongType>(receive.RoomInfo.SelectedSongType, true);
-                            if (songType == SongType.rep) songInfo = receive.RoomInfo.selectedSongInfo.ToObject<SongInfo>();
+                            if (songType == SongType.rep)
+                                songInfo = receive.RoomInfo.selectedSongInfo.ToObject<SongInfo>();
                             else if (songType == SongType.Phizone)
                             {
                                 // TODO: 接入PhiZone
@@ -504,6 +521,7 @@ namespace Network.Multiplayer.Managers
                 case ClientOperate.User_GameEnd:
                     break;
                 case ClientOperate.Room_UserQuitGame:
+                    ChatManager.AddMessage("Server",  $"{pack["from"]} 退出了游戏", MessageType.Room);
                     break;
                 case ClientOperate.User_LeaveServer:
                 default:
@@ -516,12 +534,12 @@ namespace Network.Multiplayer.Managers
             string errorMessage = "错误：无法登录";
             LoginReceive? received = jObject.ToObject<LoginReceive>();
             if (received == null) throw new ArgumentException("Unknown Exception");
-            Debug.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
+            Logger.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
             string serializeObject = JsonConvert.SerializeObject(received);
             if (!received.Status)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n" + received.Message, () => { }, "确认");
-                Debug.Log("错误：无法完成操作\n" + serializeObject);
+                Logger.Log("错误：无法完成操作\n" + serializeObject);
                 OnLoginFailed.Invoke();
             }
             else
@@ -530,7 +548,7 @@ namespace Network.Multiplayer.Managers
                 {
                     InGameUIManager.ShowModalWindowWithClose("错误", errorMessage + "\n返回包体有误\n" + serializeObject,
                         () => { }, "确认");
-                    Debug.Log("返回的数据有误：\n" + received.Message);
+                    Logger.Log("返回的数据有误：\n" + received.Message);
                     OnLoginFailed.Invoke();
                     return;
                 }
@@ -551,14 +569,15 @@ namespace Network.Multiplayer.Managers
         {
             T? received = jObject.ToObject<T>();
             if (received == null) throw new ArgumentException("Unknown Exception");
-            Debug.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
+            Logger.Log("成功接收到数据：" + JsonConvert.SerializeObject(received, Formatting.None));
             string serializeObject = JsonConvert.SerializeObject(received);
             if (!received.Status)
             {
                 if (failedCallback == null)
                 {
-                    ChatManager.AddMessage("Server", errorMessage + (received.Message == null ? "" : "——" + received.Message), MessageType.Error);
-                    Debug.Log("错误：无法完成操作\n" + serializeObject);
+                    ChatManager.AddMessage("Server",
+                        errorMessage + (received.Message == null ? "" : "——" + received.Message), MessageType.Error);
+                    Logger.Log("错误：无法完成操作\n" + serializeObject);
                 }
                 else failedCallback.Invoke();
             }
@@ -567,27 +586,28 @@ namespace Network.Multiplayer.Managers
                 if (checkData != null && !checkData.Invoke(received))
                 {
                     ChatManager.AddMessage("Server", errorMessage + "\n返回包体有误\n" + serializeObject, MessageType.Error);
-                    if (received.Message != null) Debug.Log("返回的数据有误：\n" + received.Message);
+                    if (received.Message != null) Logger.Log("返回的数据有误：\n" + received.Message);
                     return;
                 }
 
                 succeededCallback?.Invoke(received);
-                if (printOnSuccess && received.Message != null) ChatManager.AddMessage("Server", received.Message, MessageType.Server);
+                if (printOnSuccess && received.Message != null)
+                    ChatManager.AddMessage("Server", received.Message, MessageType.Server);
             }
         }
 
         private static void ExecuteActivePack(JObject pack)
         {
-            Debug.Log("收到Active包：" + JsonConvert.SerializeObject(pack));
+            Logger.Log("收到Active包：" + JsonConvert.SerializeObject(pack));
             if (!pack.ContainsKey("operate"))
             {
-                Debug.Log("错误：非法Active包\n" + JsonConvert.SerializeObject(pack));
+                Logger.Log("错误：非法Active包\n" + JsonConvert.SerializeObject(pack));
                 return;
             }
 
             if (!Enum.TryParse(pack["operate"].ToString(), out ServerOperate serverOperate))
             {
-                Debug.Log("错误：未知的服务器操作\n" + JsonConvert.SerializeObject(pack));
+                Logger.Log("错误：未知的服务器操作\n" + JsonConvert.SerializeObject(pack));
                 return;
             }
 
@@ -601,7 +621,7 @@ namespace Network.Multiplayer.Managers
                         switch (receive.Author)
                         {
                             case "joinServer":
-                                Debug.Log(receive.Message);
+                                Logger.Log(receive.Message);
                                 break;
                             case "joinRoom":
                                 ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Server);
@@ -618,7 +638,7 @@ namespace Network.Multiplayer.Managers
                                 break;
                             default:
                                 ChatManager.AddMessage(receive.Author, receive.Message, MessageType.Server);
-                                Debug.Log("错误：暂且未知的Server NewMessage operate种类：" + receive.Author);
+                                Logger.Log("错误：暂且未知的Server NewMessage operate种类：" + receive.Author);
                                 break;
                         }
                     }
@@ -630,8 +650,9 @@ namespace Network.Multiplayer.Managers
 
                     break;
                 case ServerOperate.GameStart:
+                    allGameEnded = false;
                     ChatManager.AddMessage("Server", "游戏开始", MessageType.Room);
-                    OnGameStarted.Invoke();
+                    OnGameStarted.Invoke(pack["PlayerList"].ToObject<string[]>());
                     break;
                 case ServerOperate.RoomClosed:
                     ChatManager.AddMessage("Server", "房间已关闭", MessageType.Server);
@@ -642,7 +663,7 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ServerOperate.UpdateSong:
                     UpdateSongActiveReceive updateSongActiveReceive = pack.ToObject<UpdateSongActiveReceive>();
-                    Debug.Log("试图更新歌曲信息：" + JsonConvert.SerializeObject(updateSongActiveReceive, Formatting.None));
+                    Logger.Log("试图更新歌曲信息：" + JsonConvert.SerializeObject(updateSongActiveReceive, Formatting.None));
                     songId = updateSongActiveReceive.songId;
                     songType = Enum.Parse<SongType>(updateSongActiveReceive.songType, true);
                     if (songType == SongType.rep) songInfo = updateSongActiveReceive.songInfo;
@@ -650,6 +671,17 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ServerOperate.ServerClosed:
                     Util.QuitApp();
+                    break;
+                case ServerOperate.UpdateScore:
+                    (string, string) scorePair = (pack["from"].ToString(), pack["Score"].ToString());
+                    Logger.Log(scorePair);
+                    OnUpdateScoreReceived.Invoke(scorePair);
+                    break;
+                case ServerOperate.PlayerQuit:
+                    if (allGameEnded) break;
+                    string name = pack["from"].ToString();
+                    OnUserQuitGame.Invoke(name);
+                    ChatManager.AddMessage("Server", $"{name} 退出了游戏", MessageType.Room);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -714,6 +746,16 @@ namespace Network.Multiplayer.Managers
             songType = SongType.empty;
             songInfo = null;
             chartServer = "";
+        }
+    }
+
+    public static class Logger
+    {
+        public static void Log(object message)
+        {
+#if UNITY_EDITOR || !RELEASE_VERSION
+            Debug.Log(message);
+#endif
         }
     }
 }

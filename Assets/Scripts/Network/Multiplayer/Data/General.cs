@@ -243,15 +243,18 @@ namespace Network.Multiplayer.Data
         Room_SendMessage,
         Room_GetRoomSongId,
         Room_Sync,
+        Game_ScoreSync
     }
 
     public enum ServerOperate
     {
         Message = 0,
-        GameStart = 1,
-        RoomClosed = 2,
-        UpdateSong = 3,
-        ServerClosed
+        GameStart,
+        RoomClosed,
+        UpdateSong,
+        ServerClosed,
+        UpdateScore,
+        PlayerQuit
     }
 
     public enum SongType

@@ -141,47 +141,47 @@ namespace MainCore.Utilities
                     return ac1;
                 }
                 case AudioType.OGGVORBIS:
-                {
-                    // Load the data into a stream
-                
-                    NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                    int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
-                    
-                    if (readAll)
-                    {
-                        float[] samples = new float[vorbis.TotalSamples];
-                        int _ = vorbis.ReadSamples(samples, 0, samples.Length);
-
-                        AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
-                            false);
-                        ac.SetData(samples, 0);
-                        vorbis.Dispose();
-                        if (clipName == "click")
-                        {
-                            Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
-                        }
-                        return ac;
-                    }
-                
-                    AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
-                        data =>
-                        {
-                            var f = new float[data.Length];
-                            int _ = vorbis.ReadSamples(f, 0, data.Length);
-                            for (int i = 0; i < data.Length; i++)
-                            {
-                                data[i] = f[i];
-                            }
-                        }, position =>
-                        {
-                            vorbis.Dispose();
-                            vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                            int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
-                            vorbis.SamplePosition = position + offset;
-                        });
-                    // Return the clip
-                    return ac1;
-                }
+                // {
+                //     // Load the data into a stream
+                //
+                //     NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                //     int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                //     
+                //     if (readAll)
+                //     {
+                //         float[] samples = new float[vorbis.TotalSamples];
+                //         int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                //
+                //         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                //             false);
+                //         ac.SetData(samples, 0);
+                //         vorbis.Dispose();
+                //         if (clipName == "click")
+                //         {
+                //             Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
+                //         }
+                //         return ac;
+                //     }
+                //
+                //     AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
+                //         data =>
+                //         {
+                //             var f = new float[data.Length];
+                //             int _ = vorbis.ReadSamples(f, 0, data.Length);
+                //             for (int i = 0; i < data.Length; i++)
+                //             {
+                //                 data[i] = f[i];
+                //             }
+                //         }, position =>
+                //         {
+                //             vorbis.Dispose();
+                //             vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                //             int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
+                //             vorbis.SamplePosition = position + offset;
+                //         });
+                //     // Return the clip
+                //     return ac1;
+                // }
                 case AudioType.WAV:
                 case AudioType.UNKNOWN:
                 {
@@ -514,7 +514,7 @@ namespace MainCore.Utilities
             else if (str.StartsWith("0x")) str = str[2..];
             if (str.Length != 6 && str.Length != 8)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Not matched hexadecimal number length");
             }
 
             byte[] colorByte = { 255, 255, 255, 255 };
@@ -524,6 +524,25 @@ namespace MainCore.Utilities
             }
 
             return new Color(colorByte[0] / 255f, colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f);
+        }
+
+        public static Color ARGBToColor(this string str)
+        {
+            if (str.StartsWith("#")) str = str[1..];
+            else if (str.StartsWith("0x")) str = str[2..];
+            if (str.Length != 8)
+            {
+                if (str.Length == 6) return str.ToColor();
+                throw new ArgumentException("Not matched hexadecimal number length");
+            }
+
+            byte[] colorByte = { 255, 255, 255, 255 };
+            for (int i = 0; i < 4; i++)
+            {
+                colorByte[i] = Convert.ToByte(str.Substring(i * 2, 2), 16);
+            }
+
+            return new Color(colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f, colorByte[0] / 255f);
         }
 
         public static string GetGameFilePath()

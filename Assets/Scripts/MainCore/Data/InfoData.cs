@@ -53,8 +53,8 @@ namespace MainCore.Data
         public bool holdKeepHead = false;
         public bool holdRepeat = false;
         public bool holdCompact = false;
-        public string colorPerfect =  "0xfeffadff"; // phira: 0xe1ffec9f
-        public string colorGood = "0x8cecffff"; // phira: 0xebb4e1ff
+        public string colorPerfect =  "0xfffeffad"; // ARGB, phira: 0xe1ffec9f
+        public string colorGood = "0xff8cecff"; // ARGB, phira: 0xebb4e1ff
     }
     
     public class LchzhInfo

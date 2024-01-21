@@ -26,6 +26,7 @@ namespace Network.Account
         [SerializeField] private Button loginButton, backButton;
         [SerializeField] private Toggle_Button createButton;
         [SerializeField] private GameObject loginMask;
+        [SerializeField] private GameObject[] inAccountList, inCreate;
         private bool isCreate;
 
         private void Awake()
@@ -36,14 +37,13 @@ namespace Network.Account
             {
                 if (b) Create();
                 else UseSave();
+                UpdateUIState();
             };
             backButton.onClick.AddListener(Back);
             usernameInputField.onValueChanged.AddListener(CheckUsername);
             passwordInputField.onValueChanged.AddListener(CheckPassword);
             loginButton.onClick.AddListener(OnLogin);
             accountInfos = AccountManager.GetAccountList();
-            usernameInputField.gameObject.SetActive(false);
-            passwordInputField.gameObject.SetActive(false);
             createButton.IsOn = false;
             string oldPlayerName = PlayerPrefs.GetString("repapi_playername");
             if (PlayerPrefs.HasKey("repapi_playername") && accountInfos.All(info => info.Username != oldPlayerName))
@@ -88,18 +88,34 @@ namespace Network.Account
 
         private void UseSave()
         {
-            accountsDropdown.gameObject.SetActive(true);
-            usernameInputField.gameObject.SetActive(false);
-            passwordInputField.gameObject.SetActive(false);
+            foreach (GameObject o in inAccountList)
+            {
+                o.SetActive(true);
+            }
+            
+            foreach (GameObject o in inCreate)
+            {
+                o.SetActive(false);
+            }
             isCreate = false;
         }
 
         private void Create()
         {
-            accountsDropdown.gameObject.SetActive(false);
-            usernameInputField.gameObject.SetActive(true);
-            passwordInputField.gameObject.SetActive(true);
             isCreate = true;
+        }
+
+        private void UpdateUIState()
+        {
+            foreach (GameObject o in inAccountList)
+            {
+                o.SetActive(!isCreate);
+            }
+            
+            foreach (GameObject o in inCreate)
+            {
+                o.SetActive(isCreate);
+            }
         }
 
         private bool clickLock = false;

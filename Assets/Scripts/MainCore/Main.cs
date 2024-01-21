@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -51,6 +54,8 @@ namespace MainCore
 
         public static float MusicTime => audio.time;
 
+        private Dictionary<string, int> runtimeScores = new Dictionary<string, int>();
+
         private void OnAudioResolutionError()
         {
             InGameUIManager.ShowModalWindowWithClose("错误", "DSPBuffer数值过小", () =>
@@ -60,12 +65,63 @@ namespace MainCore
             }, "返回");
         }
 
+        private async void RemoveUserFromRuntimeScore(string username)
+        {
+            await UniTask.SwitchToMainThread();
+            runtimeScores.Remove(username);
+        }
+
+        private async void UpdateRuntimeScore((string, string) data)
+        {
+            await UniTask.SwitchToMainThread();
+            runtimeScores[data.Item1] = int.Parse(data.Item2);
+        }
+
+        private StringBuilder stringBuilder = new StringBuilder();
+        private void UploadScore()
+        {
+            SocketManager.UploadScoreForSync(GlobalSetting.ScoreCounter.Score);
+            // runtimeScores.OrderBy(pair => pair.Value)
+            //TODO: 输出到UI
+            stringBuilder.Clear();
+            int i = 0;
+            foreach (KeyValuePair<string,int> pair in runtimeScores.OrderBy(pair => pair.Value))
+            {
+                if (i >= 3) break;
+                stringBuilder.AppendLine(pair.Value + " " + pair.Key);
+                i++;
+            }
+            Debug.Log(stringBuilder.ToString());
+        }
+
         // Start is called before the first frame update
         protected override void OnAwake()
         {
             GlobalSetting.LineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
             GlobalSetting.LineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
             GlobalSetting.LineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
+            if (GlobalSetting.IsMultiplayer)
+            {
+                foreach (string player in GlobalSetting.playerList)
+                {
+                    runtimeScores.Add(player, 0);
+                }
+
+                SocketManager.OnUpdateScoreReceived += UpdateRuntimeScore;
+                SocketManager.OnUserQuitGame += RemoveUserFromRuntimeScore;
+                
+                UniTask.Void(async () =>
+                {
+                    await UniTask.Delay(100);
+                    while (!GlobalSetting.IsEnding)
+                    {
+                        if (!GlobalSetting.Playing) continue;
+                        await UniTask.SwitchToMainThread();
+                        UploadScore();
+                        await UniTask.SwitchToThreadPool();
+                    }
+                });
+            }
             progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
             InitChart();
@@ -362,6 +418,11 @@ namespace MainCore
 
         private void RegisterPauseMenu()
         {
+            if (GlobalSetting.IsMultiplayer)
+            {
+                backButton.OnClick.AddListener(() => SocketManager.QuitGame());
+                terminateButton.OnClick.AddListener(() => SocketManager.QuitGame());
+            }
             pauseButton.OnDoubleTap.AddListener(Pause);
             backButton.OnClick.AddListener(Quit);
             continueButton.OnClick.AddListener(() => UnPause().Forget());
@@ -376,11 +437,6 @@ namespace MainCore
                 audio.time = 0;
                 progressManager.AddTime(audio.clip.length);
             });
-            if (GlobalSetting.IsMultiplayer)
-            {
-                backButton.OnClick.AddListener(() => SocketManager.QuitGame());
-                terminateButton.OnClick.AddListener(() => SocketManager.QuitGame());
-            }
         }
 
         private void Quit()
