@@ -69,18 +69,18 @@ namespace MainCore
         {
             await UniTask.SwitchToMainThread();
             runtimeScores.Remove(username);
+            RefreshRuntimeScoreUI();
         }
 
         private async void UpdateRuntimeScore((string, string) data)
         {
             await UniTask.SwitchToMainThread();
             runtimeScores[data.Item1] = int.Parse(data.Item2);
+            RefreshRuntimeScoreUI();
         }
 
-        private StringBuilder stringBuilder = new StringBuilder();
-        private void UploadScore()
+        private void RefreshRuntimeScoreUI()
         {
-            SocketManager.UploadScoreForSync(GlobalSetting.ScoreCounter.Score);
             // runtimeScores.OrderBy(pair => pair.Value)
             //TODO: 输出到UI
             stringBuilder.Clear();
@@ -92,6 +92,15 @@ namespace MainCore
                 i++;
             }
             Debug.Log(stringBuilder.ToString());
+        }
+
+        private StringBuilder stringBuilder = new StringBuilder();
+        private async void UploadScore()
+        {
+            await UniTask.SwitchToMainThread();
+            float score = GlobalSetting.ScoreCounter.Score;
+            await UniTask.SwitchToThreadPool();
+            SocketManager.UploadScoreForSync(score);
         }
 
         // Start is called before the first frame update
@@ -116,9 +125,7 @@ namespace MainCore
                     while (!GlobalSetting.IsEnding)
                     {
                         if (!GlobalSetting.Playing) continue;
-                        await UniTask.SwitchToMainThread();
                         UploadScore();
-                        await UniTask.SwitchToThreadPool();
                     }
                 });
             }
