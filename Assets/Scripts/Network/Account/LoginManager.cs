@@ -413,21 +413,5 @@ namespace Network.Account
                 password = passwordInputField.text;
             }
         }
-        
-        private async Task<bool> CheckIsBanned(AccountManager.AccountInfo accountInfo)  // 恶心反编译的人用的
-        {
-            var builder = new UriBuilder(RepAPI.GetAPIBase().UrlCombine("/CheckBanned"))
-            {
-                Query = $"username={accountInfo.Username}&verifytoken={accountInfo.VerifyToken}"
-            };
-            string uri = builder.Uri.ToString();
-            byte[] data = await uri.SendGetRequestAsync(false);
-            if (data == null)
-            {
-                Debug.LogError($"RePhigros API: Unable to connect to server when verifying");
-                return true;
-            }
-            return this;
-        }
     }
 }

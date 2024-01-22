@@ -122,10 +122,11 @@ namespace MainCore
                 UniTask.Void(async () =>
                 {
                     await UniTask.Delay(100);
+                    RefreshRuntimeScoreUI();
                     while (!GlobalSetting.IsEnding)
                     {
-                        if (!GlobalSetting.Playing) continue;
-                        UploadScore();
+                        if (GlobalSetting.Playing) UploadScore();
+                        await UniTask.Delay(1000);
                     }
                 });
             }
