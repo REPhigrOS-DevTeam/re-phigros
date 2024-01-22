@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +16,7 @@ using MainCore.PostProcessing;
 using MainCore.UI;
 using MainCore.Utilities;
 using Network.Multiplayer.Managers;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -47,6 +48,8 @@ namespace MainCore
         public PostProcessVolume postProcessVolume;
         public SpriteRenderer maskSprite;
         public VideoManager videoManager;
+        public GameObject multiplayerRank;
+        public TextMeshProUGUI first, second, third;
         private float aspect = 16f / 9f;
 
         private string chart;
@@ -84,17 +87,10 @@ namespace MainCore
         private void RefreshRuntimeScoreUI()
         {
             // runtimeScores.OrderBy(pair => pair.Value)
-            //TODO: 输出到UI
-            stringBuilder.Clear();
-            int i = 0;
-            foreach (KeyValuePair<string, int> pair in runtimeScores.OrderBy(pair => pair.Value))
-            {
-                if (i >= 3) break;
-                stringBuilder.AppendLine(pair.Value + " " + pair.Key);
-                i++;
-            }
-
-            Debug.Log(stringBuilder.ToString());
+            KeyValuePair<string,int>[] pairs = runtimeScores.OrderBy(pair => pair.Value).ToArray();
+            first.text = pairs[0].Value + "  " + pairs[0].Key;
+            second.text = pairs.Length > 1 ? pairs[1].Value + "  " + pairs[1].Key : "";
+            third.text = pairs.Length > 2 ? pairs[2].Value + "  " + pairs[2].Key : "";
         }
 
         private StringBuilder stringBuilder = new StringBuilder();
@@ -282,6 +278,8 @@ namespace MainCore
             }
 
             accText.gameObject.SetActive(GlobalSetting.DisplayAcc);
+            
+            multiplayerRank.gameObject.SetActive(GlobalSetting.IsMultiplayer);
 
             if (GlobalSetting.IsMultiplayer)
             {
@@ -727,7 +725,7 @@ namespace MainCore
                     while (stopwatch.ElapsedMilliseconds < 15000)
                     {
                         if (!GlobalSetting.Paused) break;
-                        disconnectWarn.text = $"警告：将在 {(int)((15000 - stopwatch.ElapsedMilliseconds) / 1000f)} 秒后断开连接";
+                        disconnectWarn.text = $"警告：将在 {MathF.Round(((15000 - stopwatch.ElapsedMilliseconds) / 1000f), 1)} 秒后断开连接";
                         await UniTask.Yield();
                     }
                     disconnectWarn.text = "警告：将在 0 秒后断开连接";
