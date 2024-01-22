@@ -454,6 +454,7 @@ public class MPServerTest : MonoBehaviour
             case InfoType.InfoCsv:
             case InfoType.InfoCsvOld:
             case InfoType.InfoYml:
+            case InfoType.RpeJson:
                 GlobalSetting.ChartName = songInfo.SongName;
                 GlobalSetting.Difficulty = songInfo.SongDifficulty;
                 GlobalSetting.Charter = songInfo.SongCharter;
@@ -463,6 +464,7 @@ public class MPServerTest : MonoBehaviour
                 GlobalSetting.MusicPath = Path.Combine(directory, pathInfo.Music);
                 GlobalSetting.IllustrationPath = Path.Combine(directory, pathInfo.Illustration);
                 break;
+            case InfoType.Internal:
             default:
                 throw new ArgumentOutOfRangeException();
         }

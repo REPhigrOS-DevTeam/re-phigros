@@ -49,7 +49,7 @@ namespace MainCore.PostProcessing
 
         private void Update()
         {
-            if (!GlobalSetting.Playing)
+            if (!GlobalSetting.GameStarted)
             {
                 return;
             }

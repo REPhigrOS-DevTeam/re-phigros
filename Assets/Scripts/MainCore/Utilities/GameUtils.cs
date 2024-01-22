@@ -65,7 +65,7 @@ namespace MainCore.Utilities
 
         public static judgeLineEvent GetEventFromCurrentTime(List<judgeLineEvent> events, float time)
         {
-            if (!GlobalSetting.Playing || events.Count == 0)
+            if (!GlobalSetting.GameStarted || events.Count == 0)
                 return null;
 
             //Binary search
@@ -121,7 +121,7 @@ namespace MainCore.Utilities
 
         public static judgeLineColorEvent GetEventFromCurrentTime(List<judgeLineColorEvent> events, float time)
         {
-            if (!GlobalSetting.Playing || events.Count == 0)
+            if (!GlobalSetting.GameStarted || events.Count == 0)
                 return null;
 
             //Binary search
@@ -177,7 +177,7 @@ namespace MainCore.Utilities
 
         public static judgeLineTextEvent GetEventFromCurrentTime(List<judgeLineTextEvent> events, float time)
         {
-            if (!GlobalSetting.Playing || events.Count == 0)
+            if (!GlobalSetting.GameStarted || events.Count == 0)
                 return null;
 
             //Binary search
@@ -289,7 +289,7 @@ namespace MainCore.Utilities
 
         public static noteControl GetEventFromCurrentTime(List<noteControl> events, float time)
         {
-            if (!GlobalSetting.Playing || events.Count == 0)
+            if (!GlobalSetting.GameStarted || events.Count == 0)
                 return null;
 
             //Binary search

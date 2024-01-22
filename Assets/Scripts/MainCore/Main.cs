@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -19,6 +20,7 @@ using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 namespace MainCore
 {
@@ -85,16 +87,18 @@ namespace MainCore
             //TODO: 输出到UI
             stringBuilder.Clear();
             int i = 0;
-            foreach (KeyValuePair<string,int> pair in runtimeScores.OrderBy(pair => pair.Value))
+            foreach (KeyValuePair<string, int> pair in runtimeScores.OrderBy(pair => pair.Value))
             {
                 if (i >= 3) break;
                 stringBuilder.AppendLine(pair.Value + " " + pair.Key);
                 i++;
             }
+
             Debug.Log(stringBuilder.ToString());
         }
 
         private StringBuilder stringBuilder = new StringBuilder();
+
         private async void UploadScore()
         {
             await UniTask.SwitchToMainThread();
@@ -118,18 +122,19 @@ namespace MainCore
 
                 SocketManager.OnUpdateScoreReceived += UpdateRuntimeScore;
                 SocketManager.OnUserQuitGame += RemoveUserFromRuntimeScore;
-                
+
                 UniTask.Void(async () =>
                 {
                     await UniTask.Delay(100);
                     RefreshRuntimeScoreUI();
-                    while (!GlobalSetting.IsEnding)
+                    while (GlobalSetting.GameStarted)
                     {
-                        if (GlobalSetting.Playing) UploadScore();
+                        if (!GlobalSetting.Paused) UploadScore();
                         await UniTask.Delay(1000);
                     }
                 });
             }
+
             progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
             InitChart();
@@ -227,7 +232,7 @@ namespace MainCore
 
             managers.AddComponent<JudgementManager>();
 
-            GlobalSetting.Playing = false;
+            GlobalSetting.GameStarted = false;
 
             audio.playOnAwake = false;
             audio.clip = music;
@@ -275,8 +280,15 @@ namespace MainCore
             {
                 Camera.main.GetComponent<PostProcessLayer>().enabled = false;
             }
-            
+
             accText.gameObject.SetActive(GlobalSetting.DisplayAcc);
+
+            if (GlobalSetting.IsMultiplayer)
+            {
+                Destroy(pauseButton.gameObject);
+                Destroy(retryButton.gameObject);
+                Destroy(terminateButton.gameObject);
+            }
 
             StartPlay();
         }
@@ -298,16 +310,16 @@ namespace MainCore
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
-            if (GlobalSetting.Playing)
+            if (GlobalSetting.GameStarted)
             {
                 progressManager.OnUpdate();
             }
 
 
-            if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.Playing)
+            if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.GameStarted)
             {
                 progressManager.StopTiming();
-                GlobalSetting.Playing = false;
+                GlobalSetting.GameStarted = false;
                 if (!GlobalSetting.IsEnding)
                 {
                     GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutOut");
@@ -419,21 +431,17 @@ namespace MainCore
             progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
             await new WaitForSeconds(4f);
-            GlobalSetting.Playing = true;
+            GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
         }
 
         private void RegisterPauseMenu()
         {
-            if (GlobalSetting.IsMultiplayer)
-            {
-                backButton.OnClick.AddListener(() => SocketManager.QuitGame());
-                terminateButton.OnClick.AddListener(() => SocketManager.QuitGame());
-            }
-            pauseButton.OnDoubleTap.AddListener(Pause);
             backButton.OnClick.AddListener(Quit);
             continueButton.OnClick.AddListener(() => UnPause().Forget());
+            if (GlobalSetting.IsMultiplayer) return;
+            pauseButton.OnDoubleTap.AddListener(Pause);
             retryButton.OnClick.AddListener(() =>
             {
                 GlobalSetting.Reset();
@@ -449,6 +457,7 @@ namespace MainCore
 
         private void Quit()
         {
+            if (GlobalSetting.IsMultiplayer) SocketManager.QuitGame();
             SceneTransit.Instance.Back();
         }
 
@@ -703,24 +712,42 @@ namespace MainCore
             }
         }
 
+        [SerializeField] private Text disconnectWarn;
+
         void Pause()
         {
-            if (GlobalSetting.Playing && !GlobalSetting.Paused && MusicTime > 3f && !GlobalSetting.Paused)
+            if (!GlobalSetting.GameStarted || GlobalSetting.Paused || !(MusicTime > 3f) || GlobalSetting.Paused) return;
+            if (GlobalSetting.IsMultiplayer)
             {
-                GlobalSetting.Paused = true;
-                progressManager.StopTiming();
-                audio.Pause();
-                audio.volume = 0;
-                float delta = Mathf.Min(3f, audio.time);
-                audio.time = Mathf.Max(audio.time - 3f, 0f);
-                progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
-                videoManager.Pause();
+                UniTask.Void(async () =>
+                {
+                    await UniTask.SwitchToMainThread();
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    while (stopwatch.ElapsedMilliseconds < 15000)
+                    {
+                        if (!GlobalSetting.Paused) break;
+                        disconnectWarn.text = $"警告：将在 {(int)((15000 - stopwatch.ElapsedMilliseconds) / 1000f)} 秒后断开连接";
+                        await UniTask.Yield();
+                    }
+                    disconnectWarn.text = "警告：将在 0 秒后断开连接";
+                    if (!GlobalSetting.Paused) return;
+                    Quit();
+                });
             }
+            GlobalSetting.Paused = true;
+            progressManager.StopTiming();
+            audio.Pause();
+            audio.volume = 0;
+            float delta = Mathf.Min(3f, audio.time);
+            audio.time = Mathf.Max(audio.time - 3f, 0f);
+            progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
+            videoManager.Pause();
         }
 
         async UniTaskVoid UnPause()
         {
-            if (GlobalSetting.Playing && GlobalSetting.Paused)
+            if (GlobalSetting.GameStarted && GlobalSetting.Paused)
             {
                 pauseWindow.TurnOff();
                 // audio.time = Stopwatch.ElapsedMilliseconds * .001f;
@@ -780,6 +807,7 @@ namespace MainCore
         public int numOfNotes;
 
         private int elapsedNoteCnt;
+
         public float Score => GlobalSetting.NewScoreCalcType
             ? 1e6f * (perfectCnt + goodCnt * 0.65f) / numOfNotes // 判定分100w
             : 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes; // 判定分90w 连击分10w

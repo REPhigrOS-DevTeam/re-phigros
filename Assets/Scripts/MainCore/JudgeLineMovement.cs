@@ -83,7 +83,7 @@ namespace MainCore
         // Update is called once per frame
         void Update()
         {
-            if (!GlobalSetting.Playing)
+            if (!GlobalSetting.GameStarted)
             {
                 sr.color = Color.clear;
                 sr.sortingOrder = Line.zOrder * GlobalSetting.MaximumZOrder + ID;
@@ -107,7 +107,7 @@ namespace MainCore
         //Let the workers have an entire frame to work on the fucking thing
         private void LateUpdate()
         {
-            if (!GlobalSetting.Playing) return;
+            if (!GlobalSetting.GameStarted) return;
             noteUpdateHandle.Complete();
             try
             {

@@ -105,7 +105,7 @@ namespace MainCore
         public static List<JudgeLineMovement> Lines = new List<JudgeLineMovement>();
 
         private static float orthographicSize = -1f;
-        public static bool Playing { get; set; }
+        public static bool GameStarted { get; set; }
         public static bool IsEnding { get; set; }
         public static bool Paused { get; set; }
 
@@ -171,7 +171,7 @@ namespace MainCore
 
         public static void Reset()
         {
-            Playing = false;
+            GameStarted = false;
             IsEnding = false;
             Paused = false;
             YayaKawaii = YayaMode.冲;
