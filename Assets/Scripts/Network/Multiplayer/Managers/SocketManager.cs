@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -751,6 +752,7 @@ namespace Network.Multiplayer.Managers
 
     public static class Logger
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Log(object message)
         {
 #if UNITY_EDITOR || !RELEASE_VERSION

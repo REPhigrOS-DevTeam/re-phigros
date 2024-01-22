@@ -299,7 +299,7 @@ namespace MainCore
             {
                 var n = ProcessingNotes[index];
                 var height = (float)(n.floorPosition - JudgeLineDistance + n.yOffset) * SpeedFactor * n.speed;
-                if (height <= MinimumDistanceToShow && NotesCanBeUpdated.Count < 5000)
+                if ((height <= MinimumDistanceToShow || n.time - PgrTime <= GlobalSetting.GetJudgeTime().bTime + Time.deltaTime) && NotesCanBeUpdated.Count < 5000)
                 {
                     InitNote(n.type, n, n.isAbove ? 1 : -1);
                 }

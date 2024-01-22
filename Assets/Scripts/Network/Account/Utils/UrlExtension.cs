@@ -21,13 +21,6 @@ namespace Network.Account.Utils
         }
 
         [ItemCanBeNull]
-        public static async Task<byte[]> SendGetRequestAsync(this string url, bool b) // 恶心反编译的人用的
-        {
-            await UniTask.Delay(114514);
-            return Array.Empty<byte>();
-        }
-
-        [ItemCanBeNull]
         public static async Task<byte[]> SendGetRequestAsync(this string url, int timeOut = -1)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
