@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Network.Account.Utils
         }
 
         [ItemCanBeNull]
-        public static async Task<byte[]> SendGetRequestAsync(this string url, int timeOut = -1)
+        public static async Task<byte[]> SendGetRequestAsync(this string url, int timeOut = -1, bool disableCache = true)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
             httpClientHandler.ServerCertificateCustomValidationCallback =
@@ -35,6 +36,11 @@ namespace Network.Account.Utils
                             requestMessage.RequestUri.Host.EndsWith(".rephigros.top"));
                 };
             HttpClient httpClient = new HttpClient(httpClientHandler);
+            if (disableCache) httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
+            {
+                NoCache = true,
+                NoStore = true
+            };
             httpClient.Timeout = timeOut < 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMilliseconds(timeOut);
             HttpResponseMessage message = null;
             try

@@ -139,20 +139,10 @@ namespace MainCore.UI
             CloseCharacterOptions();
             datuPreviewFadeInOut.FadeOut(0f);
             Update();
-            
-            Qwq();
-        }
-
-        private async void Qwq()
-        {
-            AudioSource audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.clip = (await GameUtils.ReadSkin(@"C:\Users\钱灏\AppData\LocalLow\totorowldox\RE_PhityOS\Skins\fb9b788f-a417-4b00-bbec-b30f8081d951")).clickAC;
-            fuck = audioSource;
         }
 
         private void Update()
         {
-            if (fuck && Input.GetMouseButtonUp(1)) fuck.PlayScheduled(AudioSettings.dspTime);
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (!Input.GetKeyDown(KeyCode.Escape)) return;
             if (!InGameUIManager.IsActive) InGameUIManager.ShowModalWindowWithClose("提示", "确定要退出吗？", Util.QuitApp, "是", () => {},  "否");

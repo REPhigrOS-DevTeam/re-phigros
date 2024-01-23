@@ -561,5 +561,12 @@ namespace MainCore.Utilities
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
+
+#if !RELEASE_VERSION
+        public static string ParseLink(string url, string name = null)
+        {
+            return $"<a href=\"{url}\">{name ?? url}</a>";
+        }
+#endif
     }
 }

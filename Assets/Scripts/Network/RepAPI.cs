@@ -120,7 +120,7 @@ namespace Network
 
             loginUrl = manifest.apiURL.userlogin;
             verifyUrl = manifest.apiURL.userverify;
-            Debug.Log("RePhigros API: Manifest got.");
+            Debug.Log("RePhigros API: Manifest got.\n" + JsonConvert.SerializeObject(manifest, Formatting.Indented));
             return true;
         }
     }
