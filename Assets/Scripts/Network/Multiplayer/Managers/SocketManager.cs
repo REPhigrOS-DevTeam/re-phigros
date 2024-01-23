@@ -304,39 +304,12 @@ namespace Network.Multiplayer.Managers
 
         public static int EndGame(string score, string acc)
         {
-            // 因为sky脑抽所以要改动
-            // ClientOperate clientOperate = ClientOperate.Room_UserGameEnd;
-            // GeneralSendData value = pack;
-            // lock (threadLock)
-            // {
-            //     if (!socket.Connected) return -1; // 未连接
-            //     if (string.IsNullOrEmpty(token)) return -3; // 未登录
-            //     try
-            //     {
-            //         currentClientOperate = clientOperate;
-            //         OnSendPrepared.Invoke(currentClientOperate);
-            //         value.Operate = clientOperate.ToString();
-            //         string messageToSend = JsonConvert.SerializeObject(value);
-            //         JObject fuckSky = JObject.Parse(messageToSend);
-            //         fuckSky.Add("score", pack.Addition["score"]); // 写到外层
-            //         fuckSky.Add("acc", pack.Addition["acc"]); // 写到外层
-            //         messageToSend = fuckSky.ToString();
-            //         Logger.Log("尝试发送" + messageToSend);
-            //         socket.Send(new UTF8Encoding(false).GetBytes(messageToSend));
-            //         return 0;
-            //     }
-            //     catch (SocketException e)
-            //     {
-            //         e.Print();
-            //         return -2; // 无法发送
-            //     }
-            // }
             return GeneralSend(ClientOperate.User_GameEnd, ("score", score), ("acc", acc));
         }
 
         public static int UploadScoreForSync(float score)
         {
-            return GeneralSend(ClientOperate.Game_ScoreSync, ("Score", score.ToString("F0").PadLeft(7, '0')));
+            return GeneralSend(ClientOperate.Game_ScoreSync, ("Score", score.ToString("F0")));
         }
 
         public static int QuitGame()
@@ -416,7 +389,7 @@ namespace Network.Multiplayer.Managers
 
         private static async void AnalyzePack(JObject pack, ClientOperate clientOperate)
         {
-            // await new WaitWhile(() => InGameUIManager.IsActive);
+            // await UniTask.WaitWhile(() => InGameUIManager.IsActive);
             if (!pack.ContainsKey("Type"))
             {
                 Logger.Log("错误：无法处理接收到的数据");
@@ -522,7 +495,7 @@ namespace Network.Multiplayer.Managers
                 case ClientOperate.User_GameEnd:
                     break;
                 case ClientOperate.Room_UserQuitGame:
-                    ChatManager.AddMessage("Server",  $"{pack["from"]} 退出了游戏", MessageType.Room);
+                    ChatManager.AddMessage("Server",  $"{GlobalSetting.Username} 退出了游戏", MessageType.Room);
                     break;
                 case ClientOperate.User_LeaveServer:
                 default:
@@ -675,7 +648,6 @@ namespace Network.Multiplayer.Managers
                     break;
                 case ServerOperate.UpdateScore:
                     (string, string) scorePair = (pack["from"].ToString(), pack["Score"].ToString());
-                    Logger.Log(scorePair);
                     OnUpdateScoreReceived.Invoke(scorePair);
                     break;
                 case ServerOperate.PlayerQuit:

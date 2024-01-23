@@ -407,7 +407,7 @@ namespace MainCore.Utilities
                 if (!useLchzh)
                 {
                     string[] jsons = Directory.GetFiles(directory, "*.json")
-                        .Where(str => Path.GetFileName(str) != "extra.json").ToArray();
+                        .Where(str => Path.GetFileName(str).ToLowerInvariant() != "extra.json").ToArray();
                     if (jsons.Length > 0)
                     {
                         string ch = await File.ReadAllTextAsync(jsons[0]);
@@ -516,6 +516,10 @@ namespace MainCore.Utilities
                     gameFilePathInfo.Illustration = phiraChartInfoData.illustration;
                     break;
                 case InfoType.RpeJson:
+                    RpeChartData.RpeMeta rpeMeta = obj as RpeChartData.RpeMeta;
+                    gameFilePathInfo.Chart = Directory.GetFiles(directory, "*.json").Select(Path.GetFileName).Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
+                    gameFilePathInfo.Music = rpeMeta.song;
+                    gameFilePathInfo.Illustration = rpeMeta.background;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

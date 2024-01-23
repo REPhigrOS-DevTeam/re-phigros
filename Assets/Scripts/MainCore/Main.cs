@@ -84,17 +84,32 @@ namespace MainCore
             RefreshRuntimeScoreUI();
         }
 
+        private int maximumRankCount = 3;
+
         private void RefreshRuntimeScoreUI()
         {
             // runtimeScores.OrderBy(pair => pair.Value)
             KeyValuePair<string,int>[] pairs = runtimeScores.OrderBy(pair => pair.Value).ToArray();
-            first.text = pairs[0].Value + "  " + pairs[0].Key;
-            second.text = pairs.Length > 1 ? pairs[1].Value + "  " + pairs[1].Key : "";
-            third.text = pairs.Length > 2 ? pairs[2].Value + "  " + pairs[2].Key : "";
+            first.text = pairs[0].Value.ToString().PadLeft(7, '0') + "  " + pairs[0].Key;
+            if (maximumRankCount < 2) return;
+            if (pairs.Length < 2)
+            {
+                maximumRankCount = 1;
+                second.gameObject.SetActive(false);
+                third.gameObject.SetActive(false);
+                return;
+            }
+            second.text = pairs[1].Value.ToString().PadLeft(7, '0') + "  " + pairs[1].Key;
+            if (maximumRankCount < 3) return;
+            if (pairs.Length < 3)
+            {
+                maximumRankCount = 2;
+                third.gameObject.SetActive(false);
+                return;
+            }
+            third.text = pairs[2].Value.ToString().PadLeft(7, '0') + "  " + pairs[2].Key;
         }
-
-        private StringBuilder stringBuilder = new StringBuilder();
-
+        
         private async void UploadScore()
         {
             await UniTask.SwitchToMainThread();
@@ -121,8 +136,9 @@ namespace MainCore
 
                 UniTask.Void(async () =>
                 {
-                    await UniTask.Delay(100);
                     RefreshRuntimeScoreUI();
+                    await UniTask.Delay(100);
+                    await UniTask.WaitUntil(() => GlobalSetting.GameStarted);
                     while (GlobalSetting.GameStarted)
                     {
                         if (!GlobalSetting.Paused) UploadScore();
@@ -283,7 +299,7 @@ namespace MainCore
 
             if (GlobalSetting.IsMultiplayer)
             {
-                Destroy(pauseButton.gameObject);
+                pauseButton.gameObject.SetActive(false);
                 Destroy(retryButton.gameObject);
                 Destroy(terminateButton.gameObject);
             }
@@ -428,7 +444,7 @@ namespace MainCore
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
             progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
-            await new WaitForSeconds(4f);
+            await UniTask.Delay(4000);
             GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
@@ -464,7 +480,7 @@ namespace MainCore
             GlobalSetting.IsEnding = true;
             operation = SceneManager.LoadSceneAsync("LevelOver 1");
             operation.allowSceneActivation = false;
-            await new WaitForSeconds(2);
+            await UniTask.Delay(2000);
             operation.allowSceneActivation = true;
             await operation;
             //SceneTransit.Instance.TransitTo("LevelOver 1");
@@ -715,24 +731,6 @@ namespace MainCore
         void Pause()
         {
             if (!GlobalSetting.GameStarted || GlobalSetting.Paused || !(MusicTime > 3f) || GlobalSetting.Paused) return;
-            if (GlobalSetting.IsMultiplayer)
-            {
-                UniTask.Void(async () =>
-                {
-                    await UniTask.SwitchToMainThread();
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    while (stopwatch.ElapsedMilliseconds < 15000)
-                    {
-                        if (!GlobalSetting.Paused) break;
-                        disconnectWarn.text = $"警告：将在 {MathF.Round(((15000 - stopwatch.ElapsedMilliseconds) / 1000f), 1)} 秒后断开连接";
-                        await UniTask.Yield();
-                    }
-                    disconnectWarn.text = "警告：将在 0 秒后断开连接";
-                    if (!GlobalSetting.Paused) return;
-                    Quit();
-                });
-            }
             GlobalSetting.Paused = true;
             progressManager.StopTiming();
             audio.Pause();
@@ -741,6 +739,23 @@ namespace MainCore
             audio.time = Mathf.Max(audio.time - 3f, 0f);
             progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
             videoManager.Pause();
+            if (GlobalSetting.IsMultiplayer) DisconnectListener();
+        }
+
+        private async void DisconnectListener()
+        {
+            await UniTask.SwitchToMainThread();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (stopwatch.ElapsedMilliseconds < 15000)
+            {
+                if (!GlobalSetting.Paused) break;
+                disconnectWarn.text = $"警告：将在 {(15000 - stopwatch.ElapsedMilliseconds) / 1000f:0.0} 秒后断开连接";
+                await UniTask.Yield();
+            }
+            disconnectWarn.text = "警告：将在 0 秒后断开连接";
+            if (!GlobalSetting.Paused) return;
+            Quit();
         }
 
         async UniTaskVoid UnPause()

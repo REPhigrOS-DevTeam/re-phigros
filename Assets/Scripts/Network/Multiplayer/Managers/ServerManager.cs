@@ -183,7 +183,7 @@ namespace Network.Multiplayer.Managers
                 SocketManager.OnLoginFailed += OnLoginFailed;
                 int sendState1 = SocketManager.Login();
                 int loginState = 0;
-                await new WaitWhile(() => loginState == 0);
+                await UniTask.WaitWhile(() => loginState == 0);
                 SocketManager.OnLoginSucceeded -= OnLoginSucceeded;
                 SocketManager.OnLoginFailed -= OnLoginFailed;
                 int sendState2 = 0;

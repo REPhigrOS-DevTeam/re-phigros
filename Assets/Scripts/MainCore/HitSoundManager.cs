@@ -216,7 +216,7 @@ namespace MainCore
                 if (!hitSounds[i]) continue;
                 hitSounds[i].LoadAudioData();
                 var i1 = i;
-                await new WaitUntil(() => hitSounds[i1].loadState is AudioDataLoadState.Loaded or AudioDataLoadState.Failed);
+                await UniTask.WaitUntil(() => hitSounds[i1].loadState is AudioDataLoadState.Loaded or AudioDataLoadState.Failed);
                 if (hitSounds[i].loadState == AudioDataLoadState.Failed) Debug.Log("???");
                 _nativeAudios.Add(i,
                     hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));

@@ -28,7 +28,7 @@ namespace Network.Multiplayer.Components
         private bool online = true, chart;
         private Socket socket;
         private bool isInternal, isSelected;
-        private static readonly int[] AvailableVersions = { 6 };
+        private static readonly int[] AvailableVersions = { 6, 7, 8, 9 };
         public bool Available { get; private set; } = false;
         private CancellationTokenSource cts;
 
@@ -131,7 +131,7 @@ namespace Network.Multiplayer.Components
                         serverName.text = data.Name;
                     }
                     tServerId.text = (isInternal ? "内置服务器 " : "") + "不匹配的版本";
-                    tServerMotd.text = string.Format(ErrorFormat, "服务器过旧，请联系服主");
+                    tServerMotd.text = string.Format(ErrorFormat, data.Version < AvailableVersions.OrderBy(i => i).First() ? "服务器过旧，请联系服主" : "服务器过新");
                     button.interactable = false;
                     button.onClick.RemoveListener(OnClicked);
                     return;

@@ -250,6 +250,7 @@ namespace Network.Account
                         {
                             usernameInputField.text = info.Username;
                             Create();
+                            UpdateUIState();
                         }, "确定");
                         break;
                     case StatusCode.NoPermission:

@@ -142,7 +142,7 @@ namespace MainCore.UI
 
         private async void LoadIn()
         {
-            await new WaitUntil(() => SkinManager.Instance.Inited);
+            await UniTask.WaitUntil(() => SkinManager.Instance.Inited);
             Application.targetFrameRate = 120;
             GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
             if (!File.Exists(Path.Combine(Application.persistentDataPath, "FuckIOS（别删）")))
@@ -256,7 +256,7 @@ namespace MainCore.UI
                     throw new ArgumentOutOfRangeException();
             }
 
-            await new WaitUntil(() => completed);
+            await UniTask.WaitUntil(() => completed);
         }
 
         private void Finally(AccountManager.AccountInfo info)
