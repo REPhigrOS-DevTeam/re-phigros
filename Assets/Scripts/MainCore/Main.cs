@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -21,7 +19,6 @@ using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 namespace MainCore
 {
@@ -89,7 +86,7 @@ namespace MainCore
         private void RefreshRuntimeScoreUI()
         {
             // runtimeScores.OrderBy(pair => pair.Value)
-            KeyValuePair<string,int>[] pairs = runtimeScores.OrderBy(pair => pair.Value).ToArray();
+            KeyValuePair<string,int>[] pairs = runtimeScores.OrderByDescending(pair => pair.Value).ToArray();
             first.text = pairs[0].Value.ToString().PadLeft(7, '0') + "  " + pairs[0].Key;
             if (maximumRankCount < 2) return;
             if (pairs.Length < 2)
