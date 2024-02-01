@@ -294,6 +294,7 @@ namespace MainCore
             
             multiplayerRank.gameObject.SetActive(GlobalSetting.IsMultiplayer);
 
+            disconnectWarn.gameObject.SetActive(false);
             if (GlobalSetting.IsMultiplayer)
             {
                 pauseButton.gameObject.SetActive(false);

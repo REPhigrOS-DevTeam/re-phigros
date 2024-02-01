@@ -22,5 +22,8 @@
 
 **永远不要**尝试在未提出pull request的情况下merge一个分支。
 
+## 616.sb发布
+发布windows和apk，apk后缀为apk即可，windows的zip命名规则为RPGR_{版本号}_Windows.zip, tag名与版本号一致
+
 ## 其他
 RPGREncryptHelper.exe: 用于外部加密、解密角色package的程序，里面存有RSA私钥，不要泄露。源码在另一个仓库

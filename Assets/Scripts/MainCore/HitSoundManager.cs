@@ -359,11 +359,11 @@ namespace MainCore
             var source = _unityAudios[soundIndex][index];
             _audioIndexes[soundIndex] = index;
 
-            Debug.Log(_hitSoundVolume);
-            Debug.Log(source.clip.samples);
+            // Debug.Log(_hitSoundVolume);
+            // Debug.Log(source.clip.samples);
             float[] f = new float[source.clip.channels * source.clip.samples];
             source.clip.GetData(f, 0);
-            Debug.Log($"[{string.Join(", ", f.Take(Mathf.Min(f.Length, 20)))}]");
+            // Debug.Log($"[{string.Join(", ", f.Take(Mathf.Min(f.Length, 20)))}]");
             source.volume = _hitSoundVolume;
             source.PlayScheduled(AudioSettings.dspTime);
         }
