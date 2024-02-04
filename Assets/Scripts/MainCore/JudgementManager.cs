@@ -123,10 +123,10 @@ namespace MainCore
 
 #if UNITY_EDITOR
             UpdateMouseInput(); //Editor (for test).
+#else
+            UpdateTouchInput(); //Touchscreen support.
 #endif
 
-
-            UpdateTouchInput(); //Touchscreen support.
 #if UNITY_STANDALONE || UNITY_EDITOR
             UpdateKeyBoardInput(); //Keyboard(?) support.
 #endif
