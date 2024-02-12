@@ -43,8 +43,8 @@ namespace Network
         #region AboutManifest
 
         private static Manifest manifest;
-        public static string loginUrl { get; private set; }
-        public static string verifyUrl { get; private set; }
+        public static string loginUrl => manifest.apiURL.userlogin;
+        public static string verifyUrl => manifest.apiURL.userverify;
 
         #endregion
 
@@ -118,8 +118,6 @@ namespace Network
                 throw new HttpRequestException($"RePhigros API: Service Error while getting manifest");
             }
 
-            loginUrl = manifest.apiURL.userlogin;
-            verifyUrl = manifest.apiURL.userverify;
             Debug.Log("RePhigros API: Manifest got.\n" + JsonConvert.SerializeObject(manifest, Formatting.Indented));
             return true;
         }

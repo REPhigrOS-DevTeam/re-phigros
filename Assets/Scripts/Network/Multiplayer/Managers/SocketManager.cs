@@ -9,8 +9,6 @@ using JetBrains.Annotations;
 using MainCore;
 using MainCore.Common;
 using MainCore.Utilities;
-using Network.Account;
-using Network.Account.Utils;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

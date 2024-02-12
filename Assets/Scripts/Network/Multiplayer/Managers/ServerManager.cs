@@ -174,59 +174,63 @@ namespace Network.Multiplayer.Managers
             await UniTask.SwitchToTaskPool();
             int state = SocketManager.CreateSocket(url);
             await UniTask.SwitchToMainThread();
-            if (state == 0)
+            if (state != 0)
             {
-                mpServerTest.UpdateConnectState("正在登录...");
-                SocketManager.Set(online, chart);
-                await UniTask.SwitchToTaskPool();
-                SocketManager.OnLoginSucceeded += OnLoginSucceeded;
-                SocketManager.OnLoginFailed += OnLoginFailed;
-                int sendState1 = SocketManager.Login();
-                int loginState = 0;
-                await UniTask.WaitWhile(() => loginState == 0);
-                SocketManager.OnLoginSucceeded -= OnLoginSucceeded;
-                SocketManager.OnLoginFailed -= OnLoginFailed;
-                int sendState2 = 0;
-                if (sendState1 == 0 && loginState == 1)
+                mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + state switch
                 {
-                    sendState2 = SocketManager.FetchServerInfo();
-                }
-                await UniTask.SwitchToMainThread();
-                if (sendState1 == 0)
-                {
-                    mpServerTest.UpdateConnectState("成功登录并同步");
-                    return;
-                }
-                
-                mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + (sendState2 == 0 ? "无法同步服务器" : sendState1 switch
+                    -1 => "未知错误",
+                    -2 => "服务器Url不合法",
+                    -3 => "无法连接服务器，可能是未启动",
+                    _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown Exception")
+                });
+                serverConnectStateFailedButton.SetActive(true);
+                return;
+            }
+
+            mpServerTest.UpdateConnectState("正在登录...");
+            SocketManager.Set(online, chart);
+            await UniTask.SwitchToTaskPool();
+            SocketManager.OnLoginSucceeded += OnLoginSucceeded;
+            SocketManager.OnLoginFailed += OnLoginFailed;
+            int sendState1 = SocketManager.Login();
+            int loginState = 0;
+            await UniTask.WaitWhile(() => loginState == 0);
+            SocketManager.OnLoginSucceeded -= OnLoginSucceeded;
+            SocketManager.OnLoginFailed -= OnLoginFailed;
+            int sendState2 = 0;
+            if (sendState1 == 0 && loginState == 1)
+            {
+                sendState2 = SocketManager.FetchServerInfo();
+            }
+
+            await UniTask.SwitchToMainThread();
+            if (sendState1 == 0)
+            {
+                mpServerTest.UpdateConnectState("成功登录并同步");
+                return;
+            }
+
+            mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + (sendState2 == 0
+                ? "无法同步服务器"
+                : sendState1 switch
                 {
                     -1 => "未知错误",
                     -2 => "无法连接至服务器",
                     -3 => "已经登录",
                     _ => throw new ArgumentOutOfRangeException(nameof(sendState1), sendState1, "Unknown Exception")
                 }));
-                serverConnectStateFailedButton.SetActive(true);
-                return;
-                
-                void OnLoginSucceeded()
-                {
-                    loginState = 1;
-                }
+            serverConnectStateFailedButton.SetActive(true);
+            return;
 
-                void OnLoginFailed()
-                {
-                    loginState = -1;
-                }
+            void OnLoginSucceeded()
+            {
+                loginState = 1;
             }
 
-            mpServerTest.UpdateConnectState(serverConnectState.text = "连接失败：" + state switch
+            void OnLoginFailed()
             {
-                -1 => "未知错误",
-                -2 => "服务器Url不合法",
-                -3 => "无法连接服务器，可能是未启动",
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Unknown Exception")
-            });
-            serverConnectStateFailedButton.SetActive(true);
+                loginState = -1;
+            }
         }
 
         private void SetupServerStateSelect()

@@ -8,11 +8,10 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Network.Account.Utils
+namespace Network
 {
     public static class UrlExtension
     {
