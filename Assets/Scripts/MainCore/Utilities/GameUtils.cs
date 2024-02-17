@@ -443,7 +443,7 @@ namespace MainCore.Utilities
                                                    .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
                                                        Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
 
-            float? musicLength = (await Util.ReadMusicAsAudioClip(musicPath))?.length;
+            float? musicLength = (await Util.ReadMusicAsAudioClipAsync(musicPath))?.length;
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
@@ -676,14 +676,15 @@ namespace MainCore.Utilities
             }
 
             // BUG: 无法正常播放打击音
-            skinInfo.clickAC = false && File.Exists($"{dirPath}/click.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/click.ogg", "click", true)
+            await UniTask.SwitchToMainThread();
+            skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+                ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/click.ogg", "click")
                 : SkinManager.Instance.defaultClickAC;
-            skinInfo.dragAC = false && File.Exists($"{dirPath}/drag.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/drag.ogg", "drag", true)
+            skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
+                ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/drag.ogg", "drag")
                 : SkinManager.Instance.defaultDragAC;
-            skinInfo.flickAC = false && File.Exists($"{dirPath}/flick.ogg")
-                ? await Util.ReadMusicAsAudioClip($"{dirPath}/flick.ogg", "flick", true)
+            skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
+                ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/flick.ogg", "flick")
                 : SkinManager.Instance.defaultFlickAC;
 
             return skinInfo;

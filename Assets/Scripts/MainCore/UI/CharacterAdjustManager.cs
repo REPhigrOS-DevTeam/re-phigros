@@ -13,8 +13,6 @@ using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
 using SFB;
-using SimpleFileBrowser;
-using Unimage;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -206,7 +204,7 @@ public class CharacterAdjustManager : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取文件，请检查是否被占用", () => { }, "确定");
             return;
         }
-        catch (UnimageException)
+        catch (Uniasset.NativeException)
         {
             InGameUIManager.ShowModalWindowWithClose("错误", "文件格式未知", () => { }, "确定");
             return;

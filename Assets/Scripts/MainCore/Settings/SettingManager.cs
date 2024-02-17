@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using Lean.Gui;
 using MainCore.Common;
 using MainCore.ECS_ver;
@@ -276,6 +277,7 @@ namespace MainCore.Settings
 
         private async void AddSkinFromPackage(string path)
         {
+            await UniTask.SwitchToMainThread();
             string tmpDirPath = Application.temporaryCachePath + "/tmpSkinPackage";
             string dirPath = $"{tmpDirPath}/{Path.GetFileNameWithoutExtension(path)}";
             if (Directory.Exists(dirPath)) Directory.Delete(dirPath, true);

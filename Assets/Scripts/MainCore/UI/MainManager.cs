@@ -4,13 +4,9 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
-using Network;
 using Newtonsoft.Json;
 using SFB;
-using SimpleFileBrowser;
-using Unimage;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace MainCore.UI
@@ -189,7 +185,7 @@ namespace MainCore.UI
             {
                 return null;
             }
-            catch (UnimageException)
+            catch (Uniasset.NativeException)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "文件格式不正确", () => { }, "确定");
                 return null;

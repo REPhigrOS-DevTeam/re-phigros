@@ -511,7 +511,7 @@ public class MPServerTest : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
         }
 
-        Main.music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
+        Main.music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
         if (chartInfo.Chart == null)

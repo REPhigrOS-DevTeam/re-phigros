@@ -251,7 +251,7 @@ namespace MainCore.UI
             AudioClip music;
             try
             {
-                music = await Util.ReadMusicAsAudioClip(GlobalSetting.MusicPath);
+                music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
             }
             catch (Exception e)
             {
