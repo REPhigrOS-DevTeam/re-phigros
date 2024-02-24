@@ -63,21 +63,7 @@ namespace MainCore.Common
             }
 
             ReplaceScene(sceneName);
-            switch (type)
-            {
-                case 0:
-                    OnSceneClosing.Invoke();
-                    SceneManager.LoadScene(sceneName); // 直入
-                    break;
-                case 1:
-                    TransitTo(sceneName); // 原来的转场
-                    break;
-                case 2:
-                    DoScene(sceneName); // DR3的转场
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            EnterScene(sceneName, type);
         }
 
         /// <summary>
@@ -86,6 +72,11 @@ namespace MainCore.Common
         public void LoadScene(string sceneName, int type = 1)
         {
             AppendScene(sceneName);
+            EnterScene(sceneName, type);
+        }
+
+        private void EnterScene(string sceneName, int type = 1)
+        {
             switch (type)
             {
                 case 0:
