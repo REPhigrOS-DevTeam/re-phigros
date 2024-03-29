@@ -30,6 +30,9 @@ namespace MainCore.Settings
         [SerializeField] private SkinPreview skinPreviewer;
         [SerializeField] private Button displaySkinInfo, deleteSkin;
         [SerializeField] private Transform hitEffectPos;
+        [SerializeField] private Button openAbout, closeAbout;
+        [SerializeField] private GameObject aboutCanvas;
+        [SerializeField] private Text aboutText;
         private Dictionary<Skin, SkinItem> internalSkinItems = new();
         private Dictionary<string, SkinItem> externalSkinItems = new();
         private bool selectedIsExternal = false;
@@ -37,6 +40,7 @@ namespace MainCore.Settings
 
         void Start()
         {
+            // 按钮注册
             displaySkinInfo.onClick.AddListener(() =>
             {
                 InGameUIManager.ShowModalWindowWithClose("信息",
@@ -73,6 +77,14 @@ namespace MainCore.Settings
                 skinPreview.SetActive(false);
                 delayCorrect.SetRunning(true);
             });
+            openAbout.onClick.AddListener(() =>
+            {
+                aboutCanvas.SetActive(true);
+            });
+            closeAbout.onClick.AddListener(() =>
+            {
+                aboutCanvas.SetActive(false);
+            });
             if (GlobalSetting.IsOffline)
             {
                 logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
@@ -92,6 +104,7 @@ namespace MainCore.Settings
 #endif
             saveNExit.OnClick.AddListener(SaveNExit);
             dspEnter.OnClick.AddListener(IntoDSP);
+            // 彩蛋们
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
                 {
@@ -121,6 +134,7 @@ namespace MainCore.Settings
 // #if !RELEASE_VERSION || UNITY_EDITOR
 //             skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼" });
 // #endif
+            // 皮肤
             skinSelectorCanvas.SetActive(false);
             skinPreview.SetActive(false);
             for (int i = 0; i < internalSkinParent.childCount; i++)
@@ -152,6 +166,13 @@ namespace MainCore.Settings
             {
                 internalSkinItems[GlobalSetting.CurrentSkinInfo.skin]?.GetComponent<Button>().onClick.Invoke();
             }
+            
+            // 其他
+            aboutCanvas.SetActive(false);
+            TextAsset textAsset = Resources.Load<TextAsset>("Others/About");
+            aboutText.text = textAsset.text;
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)aboutText.rectTransform.parent);
+            Resources.UnloadAsset(textAsset);
         }
 
         private void LogOut()

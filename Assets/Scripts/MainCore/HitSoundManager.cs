@@ -1,7 +1,7 @@
 ﻿#if UNITY_EDITOR || !UNITY_ANDROID
 #define DISABLE_NATIVE_AUDIO
 #endif
-// #define USE_MA_AUDIO
+#define USE_MA_AUDIO
 using System;
 using System.Collections.Generic;
 using System.Globalization;
