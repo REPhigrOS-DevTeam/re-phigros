@@ -114,119 +114,92 @@ namespace MainCore.Utilities
 
         public static async UniTask<AudioClip> ReadMusicAsAudioClipAsync(string path, string clipName = "")
         {
-            AudioAsset audioAsset = new AudioAsset();
-            byte[] readAllBytesAsync = await File.ReadAllBytesAsync(path);
-            audioAsset.Load(readAllBytesAsync);
-            NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
-            float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
-            int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
-            nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
-            AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
-                false);
-            audioClip.SetData(pcmBuffer, 0);
-            return audioClip;
-            // AudioType? audioType = await GetAudioTypeFromFile(path);
-            // switch (audioType)
-            // {
-            //     case null:
-            //         return null;
-            //     case AudioType.MPEG:
-            //     {
-            //         MpegFile mpegFile = new MpegFile(path);
-            //
-            //         if (readAll)
-            //         {
-            //             int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
-            //             float[] samples = new float[lengthSamples * mpegFile.Channels];
-            //             int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
-            //             AudioClip ac = AudioClip.Create(clipName, lengthSamples, mpegFile.Channels, mpegFile.SampleRate,
-            //                 false);
-            //             ac.SetData(samples, 0);
-            //             mpegFile.Dispose();
-            //             return ac;
-            //         }
-            //
-            //         AudioClip ac1 = AudioClip.Create(clipName,
-            //             (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels),
-            //             mpegFile.Channels,
-            //             mpegFile.SampleRate,
-            //             true,
-            //             data =>
-            //             {
-            //                 float[] f = new float[data.Length];
-            //                 int _ = mpegFile.ReadSamples(f, 0, data.Length);
-            //                 for (int i = 0; i < data.Length; i++)
-            //                 {
-            //                     data[i] = f[i];
-            //                 }
-            //             },
-            //             position =>
-            //             {
-            //                 mpegFile.Dispose();
-            //                 mpegFile = new MpegFile(path);
-            //                 mpegFile.Position = position * sizeof(float) * mpegFile.Channels;
-            //             }
-            //         );
-            //
-            //         return ac1;
-            //     }
-            //     case AudioType.OGGVORBIS:
-            //     // {
-            //     //     // Load the data into a stream
-            //     //
-            //     //     NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-            //     //     int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
-            //     //     
-            //     //     if (readAll)
-            //     //     {
-            //     //         float[] samples = new float[vorbis.TotalSamples];
-            //     //         int _ = vorbis.ReadSamples(samples, 0, samples.Length);
-            //     //
-            //     //         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
-            //     //             false);
-            //     //         ac.SetData(samples, 0);
-            //     //         vorbis.Dispose();
-            //     //         if (clipName == "click")
-            //     //         {
-            //     //             Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
-            //     //         }
-            //     //         return ac;
-            //     //     }
-            //     //
-            //     //     AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
-            //     //         data =>
-            //     //         {
-            //     //             var f = new float[data.Length];
-            //     //             int _ = vorbis.ReadSamples(f, 0, data.Length);
-            //     //             for (int i = 0; i < data.Length; i++)
-            //     //             {
-            //     //                 data[i] = f[i];
-            //     //             }
-            //     //         }, position =>
-            //     //         {
-            //     //             vorbis.Dispose();
-            //     //             vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-            //     //             int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
-            //     //             vorbis.SamplePosition = position + offset;
-            //     //         });
-            //     //     // Return the clip
-            //     //     return ac1;
-            //     // }
-            //     case AudioType.WAV:
-            //     case AudioType.UNKNOWN:
-            //     {
-            //         await UniTask.SwitchToMainThread();
-            //         Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            //         UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType)audioType);
-            //         await uwr.SendWebRequest();
-            //         if (uwr.error != null) throw new ArgumentException();
-            //         AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
-            //         audioClip.name = clipName;
-            //         return audioClip;
-            //     }
-            //     default:
-            //         throw new ArgumentOutOfRangeException();
-            // }
+            // AudioAsset audioAsset = new AudioAsset();
+            // byte[] readAllBytesAsync = await File.ReadAllBytesAsync(path);
+            // audioAsset.Load(readAllBytesAsync);
+            // NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
+            // float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
+            // int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
+            // nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
+            // AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
+            //     false);
+            // audioClip.SetData(pcmBuffer, 0);
+            // return audioClip;
+            AudioType? audioType = await GetAudioTypeFromFile(path);
+            switch (audioType)
+            {
+                case null:
+                    return null;
+                case AudioType.MPEG:
+                {
+                    MpegFile mpegFile = new MpegFile(path);
+            
+                    int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
+                    float[] samples = new float[lengthSamples * mpegFile.Channels];
+                    int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
+                    AudioClip ac = AudioClip.Create(clipName, lengthSamples, mpegFile.Channels, mpegFile.SampleRate,
+                        false);
+                    ac.SetData(samples, 0);
+                    mpegFile.Dispose();
+                    return ac;
+                }
+                case AudioType.OGGVORBIS:
+                // {
+                //     // Load the data into a stream
+                //
+                //     NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                //     int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                //     
+                //     if (readAll)
+                //     {
+                //         float[] samples = new float[vorbis.TotalSamples];
+                //         int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                //
+                //         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                //             false);
+                //         ac.SetData(samples, 0);
+                //         vorbis.Dispose();
+                //         if (clipName == "click")
+                //         {
+                //             Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
+                //         }
+                //         return ac;
+                //     }
+                //
+                //     AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
+                //         data =>
+                //         {
+                //             var f = new float[data.Length];
+                //             int _ = vorbis.ReadSamples(f, 0, data.Length);
+                //             for (int i = 0; i < data.Length; i++)
+                //             {
+                //                 data[i] = f[i];
+                //             }
+                //         }, position =>
+                //         {
+                //             vorbis.Dispose();
+                //             vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                //             int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
+                //             vorbis.SamplePosition = position + offset;
+                //         });
+                //     // Return the clip
+                //     return ac1;
+                // }
+                case AudioType.WAV:
+                case AudioType.UNKNOWN:
+                {
+                    await UniTask.SwitchToMainThread();
+                    Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
+                    UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType)audioType);
+                    await uwr.SendWebRequest();
+                    if (uwr.error != null) throw new ArgumentException();
+                    AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
+                    audioClip.name = clipName;
+                    return audioClip;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private static async UniTask<AudioType?> GetAudioTypeFromFile(string path)

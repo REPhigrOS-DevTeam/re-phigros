@@ -10,6 +10,7 @@ using System.Text;
 using MainCore.Common;
 using MainCore.Utilities;
 using UnityEngine;
+using UnityEngine.Networking;
 #if !DISABLE_NATIVE_AUDIO || USE_MA_AUDIO
 using Cysharp.Threading.Tasks;
 #endif
@@ -276,13 +277,13 @@ namespace MainCore
                     else
                     {
                         _maAudios[i][j] = GlobalSetting.CurrentSkinInfo.isExternal
-                            ? await AudioSample.LoadFromExternalUrl(UrlEncodePath(SkinManager.Instance.skinPath + "/" + GlobalSetting.CurrentSkinInfo.id + "/" + i switch
+                            ? await AudioSample.LoadFromExternalUrl(UnityWebRequest.EscapeURL(SkinManager.Instance.skinPath + "/" + GlobalSetting.CurrentSkinInfo.id + "/" + i switch
                             {
                                 1 => "click.ogg",
                                 2 => "drag.ogg",
                                 3 => "click.ogg",
                                 4 => "flick.ogg",
-                                _ => throw new ArgumentOutOfRangeException()
+                                _ => throw new ArgumentOutOfRangeException(nameof(i), i, "Illegal HitSound Type Id")
                             }))
                             : await AudioSample.LoadFromAudioClip(hitSounds[i]);
                     }
@@ -293,37 +294,6 @@ namespace MainCore
             }
         }
 #endif
-
-        private string UrlEncodePath(string path)
-        {
-            string str = "file://" + string.Join("/", path.Replace("\\", "/").Split('/').Select(UrlEncode));
-            Debug.Log(str);
-            return str;
-        }
-
-        private string UrlEncode(string str)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            TextElementEnumerator textElementEnumerator = StringInfo.GetTextElementEnumerator(str);
-            UTF8Encoding utf8Encoding = new UTF8Encoding(false);
-            while (textElementEnumerator.MoveNext())
-            {
-                string qwq = textElementEnumerator.GetTextElement();
-                if (qwq.Length == 1)
-                {
-                    char c = qwq[0];
-                    if (c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '-' or '_' or '.' or '~')
-                    {
-                        stringBuilder.Append(c);
-                        continue;
-                    }
-                }
-
-                stringBuilder.Append(string.Join("", utf8Encoding.GetBytes(qwq).Select(b => "%" + Convert.ToString(b, 16))));
-            }
-
-            return stringBuilder.ToString();
-        }
 
         public void Play(int soundIndex, float rewriteVolume = -1)
         {
