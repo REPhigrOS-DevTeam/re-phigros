@@ -27,3 +27,10 @@
 
 ## 其他
 RPGREncryptHelper.exe: 用于外部加密、解密角色package的程序，里面存有RSA私钥，不要泄露。源码在另一个仓库
+
+## 附录
+
+iOS所需开启的key列表（XCode内名称）：
+- Supports Document Browser: 开启文件内程序文件夹访问权限
+- Enable ProMotion Supports: 针对iPhone 13开始的所有pro版本，解锁120帧
+- Application supports iTunes file sharing: (可写可不写)开启iTunes程序文件夹访问权限（注：该权限也是几乎所有iOS助手直接浏览程序文件夹的前提，如爱思助手）
