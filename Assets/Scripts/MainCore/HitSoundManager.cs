@@ -1,34 +1,19 @@
-﻿#if UNITY_EDITOR || !UNITY_ANDROID
-#define DISABLE_NATIVE_AUDIO
-#endif
+﻿#define DISABLE_NATIVE_AUDIO
 #define USE_MA_AUDIO
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
 using MainCore.Common;
 using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.Networking;
-#if !DISABLE_NATIVE_AUDIO || USE_MA_AUDIO
 using Cysharp.Threading.Tasks;
-#endif
-#if USE_MA_AUDIO
 using MaTech.Audio;
-#endif
-#if !DISABLE_NATIVE_AUDIO
-using E7.Native;
-#endif
 
 namespace MainCore
 {
     public class HitSoundManager : MonoSingleton<HitSoundManager>
     {
         private static Dictionary<int, AudioSource[]> _unityAudios;
-#if !DISABLE_NATIVE_AUDIO
-        private static Dictionary<int, NativeAudioPointer> _nativeAudios;
-#endif
 #if USE_MA_AUDIO
         private static Dictionary<int, AudioSample[]> _maAudios;
 #endif
@@ -39,137 +24,19 @@ namespace MainCore
         [SerializeField] private AudioClip[] hitSounds;
         [SerializeField] private int[] hitSoundsLength;
 
-#if !DISABLE_NATIVE_AUDIO
-        private static NativeSource.PlayOptions _nativeAudioOptions;
-        private List<int> nativeIndexes = new();
-#endif
-
         protected override void OnAwake()
         {
 #if USE_MA_AUDIO
             InitMaAudio().Forget();
-#elif !DISABLE_NATIVE_AUDIO
-            InitNativeAudio().Forget();
 #else
             InitUnityAudio();
-#endif
-        }
-
-        //Handle NativeAudio's sounds later to achieve a sync.
-        void LateUpdate()
-        {
-#if !DISABLE_NATIVE_AUDIO
-            if (nativeIndexes.Count == 0) return;
-
-            int tapCnt = 0, dragCnt = 0, flickCnt = 0;
-
-            foreach (var i in nativeIndexes)
-            {
-                if (i is 1 or 3) tapCnt++;
-                else if (i is 2) dragCnt++;
-                else flickCnt++;
-            }
-
-            tapCnt = tapCnt > 3 ? 3 : tapCnt;
-            dragCnt = dragCnt > 3 ? 3 : dragCnt;
-            flickCnt = flickCnt > 2 ? 2 : flickCnt;
-
-            if (dragCnt + flickCnt == 0)
-            {
-                while (tapCnt-- > 0)
-                {
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else if (dragCnt == 0)
-            {
-                int cnt = 0;
-                while (tapCnt-- > 0)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-
-                while (flickCnt-- > 0 && cnt < 3)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[4];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else if (flickCnt == 0)
-            {
-                int cnt = 0;
-                while (tapCnt-- > 0)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-
-                while (dragCnt-- > 0 && cnt < 3)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[2];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else
-            {
-                var pointer = _nativeAudios[1];
-                var source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-                pointer = _nativeAudios[2];
-                source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-                pointer = _nativeAudios[4];
-                source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-            }
-
-            nativeIndexes.Clear();
-
 #endif
         }
 
         public static void UpdateVolume()
         {
             _hitSoundVolume = GlobalSetting.HitVolume;
-            
-#if !DISABLE_NATIVE_AUDIO
-            if (NativeAudio.OnSupportedPlatform)
-            {
-                for (var i = 0; i < NativeAudio.GetNativeSourceCount(); i++)
-                {
-                    NativeAudio.GetNativeSource(i).SetVolume(_hitSoundVolume);
-                }
-            }
-
-            _nativeAudioOptions.volume = _hitSoundVolume;
-#endif
         }
-
-#if !DISABLE_NATIVE_AUDIO
-        private async UniTaskVoid InitNativeAudio()
-        {
-            if (!NativeAudio.OnSupportedPlatform) return;
-
-            var opt = NativeAudio.InitializationOptions.defaultOptions;
-            NativeAudio.Initialize(opt);
-            _nativeAudios = new Dictionary<int, NativeAudioPointer>();
-            _audioIndexes = new Dictionary<int, int>();
-            _nativeAudioOptions = new NativeSource.PlayOptions();
-
-            await RefreshNativeAudio();
-        }
-#endif
 
         private void InitUnityAudio()
         {
@@ -201,29 +68,10 @@ namespace MainCore
             hitSounds[4] = skinInfo.flickAC;
 #if USE_MA_AUDIO
             await RefreshMaAudio();
-#elif !DISABLE_NATIVE_AUDIO
-            await RefreshNativeAudio();
 #else
             RefreshUnityAudio();
 #endif
         }
-
-#if !DISABLE_NATIVE_AUDIO
-        private async UniTask RefreshNativeAudio()
-        {
-            _nativeAudios.Clear();
-            for (var i = 0; i < hitSounds.Length; i++)
-            {
-                if (!hitSounds[i]) continue;
-                hitSounds[i].LoadAudioData();
-                var i1 = i;
-                await UniTask.WaitUntil(() => hitSounds[i1].loadState is AudioDataLoadState.Loaded or AudioDataLoadState.Failed);
-                if (hitSounds[i].loadState == AudioDataLoadState.Failed) Debug.Log("???");
-                _nativeAudios.Add(i,
-                    hitSounds[i].loadState == AudioDataLoadState.Failed ? null : NativeAudio.Load(hitSounds[i]));
-            }
-        }
-#endif
 
 
         private void RefreshUnityAudio()
@@ -302,23 +150,12 @@ namespace MainCore
 
 #if USE_MA_AUDIO
             PlayByMaAudio(soundIndex);
-#elif !DISABLE_NATIVE_AUDIO
-            PlayByNativeAudio(soundIndex);
 #else
             PlayByUnityAudio(soundIndex);
 #endif
 
             _hitSoundVolume = orgVlm;
         }
-
-#if !DISABLE_NATIVE_AUDIO
-        private void PlayByNativeAudio(int soundIndex)
-        {
-            if (_hitSoundVolume <= 0.01f) return;
-
-            nativeIndexes.Add(soundIndex);
-        }
-#endif
 
         private void PlayByUnityAudio(int soundIndex)
         {
