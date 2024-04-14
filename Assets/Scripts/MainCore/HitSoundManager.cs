@@ -2,6 +2,8 @@
 #define USE_MA_AUDIO
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using MainCore.Common;
 using MainCore.Utilities;
 using UnityEngine;
@@ -83,6 +85,7 @@ namespace MainCore
                     Destroy(audioSource.gameObject);
                 }
             }
+
             _unityAudios.Clear();
             _audioIndexes.Clear();
 
@@ -116,7 +119,8 @@ namespace MainCore
                 _audioIndexes.Add(i, 0);
                 for (var j = 0; j < hitSoundsLength[i]; j++)
                 {
-                    if (!hitSounds[i] && (!GlobalSetting.CurrentSkinInfo || !GlobalSetting.CurrentSkinInfo.isExternal)) continue;
+                    if (!hitSounds[i] && (!GlobalSetting.CurrentSkinInfo || !GlobalSetting.CurrentSkinInfo.isExternal))
+                        continue;
                     if (_maAudios[i][j] != null) _maAudios[i][j].Unload();
                     if (i == 0)
                     {
@@ -125,14 +129,15 @@ namespace MainCore
                     else
                     {
                         _maAudios[i][j] = GlobalSetting.CurrentSkinInfo.isExternal
-                            ? await AudioSample.LoadFromExternalUrl(UnityWebRequest.EscapeURL(SkinManager.Instance.skinPath + "/" + GlobalSetting.CurrentSkinInfo.id + "/" + i switch
-                            {
-                                1 => "click.ogg",
-                                2 => "drag.ogg",
-                                3 => "click.ogg",
-                                4 => "flick.ogg",
-                                _ => throw new ArgumentOutOfRangeException(nameof(i), i, "Illegal HitSound Type Id")
-                            }))
+                            ? await AudioSample.LoadFromExternalUrl(EscapeFilePath(SkinManager.Instance.skinPath + "/" +
+                                GlobalSetting.CurrentSkinInfo.id + "/" + i switch
+                                {
+                                    1 => "click.ogg",
+                                    2 => "drag.ogg",
+                                    3 => "click.ogg",
+                                    4 => "flick.ogg",
+                                    _ => throw new ArgumentOutOfRangeException(nameof(i), i, "Illegal HitSound Type Id")
+                                }))
                             : await AudioSample.LoadFromAudioClip(hitSounds[i]);
                     }
 
@@ -142,6 +147,37 @@ namespace MainCore
             }
         }
 #endif
+
+        private string EscapeFilePath(string filePath)
+        {
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
+            string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
+            int system;
+            if (pathRoot.EndsWith(":/"))
+            {
+                system = 0; // Windows
+            }
+            else if (pathRoot == "/")
+            {
+                system = 1; // 其他系统
+            }
+            else
+            {
+                system = -1;
+            }
+            
+            if (system == -1) throw new ArgumentException("Invalid file path: " + filePath, nameof(filePath));
+
+            filePath = filePath.Substring(pathRoot.Length);
+
+            string pathSeparator = system switch
+            {
+                0 => "\\",
+                1 => "/",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return $"file://{pathRoot}{string.Join(pathSeparator, filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";
+        }
 
         public void Play(int soundIndex, float rewriteVolume = -1)
         {

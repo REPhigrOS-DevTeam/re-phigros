@@ -11,8 +11,12 @@ using MainCore.Data;
 using MainCore.UI;
 using Newtonsoft.Json;
 using NLayer;
+#if true
 using Uniasset.Audio;
 using Uniasset.Image;
+#else
+using Unimage;
+#endif
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
@@ -49,23 +53,44 @@ namespace MainCore.Utilities
             return type.IsSubclassOf(type1) || type == type1;
         }
 
-        public static Texture2D ReadFileAsTexture(byte[] data) // 不建议using
+        public static Texture2D ReadFileAsTexture(byte[] data)
         {
-            ImageAsset imageAsset = new ImageAsset();
+#if true
+            ImageAsset imageAsset = new ImageAsset(); // 不建议using
             imageAsset.Load(data);
             Texture2D texture2D = imageAsset.ToTexture2D(noLongerReadable: false);
             imageAsset.Dispose();
             return texture2D;
+#else
+            try
+            {
+                UnimageProcessor unimageProcessor = new UnimageProcessor();
+                unimageProcessor.Load(data);
+                unimageProcessor.Resize(unimageProcessor.Width, unimageProcessor.Height);
+                Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
+                unimageProcessor.Dispose();
+                return texture;
+            }
+            catch (UnimageException)
+            {
+                return null;
+            }
+#endif
         }
 
-        public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data) // 不建议using
+        public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
         {
+#if true
             await UniTask.SwitchToMainThread();
-            ImageAsset imageAsset = new ImageAsset();
+            ImageAsset imageAsset = new ImageAsset(); // 不建议using
             await imageAsset.LoadAsync(data);
             Texture2D texture2D = await imageAsset.ToTexture2DAsync(noLongerReadable: false);
             imageAsset.Dispose();
             return texture2D;
+#else
+            await UniTask.SwitchToMainThread();
+            return ReadFileAsTexture(data);
+#endif
         }
 
         public static (Sprite, Exception) ReadFileAsSprite(byte[] data, float ppu = 100f)
@@ -133,7 +158,7 @@ namespace MainCore.Utilities
                 case AudioType.MPEG:
                 {
                     MpegFile mpegFile = new MpegFile(path);
-            
+
                     int lengthSamples = (int)(mpegFile.Length / sizeof(float) / mpegFile.Channels);
                     float[] samples = new float[lengthSamples * mpegFile.Channels];
                     int _ = mpegFile.ReadSamples(samples, 0, lengthSamples * mpegFile.Channels);
@@ -144,47 +169,41 @@ namespace MainCore.Utilities
                     return ac;
                 }
                 case AudioType.OGGVORBIS:
-                // {
-                //     // Load the data into a stream
-                //
-                //     NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                //     int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
-                //     
-                //     if (readAll)
-                //     {
-                //         float[] samples = new float[vorbis.TotalSamples];
-                //         int _ = vorbis.ReadSamples(samples, 0, samples.Length);
-                //
-                //         AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
-                //             false);
-                //         ac.SetData(samples, 0);
-                //         vorbis.Dispose();
-                //         if (clipName == "click")
-                //         {
-                //             Debug.Log($"[{string.Join(", ", samples.Take(Mathf.Min(samples.Length, 20)))}]");
-                //         }
-                //         return ac;
-                //     }
-                //
-                //     AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
-                //         data =>
-                //         {
-                //             var f = new float[data.Length];
-                //             int _ = vorbis.ReadSamples(f, 0, data.Length);
-                //             for (int i = 0; i < data.Length; i++)
-                //             {
-                //                 data[i] = f[i];
-                //             }
-                //         }, position =>
-                //         {
-                //             vorbis.Dispose();
-                //             vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                //             int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
-                //             vorbis.SamplePosition = position + offset;
-                //         });
-                //     // Return the clip
-                //     return ac1;
-                // }
+                {
+                    // Load the data into a stream
+                
+                    NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                    
+                    float[] samples = new float[vorbis.TotalSamples];
+                    int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                
+                    AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                        false);
+                    ac.SetData(samples, 0);
+                    vorbis.Dispose();
+                    return ac;
+                    // use PCMReader
+                    //
+                    // AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
+                    //     data =>
+                    //     {
+                    //         var f = new float[data.Length];
+                    //         int _ = vorbis.ReadSamples(f, 0, data.Length);
+                    //         for (int i = 0; i < data.Length; i++)
+                    //         {
+                    //             data[i] = f[i];
+                    //         }
+                    //     }, position =>
+                    //     {
+                    //         vorbis.Dispose();
+                    //         vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    //         int offset = (int)(vorbis.TotalSamples - (long)(vorbis.SampleRate * vorbis.TotalTime.TotalSeconds));
+                    //         vorbis.SamplePosition = position + offset;
+                    //     });
+                    // // Return the clip
+                    // return ac1;
+                }
                 case AudioType.WAV:
                 case AudioType.UNKNOWN:
                 {
@@ -193,9 +212,9 @@ namespace MainCore.Utilities
                     UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, (AudioType)audioType);
                     await uwr.SendWebRequest();
                     if (uwr.error != null) throw new ArgumentException();
-                    AudioClip audioClip = DownloadHandlerAudioClip.GetContent(uwr);
-                    audioClip.name = clipName;
-                    return audioClip;
+                    AudioClip audioClip1 = DownloadHandlerAudioClip.GetContent(uwr);
+                    audioClip1.name = clipName;
+                    return audioClip1;
                 }
                 default:
                     throw new ArgumentOutOfRangeException();

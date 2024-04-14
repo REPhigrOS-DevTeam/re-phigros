@@ -8,80 +8,98 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace MaTech.Audio {
-    public static partial class MaAudio {
+namespace MaTech.Audio
+{
+    public static partial class MaAudio
+    {
         public static bool IsLoadedForUnity { get; private set; } = false;
         public static bool IsDebugLogEnabled { get; private set; } = false;
 
-        #if UNITY_EDITOR || DEVELOPMENT_BUILD || MAAUDIO_DEBUG_LOG
+#if UNITY_EDITOR || DEVELOPMENT_BUILD || MAAUDIO_DEBUG_LOG
         [AOT.MonoPInvokeCallback(typeof(Logger))]
         private static void Log(string s) => Debug.Log("[MaAudio Native] " + s);
-        static MaAudio() {
+
+        static MaAudio()
+        {
             Debug.Log("MaAudio native debug logging enabled.");
             DebugLogFunction = Log;
             IsDebugLogEnabled = true;
         }
-        #endif
-        
-        public static bool LoadForUnity() {
-            if (!Create(AudioSettings.outputSampleRate)) {
-                Debug.LogError(IsDebugLogEnabled ? "Cannot create MaAudio." : "Cannot create MaAudio. Enable debug logging on native plugin to see more details.");
+#endif
+
+        public static bool LoadForUnity()
+        {
+            if (!Create(AudioSettings.outputSampleRate))
+            {
+                Debug.LogError(IsDebugLogEnabled
+                    ? "Cannot create MaAudio."
+                    : "Cannot create MaAudio. Enable debug logging on native plugin to see more details.");
                 return false;
             }
-            
-            #if UNITY_EDITOR
+
+#if UNITY_EDITOR
             EditorApplication.pauseStateChanged += onEditorPause;
-            #endif
-            
+#endif
+
             Application.quitting += UnloadForUnity;
+#if !UNITY_EDITOR && !UNITY_STANDALONE
             Application.focusChanged += OnFocusChanged;
-            
+#endif
+
             isFocusLost = !Application.isFocused;
-            
+
             Debug.Log("MaAudio created.");
             IsLoadedForUnity = true;
             return true;
         }
 
-        public static void UnloadForUnity() {
+        public static void UnloadForUnity()
+        {
             if (!IsLoadedForUnity) return;
-            
-            #if UNITY_EDITOR
+
+#if UNITY_EDITOR
             EditorApplication.pauseStateChanged -= onEditorPause;
-            #endif
-            
+#endif
+
             Application.quitting -= UnloadForUnity;
+#if !UNITY_EDITOR && !UNITY_STANDALONE
             Application.focusChanged -= OnFocusChanged;
-            
+#endif
+
             Destroy();
-            
+
             Debug.Log("MaAudio destroyed.");
             IsLoadedForUnity = false;
         }
 
-        public static bool ReloadForUnity() {
+        public static bool ReloadForUnity()
+        {
             UnloadForUnity();
             return LoadForUnity();
         }
 
         private static bool isFocusLost = false;
         private static bool isEditorPaused = false;
-        
-        private static void OnFocusChanged(bool focused) {
+
+#if !UNITY_EDITOR && !UNITY_STANDALONE
+        private static void OnFocusChanged(bool focused)
+        {
             isFocusLost = !focused;
             Paused = isFocusLost || isEditorPaused;
         }
+#endif
 
-        #if MAAUDIO_LOAD_ON_STARTUP
+#if MAAUDIO_LOAD_ON_STARTUP
         [RuntimeInitializeOnLoadMethod]
         private static void RuntimeInitializeOnLoad() => ReloadForUnity();
-        #endif
-        
-        #if UNITY_EDITOR
-        private static readonly Action<PauseState> onEditorPause = (state) => {
+#endif
+
+#if UNITY_EDITOR
+        private static readonly Action<PauseState> onEditorPause = (state) =>
+        {
             isEditorPaused = (state == PauseState.Paused);
             Paused = isFocusLost || isEditorPaused;
         };
-        #endif
+#endif
     }
 }
