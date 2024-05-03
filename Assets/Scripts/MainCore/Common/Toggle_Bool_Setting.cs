@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MainCore.Common
 {
-    public class Toggle_Bool_Setting : SettingBase<bool>
+    public class Toggle_Bool_Setting : SettingBase<LeanToggle, bool>
     {
         protected override void OnStart()
         {
@@ -12,17 +12,17 @@ namespace MainCore.Common
 
         public override bool GetValue()
         {
-            return PlayerPrefs.GetInt(dataTag, 0) == 1;
+            return PlayerPrefsExtension.GetBoolean(dataTag, defaultValue);
         }
 
         public override void SetValue(bool value)
         {
-            (dataContainer as LeanToggle).On = value;
+            DataContainer.On = value;
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetInt(dataTag, (dataContainer as LeanToggle).On ? 1 : 0);
+            PlayerPrefsExtension.SetBoolean(dataTag, DataContainer.On);
         }
     }
 }

@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.IO;
+using MainCore.Common;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -29,35 +32,36 @@ namespace MainCore.UI
         // Start is called before the first frame update
         void Start()
         {
-            chartName.text = GlobalSetting.chartName;
+            if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
+            {
+                GlobalSetting.ChartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";
+                GlobalSetting.Difficulty = "枇杷油嘿嘿枇杷油";
+            }
+            else if (GlobalSetting.YayaKawaii == GlobalSetting.YayaMode.绝冲)
+            {
+                GlobalSetting.ChartName = "夜夜爱的嗫中毒";
+                GlobalSetting.Difficulty = "夜夜ღ醉可爱";
+            }
 
-            songCover.sprite = GlobalSetting.backgroundImage;
-            backgroundImage.sprite = GlobalSetting.backgroundImage;
+            chartName.text = GlobalSetting.ChartName;
+
+            songCover.sprite = GlobalSetting.BackgroundImage;
+            backgroundImage.sprite = GlobalSetting.BackgroundImage;
 
             try //Try Parse difficulty
             {
-                difficultyNumber.text =
-                    GlobalSetting.difficulty.Substring(GlobalSetting.difficulty.LastIndexOf('.') + 1);
-                difficulty.text = GlobalSetting.difficulty.Substring(0, GlobalSetting.difficulty.LastIndexOf(' '));
+                string s = GlobalSetting.Difficulty.Substring(GlobalSetting.Difficulty.LastIndexOf(' ') + 1);
+                difficultyNumber.text = s.Substring(s.LastIndexOf('.') + 1).Trim();
+                difficulty.text = GlobalSetting.Difficulty.Substring(0, GlobalSetting.Difficulty.LastIndexOf(' ')).Trim();
             }
             catch
             {
-                difficultyNumber.text = GlobalSetting.difficulty;
+                difficultyNumber.text = GlobalSetting.Difficulty;
             }
 
-            if (GlobalSetting.infoTxt != null)
-            {
-                Charter = GlobalSetting.infoTxt.GetCharter();
-                Composer = GlobalSetting.infoTxt.GetComposer();
-                Illustrator = GlobalSetting.infoTxt.GetIllustrator();
-            }
-
-
-            if (GlobalSetting.formatVersion == 1919810)
-            {
-                Charter = GlobalSetting.charter;
-                Composer = GlobalSetting.composer;
-            }
+            Charter = GlobalSetting.Charter;
+            Composer = GlobalSetting.Composer;
+            Illustrator = GlobalSetting.Illustrator;
 
             charter.text = Charter;
             composer.text = Composer;
@@ -70,6 +74,7 @@ namespace MainCore.UI
         {
             yield return new WaitForSeconds(1);
             GlobalSetting.PlayClipAtPoint(enter, new Vector3(0, 0, -10), 1);
+            SceneTransit.Instance.ReplaceScene("PlayingScene");
             var operation = SceneManager.LoadSceneAsync("PlayingScene");
             operation.allowSceneActivation = false;
             slideInto.enabled = true;

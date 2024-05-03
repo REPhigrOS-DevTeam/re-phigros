@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74c3a02825fe46aeb80a09a60b9d2780, type: 3}
+  m_Name: Phira
+  m_EditorClassIdentifier: 
+  isExternal: 0
+  skin: 3
+  id: 
+  skinName: nomo
+  author: "\u661F\u9E7FELEC & \u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440"
+  description: "\u661F\u9E7FELEC\u8D1F\u8D23\u7ED8\u5236\uFF0C\u4E0D\u4F1A\u8BFB\u8C31\u7684FW\u5C0F\u8D75\u5440\u8D1F\u8D23\u97F3\u6548"
+  click: {fileID: 21300000, guid: 628fa6ba526bf4e479b04c3f460063e3, type: 3}
+  clickMh: {fileID: 21300000, guid: 64c109b164f800243a2de3debc7fcf4e, type: 3}
+  drag: {fileID: 21300000, guid: 3add09ca39a99664ba13ed04bb4f5933, type: 3}
+  dragMh: {fileID: 21300000, guid: 5491709d4153454428d75e32fc524719, type: 3}
+  flick: {fileID: 21300000, guid: 4b80faebb98e1784a9bae6070d6fec36, type: 3}
+  flickMh: {fileID: 21300000, guid: c236c460037c92a49971985fcdf74d35, type: 3}
+  holdHead: {fileID: 21300000, guid: 2e4a7bed76a0ee9408bb123eaae01e0f, type: 3}
+  holdHeadMh: {fileID: 21300000, guid: 11d9ccfbde994384e89d6e41222273c7, type: 3}
+  holdBody: {fileID: 21300000, guid: 5eb998f3010179241a7328f578d5affc, type: 3}
+  holdBodyMh: {fileID: 21300000, guid: d4bc75e3dd14ef94d8a0f48ae1e8378c, type: 3}
+  holdEnd: {fileID: 21300000, guid: 0eede236b9fbde544aea71f3b4e92b10, type: 3}
+  holdEndMh: {fileID: 21300000, guid: b881d67df71fb1e4da8d83ba0ffbbf42, type: 3}
+  click_bad: {fileID: 21300000, guid: 628fa6ba526bf4e479b04c3f460063e3, type: 3}
+  hitFx:
+  - {fileID: 1247939306, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -131503051, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -467378108, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1772239855, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1359119643, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1341584809, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 516786043, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1820991379, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1632854499, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -357296361, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1675937436, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1577979739, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1463704877, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -406281849, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 51789606, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1719371571, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 418989479, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -2121299, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1124787502, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1307714360, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1018776629, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1970505003, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 665765412, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1800830012, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 2064780062, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 648941412, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 707599112, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 535736894, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 726877285, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1303612064, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1046558914, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1842248671, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 2020140036, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -977550577, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1830379409, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1798816153, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1122593112, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -455333988, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1901157470, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 425212206, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 2003284616, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1441187502, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 2100442186, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 73278373, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1539815906, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 454141976, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 698359276, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1154371502, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1446861776, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 458019111, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 1682371898, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 2068380084, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: 167190252, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -2078674047, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1394396510, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  - {fileID: -1805109198, guid: f3c7cac38fc45264a80af9e9472140a2, type: 3}
+  hitParticle: {fileID: 21300000, guid: d6c034779a9f09a4da83d67d5aef2859, type: 3}
+  clickAC: {fileID: 8300000, guid: 3335eb977225e2046aa9182617871cfa, type: 3}
+  dragAC: {fileID: 8300000, guid: 19474b7e3e704784a80fa284203eb159, type: 3}
+  flickAC: {fileID: 8300000, guid: fde8dcf14dc81b847a534738b6c4955b, type: 3}
+  paintBadColor: 1
+  perfectColor: {r: 0.99607843, g: 1, b: 0.6784314, a: 1}
+  goodColor: {r: 0.54901963, g: 0.9254902, b: 1, a: 1}
+  hitFxDuration: 0.5
+  hitFxScale: 0.9
+  hitFxRotate: 0
+  hitFxTinted: 1
+  hideParticles: 0
+  holdKeepHead: 0
+  holdRepeat: 0
+  holdCompact: 0
+  holdLengthFactor: 10
+  holdMhLengthFactor: 9.9

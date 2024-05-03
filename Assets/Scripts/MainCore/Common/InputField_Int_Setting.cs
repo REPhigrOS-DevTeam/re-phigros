@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace MainCore.Common
 {
-    public class InputField_Int_Setting : SettingBase<int>
+    public class InputField_Int_Setting : SettingBase<InputField, int>
     {
         protected override void OnStart()
         {
@@ -18,12 +18,12 @@ namespace MainCore.Common
 
         public override void SetValue(int value)
         {
-            (dataContainer as InputField).text = value.ToString();
+            (DataContainer as InputField).text = value.ToString();
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetInt(dataTag, Convert.ToInt32((dataContainer as InputField).text));
+            PlayerPrefs.SetInt(dataTag, Convert.ToInt32((DataContainer as InputField).text));
         }
     }
 }

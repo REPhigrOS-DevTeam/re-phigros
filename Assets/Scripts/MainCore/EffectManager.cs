@@ -1,66 +1,92 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using MainCore;
 using MainCore.ECS_ver;
+using MainCore.Utilities;
 using UnityEngine;
 
 public class EffectManager : MonoBehaviour
 {
     public SpriteRenderer sr;
-    [SerializeField] private Color color;
+    private Color color;
     [SerializeField] private int cnt;
-    public Animator animator;
+    public Coroutine AnimationCoroutine;
+    private Sprite[] hitFx;
+    private float hitFxFactor;
+    private bool hideParticles = true;
 
     public Coroutine RecycleCoroutine = null;
 
-    float scale = GlobalSetting.globalNoteScale / 0.16f;
+    float scale = GlobalSetting.GlobalNoteScale / 0.16f;
+
+    private Stopwatch hitEffectTime = new Stopwatch();
 
     // Start is called before the first frame update 
     private void Awake()
     {
-        scale = GlobalSetting.globalNoteScale / GetFactor();
+        transform.localScale = new Vector3(0.001f, 0.001f, 1f);
     }
 
-    void Start()
+    public void Enable(SkinInfo skinInfo, HitFxJudgeType JudgeType)
     {
+        color = skinInfo.hitFxTinted
+            ? JudgeType switch
+            {
+                HitFxJudgeType.Perfect => skinInfo.perfectColor,
+                HitFxJudgeType.Good => skinInfo.goodColor,
+                _ => throw new ArgumentOutOfRangeException(nameof(JudgeType), JudgeType, null)
+            }
+            : Color.white;
+        scale = GlobalSetting.GlobalNoteScale / 0.16f * skinInfo.hitFxScale;
         transform.localScale = new Vector3(scale, scale, scale);
         //sr.sortingLayerName = "AboveNotes";
         //sr.sortingOrder = 1;
-    }
-
-    public void Enable()
-    {
+        hitFx = skinInfo.hitFx;
+        hitFxFactor = !skinInfo.isExternal && skinInfo.skin == Skin.OldOfficial
+            ? 120f
+            : hitFx.Length / skinInfo.hitFxDuration;
+        hideParticles = skinInfo.hideParticles;
         RecycleCoroutine = StartCoroutine(RecycleObj());
+        sr.color = color;
     }
 
-    public void PlayParticle()
+    private void Start()
     {
+        Update();
+    }
+
+    private void Update()
+    {
+        int timer = (int) (hitEffectTime.ElapsedMilliseconds / 1000f * hitFxFactor);
+        sr.sprite = hitFx[Mathf.Min(timer, hitFx.Length - 1)];
+    }
+
+    public void PlayEffect()
+    {
+        StopEffect();
+        hitEffectTime.Restart();
+        if (hideParticles) return;
         EffectSystemManager.Instance.CreateParticle(cnt, color, transform.position, scale);
     }
 
     private IEnumerator RecycleObj()
     {
-        yield return new WaitForSeconds(0.49f);
-        animator.Play("NoteEffect", 0, 0f);
+        yield return new WaitForSeconds(GlobalSetting.CurrentSkinInfo.hitFxDuration);
+        StopEffect();
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
     public void ForceRecycle()
     {
         StopCoroutine(RecycleCoroutine);
-        animator.Play("NoteEffect", 0, 0f);
+        StopEffect();
         HitEffectManager.GetInstance().RecycleObj(this);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private float GetFactor()
+    public void StopEffect()
     {
-        return GlobalSetting.HitFxType switch {
-            HitFxType.Official => 0.16f,
-            HitFxType.Phira => 0.32f,
-            HitFxType.Sacabam => 0.25f,
-            _ => throw new ArgumentOutOfRangeException()
-        };
+        hitEffectTime.Reset();
     }
 }

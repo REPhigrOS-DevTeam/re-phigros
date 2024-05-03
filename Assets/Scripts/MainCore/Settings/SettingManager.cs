@@ -1,7 +1,16 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using Cysharp.Threading.Tasks;
 using Lean.Gui;
 using MainCore.Common;
+using MainCore.ECS_ver;
+using MainCore.UI;
+using MainCore.UI.Utils;
+using MainCore.Utilities;
+using SFB;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace MainCore.Settings
 {
@@ -9,22 +18,93 @@ namespace MainCore.Settings
     {
         [SerializeField] private LeanButton saveNExit;
         [SerializeField] private LeanButton dspEnter;
-        [SerializeField] private InputField_String_Setting dataPath;
+        [SerializeField] private LeanButton logOut;
+        [SerializeField] private InputField_File_Selector dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
+        [SerializeField] private DelayCorrect delayCorrect;
+        [SerializeField] private RectTransform internalSkinParent, externalSkinParent;
+        [SerializeField] private GameObject skinItemPrefab;
+        [SerializeField] private Button openSkinSelector, closeSkinSelector;
+        [SerializeField] private GameObject skinSelectorCanvas, skinPreview;
+        [SerializeField] private SkinPreview skinPreviewer;
+        [SerializeField] private Button displaySkinInfo, deleteSkin;
+        [SerializeField] private Transform hitEffectPos;
+        [SerializeField] private Button openAbout, closeAbout;
+        [SerializeField] private GameObject aboutCanvas;
+        [SerializeField] private Text aboutText;
+        private Dictionary<Skin, SkinItem> internalSkinItems = new();
+        private Dictionary<string, SkinItem> externalSkinItems = new();
+        private bool selectedIsExternal = false;
+        private string selectedId = "-1";
 
         void Start()
         {
-#if UNITY_IPHONE && !UNITY_EDITOR
-            dataPath.gameObject.SetActive(false);
-#else
-            if (!PlayerPrefs.HasKey("file_path"))
+            // 按钮注册
+            displaySkinInfo.onClick.AddListener(() =>
             {
-                dataPath.SetValue($"{Application.persistentDataPath}");
+                InGameUIManager.ShowModalWindowWithClose("信息",
+                    $"名称：{GlobalSetting.CurrentSkinInfo.skinName}\n" +
+                    $"作者：{GlobalSetting.CurrentSkinInfo.author}\n" +
+                    $"介绍：{GlobalSetting.CurrentSkinInfo.description}", () => { }, "确定");
+            });
+            deleteSkin.onClick.AddListener(() =>
+            {
+                if (GlobalSetting.CurrentSkinInfo.isExternal)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("提示", "确定要删除吗？", () =>
+                    {
+                        string id = GlobalSetting.CurrentSkinInfo.id;
+                        UpdateSelectedSkinItem(false, "0");
+                        SkinManager.Instance.DeleteSkinInfo(id);
+                        RefreshExternalSkins();
+                    }, "确定", () => { }, "取消");
+                }
+                else
+                {
+                    InGameUIManager.ShowModalWindowWithClose("错误", "不可删除内置皮肤", () => { }, "好");
+                }
+            });
+            openSkinSelector.onClick.AddListener(() =>
+            {
+                skinSelectorCanvas.SetActive(true);
+                skinPreview.SetActive(true);
+                delayCorrect.SetRunning(false);
+            });
+            closeSkinSelector.onClick.AddListener(() =>
+            {
+                skinSelectorCanvas.SetActive(false);
+                skinPreview.SetActive(false);
+                delayCorrect.SetRunning(true);
+            });
+            openAbout.onClick.AddListener(() =>
+            {
+                aboutCanvas.SetActive(true);
+            });
+            closeAbout.onClick.AddListener(() =>
+            {
+                aboutCanvas.SetActive(false);
+            });
+            if (GlobalSetting.IsOffline)
+            {
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
+                logOut.OnClick.AddListener(LogIn);
             }
+            else
+            {
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登出";
+                logOut.OnClick.AddListener(LogOut);
+            }
+            if (!PlayerPrefs.HasKey(dataPath.BaseData.DataTag))
+            {
+                dataPath.BaseData.SetValue($"{Application.persistentDataPath}");
+            }
+#if UNITY_IPHONE && !UNITY_EDITOR
+            dataPath.Lock();
 #endif
             saveNExit.OnClick.AddListener(SaveNExit);
-            dspEnter.OnClick.AddListener(() => { SceneTransit.Instance.TransitTo("DSPScene"); });
+            dspEnter.OnClick.AddListener(IntoDSP);
+            // 彩蛋们
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
                 {
@@ -49,31 +129,221 @@ namespace MainCore.Settings
                         "枇杷树上挂 粒粒油滴下");
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Poyoroid_sou;
                 });
-            SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 },
-                () =>
-                {
-                    Debug.Log("启用Shader");
-                    InGameUIManager.ShowModalWindowWithClose("<size=15>提示</size>", "Extra.json已启用", () => { },
-                        "确认");
-                    GlobalSetting.useShader = true;
-                });
+            // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
+//             OnSkinChanged(skinDropdown.value);
+// #if !RELEASE_VERSION || UNITY_EDITOR
+//             skinDropdown.AddOptions(new List<string> { "Phira", "萨卡斑甲鱼" });
+// #endif
+            // 皮肤
+            skinSelectorCanvas.SetActive(false);
+            skinPreview.SetActive(false);
+            for (int i = 0; i < internalSkinParent.childCount; i++)
+            {
+                Destroy(internalSkinParent.GetChild(i).gameObject);
+            }
+#if !RELEASE_VERSION || UNITY_EDITOR
+            int internalMax = 5;
+#else
+            int internalMax = 3;
+#endif
+            if (!GlobalSetting.IsOffline && GlobalSetting.Username.ToLowerInvariant() is "sky" or "greenball233" or "debug") internalMax = Math.Max(4, internalMax);
+            for (int i = 0; i < internalMax; i++)
+            {
+                GameObject o = Instantiate(skinItemPrefab, internalSkinParent);
+                o.name = ((Skin)i).ToString();
+                SkinItem skinItem = o.GetComponent<SkinItem>();
+                skinItem.Init(this, false, i.ToString(), ((Skin)i).ToString());
+                internalSkinItems.Add((Skin)i, skinItem);
+            }
+
+            RefreshExternalSkins();
+
+            if (GlobalSetting.CurrentSkinInfo.isExternal)
+            {
+                externalSkinItems[GlobalSetting.CurrentSkinInfo.id].GetComponent<Button>().onClick.Invoke();
+            }
+            else
+            {
+                internalSkinItems[GlobalSetting.CurrentSkinInfo.skin]?.GetComponent<Button>().onClick.Invoke();
+            }
+            
+            // 其他
+            aboutCanvas.SetActive(false);
+            TextAsset textAsset = Resources.Load<TextAsset>("Others/About");
+            aboutText.text = textAsset.text;
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)aboutText.rectTransform.parent);
+            Resources.UnloadAsset(textAsset);
+        }
+
+        private void LogOut()
+        {
+            InGameUIManager.ShowModalWindowWithClose("提示", "确定要登出吗？", () =>
+            {
+                GlobalSetting.Username = "";
+                GlobalSetting.VerifyToken = "";
+                logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
+                logOut.OnClick.RemoveListener(LogOut);
+                logOut.OnClick.AddListener(LogIn);
+            }, "确定", () => { }, "取消");
+        }
+
+        private void LogIn()
+        {
+            SceneTransit.Instance.JumpScene("LoginScene");
+        }
+
+        private void RefreshExternalSkins()
+        {
+            for (int i = 0; i < externalSkinParent.childCount; i++)
+            {
+                Destroy(externalSkinParent.GetChild(i).gameObject);
+            }
+
+            externalSkinItems.Clear();
+            SkinSummary[] skinSummaries = SkinManager.Instance.GetSkinSummaries();
+            foreach (SkinSummary skinSummary in skinSummaries)
+            {
+                GameObject o = Instantiate(skinItemPrefab, externalSkinParent);
+                o.name = skinSummary.id;
+                SkinItem skinItem = o.GetComponent<SkinItem>();
+                skinItem.Init(this, true, skinSummary.id, skinSummary.name);
+                externalSkinItems.Add(skinSummary.id, skinItem);
+            }
+
+            GameObject add = Instantiate(skinItemPrefab, externalSkinParent);
+            add.name = "Add";
+            SkinItem skinItem1 = add.GetComponent<SkinItem>();
+            skinItem1.Init(this, true, "", "＋");
+
+            if (selectedIsExternal)
+            {
+                externalSkinItems[selectedId]?.SetSelected(true, selectedId);
+            }
+        }
+
+        private void IntoDSP()
+        {
+            string? qwq = null;
+            if (PlayerPrefs.HasKey(dataPath.BaseData.DataTag)) qwq = PlayerPrefs.GetString(dataPath.BaseData.DataTag);
+            broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.Save();
+            if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
+            SceneTransit.Instance.LoadScene("DSPScene");
         }
 
         private void SaveNExit()
         {
             broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.SetString("selected_skin",
+                GlobalSetting.CurrentSkinInfo.isExternal
+                    ? $"e{GlobalSetting.CurrentSkinInfo.id}"
+                    : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
             PlayerPrefs.Save();
 #if UNITY_IPHONE && !UNITY_EDITOR
             PlayerPrefs.SetString("file_path", Application.persistentDataPath);
             PlayerPrefs.Save();
-#endif
-            if (!Directory.Exists(PlayerPrefs.GetString("file_path", Application.persistentDataPath)))
+
+            if (!Directory.Exists(Util.DataPath))
             {
                 InGameUIManager.ShowModalWindowWithClose("故意的是吧", "你这文件夹都不存在啊", () => { }, "确认");
                 return;
             }
+#endif
 
-            SceneTransit.Instance.TransitTo("ChartSelectorScene");
+            SceneTransit.Instance.Back();
+        }
+
+        public void UpdateSelectedSkinItem(bool isExternal, string id)
+        {
+            if (isExternal && id == "")
+            {
+                OpenFile.LoadFile(AddSkinFromPackage, () => { },
+                    new[] { new ExtensionFilter("Phira皮肤包", "zip") }, null, "选择皮肤包…", "确定");
+                return;
+            }
+
+            if (selectedIsExternal == isExternal && selectedId == id) return;
+            SkinInfo newSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(isExternal, id);
+            if (newSkinInfo == null)
+            {
+                if (!isExternal) throw new ArgumentException();
+                SkinManager.Instance.DeleteSkinInfo(id);
+                RefreshExternalSkins();
+                return;
+            }
+
+            selectedIsExternal = isExternal;
+            selectedId = id;
+            foreach (var internalSkinItem in internalSkinItems.Values)
+            {
+                internalSkinItem.SetSelected(isExternal, id);
+            }
+
+            foreach (var externalSkinItem in externalSkinItems.Values)
+            {
+                externalSkinItem.SetSelected(isExternal, id);
+            }
+
+            GlobalSetting.CurrentSkinInfo = newSkinInfo;
+            OnSkinChanged();
+        }
+
+        private void OnSkinChanged()
+        {
+            HitSoundManager.Instance.RefreshHitSounds();
+            delayCorrect.OnSkinChanged();
+            skinPreviewer.UpdateSkin();
+            EffectSystemManager.Instance.UpdateSkin();
+        }
+
+        private async void AddSkinFromPackage(string path)
+        {
+            await UniTask.SwitchToMainThread();
+            string tmpDirPath = Application.temporaryCachePath + "/tmpSkinPackage";
+            string dirPath = $"{tmpDirPath}/{Path.GetFileNameWithoutExtension(path)}";
+            if (Directory.Exists(dirPath)) Directory.Delete(dirPath, true);
+            try
+            {
+                ZipUtils.UnZip(await File.ReadAllBytesAsync(path),
+                    tmpDirPath + $"/{Path.GetFileNameWithoutExtension(path)}");
+            }
+            catch (IOException)
+            {
+                InGameUIManager.ShowModalWindowWithClose("错误", "无法读取文件", () => { }, "确定");
+                return;
+            }
+
+            SkinInfo readSkin = await GameUtils.ReadSkin(dirPath);
+            if (readSkin == null)
+            {
+                Directory.Delete(tmpDirPath + $"/{Path.GetFileNameWithoutExtension(path)}", true);
+                return;
+            }
+            SkinManager.Instance.AddSkinInfo(dirPath, readSkin);
+            RefreshExternalSkins();
+        }
+
+        public void PlayHitSound(int id)
+        {
+            HitSoundManager.Instance.Play(id, 0.5f);
+        }
+
+        private float tmp;
+        public void PlayHitEffect(int type)
+        {
+            tmp = GlobalSetting.GlobalNoteScale;
+            GlobalSetting.GlobalNoteScale = SkinPreview.Size;
+            EffectManager hitFxObj = HitEffectManager.GetInstance()
+                .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo, true);
+            hitFxObj.transform.position = hitEffectPos.position;
+            hitFxObj.transform.rotation = Quaternion.identity;
+            hitFxObj.PlayEffect();
+            GlobalSetting.GlobalNoteScale = tmp;
+        }
+
+        public void Test(string text)
+        {
+            Debug.Log(text);
         }
     }
 

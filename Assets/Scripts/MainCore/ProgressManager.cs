@@ -9,7 +9,10 @@ namespace MainCore
     public class ProgressManager : MonoBehaviour
     {
         Stopwatch _stopwatch = new();
-
+        
+        public float NowNoDelayRealTime;
+        public float NowRealTime;
+        public float NowNoDelayTime;
         public float NowTime;
 
         //下面是dsp!
@@ -21,12 +24,10 @@ namespace MainCore
         public delegate float Pitch();
 
         private OnResolutionError _runtimeError;
-        private Pitch _pitch;
 
-        public void Init(OnResolutionError initError, OnResolutionError runtimeError, Pitch pitch)
+        public void Init(OnResolutionError initError, OnResolutionError runtimeError)
         {
             _runtimeError = runtimeError;
-            _pitch = pitch;
             if (!Stopwatch.IsHighResolution)
             {
                 initError.Invoke();
@@ -55,31 +56,40 @@ namespace MainCore
             if (Math.Abs(lastUpdateDspTime - currentDspTime) > 0.001f)
             {
                 lastUpdateDspTime = currentDspTime;
-                //仅在真正dsp时间更新的时候比对
-                var differenceTime = currentDspTime - startDspTime - _stopwatch.ElapsedMilliseconds / 1000f;
-                if (differenceTime < -0.5f)
-                {
-                    _runtimeError.Invoke();
-
-                    Debug.LogWarning($"当前时差为{differenceTime}ms,Dsp炸啦！！！");
-                }
+                // //仅在真正dsp时间更新的时候比对
+                // var differenceTime = currentDspTime - startDspTime - _stopwatch.ElapsedMilliseconds / 1000f;
+                // if (differenceTime < -0.5f)
+                // {
+                //     Debug.LogWarning($"当前时差为{differenceTime}ms,Dsp炸啦！！！");
+                //
+                //     _runtimeError.Invoke();
+                // }
             }
 
-            var tempT = _stopwatch.ElapsedMilliseconds / 1000f - delay;
-            NowTime = (tempT < pauseTime ? pauseTime : tempT) * _pitch.Invoke();
+            var tempT = _stopwatch.ElapsedMilliseconds / 1000f + offset;
+            NowNoDelayRealTime = tempT < pauseTime ? pauseTime : tempT;
+            NowRealTime = NowNoDelayRealTime - delay;
+            NowNoDelayTime = NowNoDelayRealTime * GlobalSetting.Pitch;
+            NowTime = NowRealTime * GlobalSetting.Pitch;
         }
 
         private float pauseTime;
         private float delay;
+        private float offset;
         public void AddStartDelay(float second)
         {
             delay += second;
-            pauseTime = NowTime;
+            pauseTime = NowNoDelayRealTime;
         }
 
         public void AddDelay(float second)
         {
             delay += second;
+        }
+
+        public void AddTime(float second)
+        {
+            offset += second;
         }
 
         public void TimeGoBack(float time, TweenCallback callback)

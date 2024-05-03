@@ -1,0 +1,29 @@
+{
+    "Show": true,
+    "Dependencies": [
+        "GlobalObjectId_V1-1-351f9d4c66cac1141b76521ea449c9dd-93214019566545601-0"
+    ],
+    "Components": [
+        {
+            "$type": "Unity.Build.Common.PlayerScriptingDefines, Unity.Build",
+            "Defines": []
+        },
+        {
+            "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
+            "ScriptingBackend": 1,
+            "Il2CppCompilerConfiguration": 0,
+            "UseIncrementalGC": true
+        },
+        {
+            "$type": "Unity.Build.DotsRuntime.IL2CPPSettings, Unity.Build.DotsRuntime",
+            "ScriptDebugging": 0,
+            "WaitForDebugger": false
+        },
+        {
+            "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
+            "$version": 1,
+            "Platform": "Android",
+            "Configuration": 3
+        }
+    ]
+}

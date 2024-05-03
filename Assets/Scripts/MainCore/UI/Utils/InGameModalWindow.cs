@@ -1,15 +1,13 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
+using MainCore.Common;
+using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
-using Utilities;
 
-public class InGameModalWindow : MonoBehaviour
+public class InGameModalWindow : MonoSingleton<InGameModalWindow>
 {
-    public static InGameModalWindow Instance = null;
-
     [SerializeField] private Image backPanel;
     [SerializeField] private Image modalWindow;
 
@@ -34,7 +32,6 @@ public class InGameModalWindow : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private void Start()
     {
-        Instance = this;
         backPanel.gameObject.SetActive(false);
     }
 
@@ -47,7 +44,7 @@ public class InGameModalWindow : MonoBehaviour
     /// /// <param name="confirmtext">确认按钮的text</param>
     /// <param name="cancelAction">取消后的行动</param>
     /// <param name="canceltext">取消按钮的text</param>
-    public void Show(string title, string content, Action confirmAction, string confirmtext = "Confirm",
+    public void Show(string title, string content, Action confirmAction = null, string confirmtext = "Confirm",
         Action cancelAction = null, string canceltext = "Cancel", Action alternateAction = null,
         string alternatetext = "Alternate")
     {
@@ -61,8 +58,14 @@ public class InGameModalWindow : MonoBehaviour
         bodyText.text = content;
 
         confirm = confirmAction;
-        confirmButton.onClick.AddListener(confirmClicked);
-        confirmText.text = confirmtext;
+        if (confirmAction != null)
+        {
+            confirmButton.gameObject.SetActive(true);
+            confirmButton.onClick.AddListener(confirmClicked);
+            confirmText.text = confirmtext;
+        }
+        else
+            confirmButton.gameObject.SetActive(false);
 
         cancel = cancelAction;
         if (cancelAction != null)
@@ -92,6 +95,9 @@ public class InGameModalWindow : MonoBehaviour
     public void Hide()
     {
         if (!IsActive) return;
+        confirmButton.onClick.RemoveAllListeners();
+        cancelButton.onClick.RemoveAllListeners();
+        alternateButton.onClick.RemoveAllListeners();
         modalWindow.rectTransform.DOAnchorPosY(-800, .3f).SetEase(Ease.InBack);
         backPanel.DOFade(0, .3f);
         modalWindow.rectTransform.DOScale(new Vector3(0, 0), .3f).SetEase(Ease.InBack).onComplete +=
@@ -108,10 +114,15 @@ public class InGameModalWindow : MonoBehaviour
 
     public void HideForcely()
     {
+        confirmButton.onClick.RemoveAllListeners();
+        cancelButton.onClick.RemoveAllListeners();
+        alternateButton.onClick.RemoveAllListeners();
         modalWindow.rectTransform.anchoredPosition = new Vector2(modalWindow.rectTransform.anchoredPosition.x, -800);
-        backPanel.color.SetAlpha(0);
+        backPanel.SetAlpha(0);
         modalWindow.rectTransform.localScale = new Vector3(0, 0);
         backPanel.gameObject.SetActive(false);
+        IsActive = false;
+        InGameUIManager.CheckWindowToShow();
     }
 
     private void confirmClicked()

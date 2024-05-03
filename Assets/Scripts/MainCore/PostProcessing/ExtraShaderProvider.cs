@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MainCore.Data;
-using Newtonsoft.Json;
+using MainCore.Utilities;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Utilities;
@@ -15,43 +15,49 @@ namespace MainCore.PostProcessing
         private List<BpmEvent> bpms = new();
 
         private Extra data;
-        private List<string> enabledShaders = new();
-        private Dictionary<string, Material> materials = new();
+        private List<int> enabledShaders = new();
         private List<string> notExistShader = new();
 
         private List<string> shaderNames = new();
         private Dictionary<string, Shader> shaders = new();
+        private Material[] totalMaterials;
         private float currentTime => Main.Instance.progressManager.NowTime;
 
         public bool IsGlobal { get; set; }
 
         private void Awake()
         {
-            data = JsonConvert.DeserializeObject<Extra>(GlobalSetting.extraJson);
+            data = GlobalSetting.ExtraEvents;
             Arrangement();
-            foreach (var e in data.effects)
+            totalMaterials = new Material[data.Effects.Count];
+            for (var i = 0; i < data.Effects.Count; i++)
             {
-                LoadShader(e.shader);
+                var e = data.Effects[i];
+                e.shader = e.shader.Substring(e.shader.Replace('\\', '/')
+                    .IndexOf("/", StringComparison.InvariantCulture) + 1).FirstToLowerInvariant();
+                LoadShader(i, e.shader);
+                if (e.vars.Count == 0) return;
                 e.varTypes = new Effect.ExtraPropertyType[e.vars.Count];
-                int i = 0;
+                int j = 0;
                 foreach (var v in e.vars)
                 {
-                    e.varTypes[i] = PreloadProperty(e.shader, v.Key, v.Value);
-                    i++;
+                    e.varTypes[j] = PreloadProperty(e.shader, v.Key, v.Value);
+                    j++;
                 }
             }
         }
 
         private void Update()
         {
-            if (!GlobalSetting.Playing)
+            if (!GlobalSetting.GameStarted)
             {
                 return;
             }
 
             enabledShaders.Clear();
-            foreach (var e in data.effects)
+            for (var i = 0; i < data.Effects.Count; i++)
             {
+                var e = data.Effects[i];
                 if (!e.global && IsGlobal)
                 {
                     continue;
@@ -62,12 +68,12 @@ namespace MainCore.PostProcessing
                     continue;
                 }
 
-                enabledShaders.Add(e.shader);
-                int i = 0;
+                enabledShaders.Add(i);
+                int j = 0;
                 foreach (var v in e.vars)
                 {
-                    AnalyzeProperty(materials[e.shader], v.Key, v.Value, e.varTypes[i]);
-                    i++;
+                    AnalyzeProperty(totalMaterials[i], v.Key, v.Value, e.varTypes[j]);
+                    j++;
                 }
             }
         }
@@ -89,17 +95,17 @@ namespace MainCore.PostProcessing
 
             Graphics.Blit(source, tempSrc); //blit the source into the tempSrc;
 
-            for (int i = 0; i < enabledShaders.Count; i++)
+            for (int j = 0; j < enabledShaders.Count; j++)
             {
                 //for all the materials;
-                if ((float) i % 2.0f == 0.0f)
+                if ((float) j % 2.0f == 0.0f)
                 {
                     //if i is even blit from src to dst, if not then dst to src.
-                    Graphics.Blit(tempSrc, tempDst, materials[enabledShaders[i]]);
+                    Graphics.Blit(tempSrc, tempDst, totalMaterials[enabledShaders[j]]);
                 }
                 else
                 {
-                    Graphics.Blit(tempDst, tempSrc, materials[enabledShaders[i]]);
+                    Graphics.Blit(tempDst, tempSrc, totalMaterials[enabledShaders[j]]);
                 }
             }
 
@@ -123,26 +129,33 @@ namespace MainCore.PostProcessing
 
         void Arrangement()
         {
-            data.bpm.OrderBy(x => Frac(x.time)).ToList().ForEach(x =>
+            data.Bpm.OrderBy(x => x.time.Frac()).ToList().ForEach(x =>
             {
-                bpms.Add(new BpmEvent(x.bpm, Frac(x.time)));
+                bpms.Add(new BpmEvent(x.bpm, x.time.Frac()));
                 if (bpms.Count >= 2)
                 {
                     bpms[^2].end = bpms[^1].start;
                 }
             });
-            data.effects.ForEach(x =>
+            data.Effects.ForEach(x =>
             {
-                x.startTime = RecalcTime(Frac(x.start));
-                x.endTime = RecalcTime(Frac(x.end));
+                x.startTime = RecalcTime(x.start.Frac());
+                x.endTime = RecalcTime(x.end.Frac());
             });
-            data.effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
+            data.Effects.ForEach(x => x.shader = ArrangeShaderName(x.shader));
         }
 
-        private void LoadShader(string shaderName)
+        private void LoadShader(int id, string shaderName)
         {
-            if (materials.ContainsKey(shaderName) || notExistShader.Contains(shaderName))
+            if (shaders.ContainsKey(shaderName))
             {
+                totalMaterials[id] = Instantiate(new Material(shaders[shaderName]));
+                return;
+            }
+
+            if (notExistShader.Contains(shaderName))
+            {
+                totalMaterials[id] = null;
                 return;
             }
 
@@ -155,13 +168,13 @@ namespace MainCore.PostProcessing
             if (shader != null)
             {
                 shaderNames.Add(shaderName);
-                materials.Add(shaderName, new Material(shader));
+                totalMaterials[id] = new Material(shader);
                 Debug.Log($"Loading shader succeeded: {shaderName}.");
                 return;
             }
-
-
+            
             notExistShader.Add(shaderName);
+            totalMaterials[id] = null;
             Debug.LogError($"Error loading shader : {shaderName}, maybe not builtin shaders.");
         }
 
@@ -204,8 +217,8 @@ namespace MainCore.PostProcessing
                     {
                         if (value.realStartTime == -1)
                         {
-                            value.realStartTime = RecalcTime(Frac(value.startTime));
-                            value.realEndTime = RecalcTime(Frac(value.endTime));
+                            value.realStartTime = RecalcTime(value.startTime.Frac());
+                            value.realEndTime = RecalcTime(value.endTime.Frac());
                         }
 
                         if (value.realStartTime > currentTime || value.realEndTime < currentTime)
@@ -241,17 +254,6 @@ namespace MainCore.PostProcessing
             }
 
             return timePhi;
-        }
-
-        private static float Frac(int[] frac)
-        {
-            if (frac.Length == 3)
-            {
-                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
-                return frac[0];
-            }
-
-            return frac.Length > 0 ? frac[0] : 0f;
         }
 
         private string ArrangeShaderName(string shaderName)

@@ -1,0 +1,185 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using Network.Multiplayer.Data;
+using Network.Multiplayer.Managers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Network.Multiplayer.Components
+{
+    public class ServerItem : MonoBehaviour
+    {
+        private static readonly DateTime TimeStampStart = new(1970, 1, 1, 0, 0, 0, 0);
+        private ServerManager serverManager;
+        private int id;
+        [SerializeField] private Button button;
+        [SerializeField] private Image iBackground, iIcon, iBorder; // TODO: Sky暂时没写图标
+        [SerializeField] private Text serverName, tServerId, tServerPing, tServerMotd;
+        private string serverUrl;
+        private bool online = true, chart;
+        private Socket socket;
+        private bool isInternal, isSelected;
+        private static readonly int[] AvailableVersions = { 6, 7, 8, 9 };
+        public bool Available { get; private set; } = false;
+        private CancellationTokenSource cts;
+
+        public void Init(int id, ServerManager serverManager, string serverUrl, string customName, bool isInternal)
+        {
+            this.id = id;
+            this.serverManager = serverManager;
+            this.serverUrl = serverUrl;
+            this.isInternal = isInternal;
+            serverName.text = isInternal ? "等待响应..." : customName;
+            tServerId.text = isInternal ? "内置服务器" : "等待响应...";
+            button.onClick.AddListener(OnClicked);
+            cts = new CancellationTokenSource();
+            Refresh();
+        }
+
+        private const string PingFormat = "Ping: {0}ms, 谱面服务：{1}";
+        private const string ErrorFormat = "<color=red>错误：{0}</color>";
+
+        public async void Refresh()
+        {
+            await Task.Run(async () =>
+            {
+                if (!button.interactable) button.onClick.AddListener(OnClicked);
+                button.interactable = true;
+                Available = false;
+                await UniTask.SwitchToMainThread();
+                if (!isInternal) tServerId.text = "";
+                tServerPing.text = string.Format(PingFormat, "-", "未知");
+                tServerMotd.text = "正在连接服务器...";
+                if (!General.TryParseHost(serverUrl, out IPEndPoint endPoint, out _))
+                {
+                    tServerMotd.text = string.Format(ErrorFormat, "地址不合法");
+                    return;
+                }
+
+                await UniTask.SwitchToThreadPool();
+
+                socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                try
+                {
+                    socket.Connect(endPoint);
+                }
+                catch (SocketException)
+                {
+                    await UniTask.SwitchToMainThread();
+                    tServerMotd.text = string.Format(ErrorFormat, "无法连接至服务器");
+                    return;
+                }
+
+                await UniTask.SwitchToMainThread();
+                tServerMotd.text = "正在获取服务器信息...";
+                await UniTask.SwitchToThreadPool();
+                long currentTime = (long)Math.Round((DateTime.UtcNow - TimeStampStart).TotalMilliseconds);
+                socket.Send(new SendData());
+                JObject[] packs;
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
+                while ((packs = socket.Receive()) == null)
+                {
+                    // await UniTask.WaitForEndOfFrame(this);
+                    if (stopwatch.ElapsedMilliseconds < 5000) continue;
+                    stopwatch.Stop();
+                    await UniTask.SwitchToMainThread();
+                    tServerMotd.text = string.Format(ErrorFormat, "服务器连接超时");
+                    await UniTask.SwitchToThreadPool();
+                    socket.Close();
+                    socket = null;
+                    return;
+                }
+
+                long receivedTime = (long)Math.Round((DateTime.UtcNow - TimeStampStart).TotalMilliseconds);
+                stopwatch.Stop();
+
+                socket.Close();
+                socket = null;
+                await UniTask.SwitchToMainThread();
+                if (packs.Length == 0)
+                {
+                    tServerMotd.text = string.Format(ErrorFormat, "服务器语法错误，请联系服务器管理员与服务器开发者");
+                    return;
+                }
+
+                PingReceiveData data = packs[0].ToObject<PingReceiveData>();
+                if (data is not { Status: true })
+                {
+                    tServerMotd.text = string.Format(ErrorFormat, "？？？？？？？？？？？？？？？？？？？？？？");
+                    return;
+                }
+                
+                if (data.IsDebug)
+                {
+                    tServerId.color = Color.blue;
+                }
+                else if (AvailableVersions.All(i => i != data.Version))
+                {
+                    if (isSelected) serverManager.UpdateSelectedServer(-1, isInternal);
+                    if (isInternal)
+                    {
+                        serverName.text = data.Name;
+                    }
+                    tServerId.text = (isInternal ? "内置服务器 " : "") + "不匹配的版本";
+                    tServerMotd.text = string.Format(ErrorFormat, data.Version < AvailableVersions.OrderBy(i => i).First() ? "服务器过旧，请联系服主" : "服务器过新");
+                    button.interactable = false;
+                    button.onClick.RemoveListener(OnClicked);
+                    return;
+                }
+
+                if (isInternal)
+                {
+                    serverName.text = data.Name;
+                }
+                else
+                {
+                    tServerId.text = "@" + data.Name;
+                }
+
+                tServerMotd.text = data.Motd;
+                tServerPing.text = string.Format(PingFormat, (receivedTime - currentTime).ToString(),
+                    data.EnableChartUpload ? "在线" : "离线");
+                online = data.IsOnline;
+                chart = data.EnableChartUpload;
+                Available = true;
+            }, cts.Token);
+        }
+
+        public void OnClicked()
+        {
+            serverManager.UpdateSelectedServer(id, isInternal);
+        }
+
+        public (string, bool, bool) GetInfo()
+        {
+            return (serverUrl, online, chart);
+        }
+
+        public void SetSelectState(bool state)
+        {
+            isSelected = state;
+            iBorder.color = state ? new Color(0.4f, 0.4f, 0.4f) : new Color(1, 1, 1, 0);
+        }
+
+        private void OnDestroy()
+        {
+            cts?.Cancel();
+        }
+    }
+
+    public class SendData
+    {
+        [JsonProperty("operate")] public string operate = "Ping";
+        [JsonProperty("addition")] public Dictionary<string, string> Addition = new();
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "Show": true,
+    "Dependencies": [
+        "GlobalObjectId_V1-1-b02ccc2025cde2944a6df1010bccb02b-93214019566545601-0"
+    ],
+    "Components": [
+        {
+            "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
+            "$version": 1,
+            "Platform": "StandaloneWindows64",
+            "Configuration": 3
+        },
+        {
+            "$type": "Unity.Build.Common.ApplicationIdentifier, Unity.Build",
+            "PackageName": "com.totorowldox.REPhigros"
+        },
+        {
+            "$type": "Unity.Build.Common.PlayerScriptingDefines, Unity.Build",
+            "Defines": []
+        },
+        {
+            "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
+            "ScriptingBackend": 1,
+            "Il2CppCompilerConfiguration": 0,
+            "UseIncrementalGC": true
+        }
+    ]
+}

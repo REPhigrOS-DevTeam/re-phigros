@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MainCore.Common;
 using UnityEngine;
 
 namespace MainCore
@@ -96,9 +97,8 @@ namespace MainCore
         }
     }
 
-    public class JudgementManager : MonoBehaviour
+    public class JudgementManager : MonoSingleton<JudgementManager>
     {
-        public static JudgementManager m_instance;
         public int numOfFingers;
         public Finger[] fingers = new Finger[20];
         private Array keys;
@@ -109,10 +109,6 @@ namespace MainCore
         // Start is called before the first frame update
         void Start()
         {
-            if (m_instance == null)
-                m_instance = this;
-            else
-                Destroy(this);
             fingers.Initialize();
             for (int i = 0; i < 20; i++)
                 fingers[i] = new Finger();
@@ -122,15 +118,15 @@ namespace MainCore
         // Update is called once per frame
         void Update()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
                 return;
 
 #if UNITY_EDITOR
             UpdateMouseInput(); //Editor (for test).
+#else
+            UpdateTouchInput(); //Touchscreen support.
 #endif
 
-
-            UpdateTouchInput(); //Touchscreen support.
 #if UNITY_STANDALONE || UNITY_EDITOR
             UpdateKeyBoardInput(); //Keyboard(?) support.
 #endif
@@ -183,7 +179,7 @@ namespace MainCore
         {
             if (Input.GetMouseButtonDown(0)) fingers[0].phase = TouchPhase.Began;
             else if (Input.GetMouseButton(0)) fingers[0].phase = TouchPhase.Moved;
-            else if (Input.GetMouseButtonUp(0)) fingers[0].phase = TouchPhase.Canceled;
+            else if (Input.GetMouseButtonUp(0)) fingers[0].phase = TouchPhase.Ended;
             fingers[0].newPosition = Input.mousePosition;
             fingers[0].CheckInput();
             if (Input.GetMouseButton(0))
@@ -197,7 +193,7 @@ namespace MainCore
         {
             if (numOfFingers == 0)
                 return;
-            foreach (var i in GlobalSetting.lines)
+            foreach (var i in GlobalSetting.Lines)
             {
                 for (int k = 0; k < numOfFingers; k++)
                 {
@@ -213,7 +209,7 @@ namespace MainCore
                 var judgedFlickTime = 9999f;
                 notesInJudge.Clear();
                 notesDistances.Clear();
-                foreach (var line in GlobalSetting.lines)
+                foreach (var line in GlobalSetting.Lines)
                 {
                     var (n, flickTime, absDistance) = line.GetNearestNote(fingers[i], line.PositionX[i]);
                     if (n != null)
@@ -259,9 +255,8 @@ namespace MainCore
                     }
                 }
 
-                if (judgedFlick && note.Note.time > judgedFlickTime) //如果判定了flick且flick在tap前面
+                if (judgedFlick && note.Note.time > judgedFlickTime) //如果判定了flick且flick在tap前面 // TODO: 为啥这个有bug
                 {
-                    Debug.Log("Flick bypassed");
                     fingers[i].ClearTapFlag();
                     continue;
                 }

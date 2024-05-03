@@ -19,7 +19,7 @@ namespace MainCore.UI
                 source.Stop();
                 setting.SaveValue();
                 PlayerPrefs.Save();
-                SceneTransit.Instance.TransitTo("SettingsScene");
+                SceneTransit.Instance.Back();
             });
             playMusic.onClick.AddListener(() => { source.PlayScheduled(AudioSettings.dspTime); });
         }

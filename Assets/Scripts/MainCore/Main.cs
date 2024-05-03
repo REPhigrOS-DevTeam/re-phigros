@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using DRFV.inokana;
 using Lean.Gui;
 using LeTai.Asset.TranslucentImage;
 using MainCore.Common;
@@ -13,6 +13,8 @@ using MainCore.Data;
 using MainCore.PostProcessing;
 using MainCore.UI;
 using MainCore.Utilities;
+using Network.Multiplayer.Managers;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.SceneManagement;
@@ -20,79 +22,6 @@ using UnityEngine.UI;
 
 namespace MainCore
 {
-    public enum NoteStat
-    {
-        Perfect,
-        Good,
-        Bad,
-        Miss,
-        None,
-        Early,
-        Late
-    }
-
-    public enum JudgeLineStat
-    {
-        AP,
-        FC,
-        None
-    }
-
-    public class ScoreCounter
-    {
-        public int badCnt;
-        public int combo;
-        public int early;
-        public int goodCnt;
-        public int late;
-        public int maxcombo;
-        public int missCnt;
-        public int numOfNotes;
-        public int perfectCnt;
-        public float Score => 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes;
-        public float Accuracy => (perfectCnt + goodCnt * 0.65f) / numOfNotes;
-
-        public void Add(NoteStat status)
-        {
-            switch (status)
-            {
-                case NoteStat.Perfect:
-                    perfectCnt++;
-                    combo++;
-                    break;
-                case NoteStat.Good:
-                    goodCnt++;
-                    combo++;
-                    break;
-                case NoteStat.Bad:
-                    badCnt++;
-                    combo = 0;
-                    break;
-                case NoteStat.Miss:
-                    missCnt++;
-                    combo = 0;
-                    break;
-                case NoteStat.Early:
-                    goodCnt++;
-                    early++;
-                    combo++;
-                    break;
-                case NoteStat.Late:
-                    goodCnt++;
-                    late++;
-                    combo++;
-                    break;
-            }
-
-            if (combo > maxcombo)
-                maxcombo = combo;
-            if (GlobalSetting.lineStat == JudgeLineStat.AP && goodCnt != 0)
-                GlobalSetting.lineStat = JudgeLineStat.FC;
-            if (GlobalSetting.lineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
-                GlobalSetting.lineStat = JudgeLineStat.None;
-        }
-    }
-
     public class Main : MonoSingleton<Main>
     {
         private static Chart json = new Chart();
@@ -105,7 +34,7 @@ namespace MainCore
         public Image illustration;
         public Text comboText;
         public Text comboIndicator;
-        public Text scoreText;
+        public Text scoreText, accText;
         public GameObject managers;
         public Transform instantiateTransform;
         public DoubleTapButton pauseButton;
@@ -115,6 +44,9 @@ namespace MainCore
         public Camera particleCamera;
         public PostProcessVolume postProcessVolume;
         public SpriteRenderer maskSprite;
+        public VideoManager videoManager;
+        public GameObject multiplayerRank;
+        public TextMeshProUGUI first, second, third;
         private float aspect = 16f / 9f;
 
         private string chart;
@@ -124,134 +56,287 @@ namespace MainCore
 
         public static float MusicTime => audio.time;
 
+        private Dictionary<string, int> runtimeScores = new Dictionary<string, int>();
+
         private void OnAudioResolutionError()
         {
-            InGameUIManager.ShowModalWindowWithClose("错误", "DSPBuffer数值过小", Quit, "返回");
+            InGameUIManager.ShowModalWindowWithClose("错误", "DSPBuffer数值过小", () =>
+            {
+                Destroy(progressManager);
+                Quit();
+            }, "返回");
+        }
+
+        private async void RemoveUserFromRuntimeScore(string username)
+        {
+            await UniTask.SwitchToMainThread();
+            runtimeScores.Remove(username);
+            RefreshRuntimeScoreUI();
+        }
+
+        private async void UpdateRuntimeScore((string, string) data)
+        {
+            await UniTask.SwitchToMainThread();
+            runtimeScores[data.Item1] = int.Parse(data.Item2);
+            RefreshRuntimeScoreUI();
+        }
+
+        private int maximumRankCount = 3;
+
+        private void RefreshRuntimeScoreUI()
+        {
+            // runtimeScores.OrderBy(pair => pair.Value)
+            KeyValuePair<string,int>[] pairs = runtimeScores.OrderByDescending(pair => pair.Value).ToArray();
+            first.text = pairs[0].Value.ToString().PadLeft(7, '0') + "  " + pairs[0].Key;
+            if (maximumRankCount < 2) return;
+            if (pairs.Length < 2)
+            {
+                maximumRankCount = 1;
+                second.gameObject.SetActive(false);
+                third.gameObject.SetActive(false);
+                return;
+            }
+            second.text = pairs[1].Value.ToString().PadLeft(7, '0') + "  " + pairs[1].Key;
+            if (maximumRankCount < 3) return;
+            if (pairs.Length < 3)
+            {
+                maximumRankCount = 2;
+                third.gameObject.SetActive(false);
+                return;
+            }
+            third.text = pairs[2].Value.ToString().PadLeft(7, '0') + "  " + pairs[2].Key;
+        }
+        
+        private async void UploadScore()
+        {
+            await UniTask.SwitchToMainThread();
+            float score = GlobalSetting.ScoreCounter.Score;
+            await UniTask.SwitchToThreadPool();
+            SocketManager.UploadScoreForSync(score);
         }
 
         // Start is called before the first frame update
         protected override void OnAwake()
         {
-            GlobalSetting.lineColors.Add(JudgeLineStat.AP, new Color(0xfe / 256f, 0xff / 256f, 0xad / 256f, 1));
-            GlobalSetting.lineColors.Add(JudgeLineStat.FC, new Color(0x8c / 256f, 0xec / 256f, 0xff / 256f, 1));
-            GlobalSetting.lineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
-            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError, () => 1.0f);
+            GlobalSetting.LineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
+            GlobalSetting.LineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
+            GlobalSetting.LineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
+            if (GlobalSetting.IsMultiplayer)
+            {
+                foreach (string player in GlobalSetting.playerList)
+                {
+                    runtimeScores.Add(player, 0);
+                }
+
+                SocketManager.OnUpdateScoreReceived += UpdateRuntimeScore;
+                SocketManager.OnUserQuitGame += RemoveUserFromRuntimeScore;
+
+                UniTask.Void(async () =>
+                {
+                    RefreshRuntimeScoreUI();
+                    await UniTask.Delay(100);
+                    await UniTask.WaitUntil(() => GlobalSetting.GameStarted);
+                    while (GlobalSetting.GameStarted)
+                    {
+                        if (!GlobalSetting.Paused) UploadScore();
+                        await UniTask.Delay(1000);
+                    }
+                });
+            }
+
+            progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
 
             InitChart();
 
-            if (GlobalSetting.extraJson != "" && GlobalSetting.useShader)
+            if (GlobalSetting.ExtraEvents != null)
             {
-                Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
-                uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
-                particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                if (GlobalSetting.ExtraEvents.Effects != null)
+                {
+                    Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                    uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
+                    particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
+                }
+#if (UNITY_EDITOR || !RELEASE_VERSION) && false // BUG: 为啥放不了
+                if (GlobalSetting.extraEvents.Videos != null)
+                {
+                    GlobalSetting.extraEvents.Bpm.OrderBy(x => x.time.Frac()).ToList().ForEach(x =>
+                    {
+                        bpms.Add(new BpmEvent(x.bpm, x.time.Frac()));
+                        if (bpms.Count >= 2)
+                        {
+                            bpms[^2].end = bpms[^1].start;
+                        }
+                    });
+                    GlobalSetting.extraEvents.Videos.ForEach(x =>
+                    {
+                        x.realTime = RecalcTime(x.time.Frac());
+                        x.ScaleMode = x.scale switch
+                        {
+                            "cropCenter" => ScaleMode.ScaleAndCrop,
+                            "inside" => ScaleMode.ScaleToFit,
+                            "fit" => ScaleMode.StretchToFill,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
+                    });
+                    videoManager.Init(GlobalSetting.extraEvents.Videos.ToArray());
+                }
+                else
+                {
+                    Destroy(videoManager.gameObject);
+                }
+#else
+                Destroy(videoManager.gameObject);
+#endif
             }
 
-            GlobalSetting.MusicLength = music.length;
-
-            illustration.sprite = GlobalSetting.backgroundImage;
 
 #if UNITY_EDITOR
             Mian = this;
 #endif
         }
 
-        void Start()
+        private List<BpmEvent> bpms = new();
+
+        private float RecalcTime(float time)
         {
-            if (GlobalSetting.disableBlur)
+            var timePhi = 0f;
+            foreach (var i in bpms)
             {
-                GameObject.Find("UICamera").GetComponent<TranslucentImageSource>().enabled = false;
+                if (time > i.end)
+                {
+                    timePhi += (i.end - i.start) * (60f / i.bpm);
+                }
+                else if (time >= i.start)
+                {
+                    timePhi += (time - i.start) * (60f / i.bpm);
+                }
             }
 
-            if (Camera.main.aspect >= aspect)
+            return timePhi;
+        }
+
+        void Start()
+        {
+            if (GlobalSetting.DisableBlur)
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.height * aspect;
-                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
+            }
+
+            if (Screen.width * 1f / Screen.height >= aspect)
+            {
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
                 maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
             }
             else
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.width;
-                GlobalSetting.widthOffset = 0;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
-            audio = gameObject.AddComponent<AudioSource>();
+            audio = gameObject.AddComponent<AudioSource>(); // 这段代码留在这里，不要乱动
 
             managers.AddComponent<JudgementManager>();
 
-            GlobalSetting.Playing = false;
+            GlobalSetting.GameStarted = false;
 
             audio.playOnAwake = false;
             audio.clip = music;
-            GlobalSetting.formatVersion = json.formatVersion;
-            GlobalSetting.scoreCounter.numOfNotes = json.numOfNotes;
+            audio.pitch = GlobalSetting.Pitch;
+            GlobalSetting.MusicLength = music.length;
+
+            illustration.sprite = GlobalSetting.BackgroundImage;
+            GlobalSetting.FormatVersion = json.formatVersion;
+            GlobalSetting.ScoreCounter.numOfNotes = json.numOfNotes;
 
             foreach (GameObject i in GameObject.FindGameObjectsWithTag("Lines"))
             {
-                GlobalSetting.lines.Add(i.GetComponentInChildren<JudgeLineMovement>());
+                GlobalSetting.Lines.Add(i.GetComponentInChildren<JudgeLineMovement>());
                 i.GetComponentInChildren<Animation>().Play("StartGradient");
             }
 
             foreach (GameObject i in GameObject.FindGameObjectsWithTag("UI"))
             {
                 i.GetComponent<Animation>().Play("StartGradientChartName");
-                i.GetComponent<Text>().text = $"{GlobalSetting.chartName}\n\n";
+                i.GetComponent<Text>().text = $"{GlobalSetting.ChartName}\n\n";
             }
 
-            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.chartName;
-            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.difficulty + "  ";
-            GameObject.Find("VersionText").GetComponent<Text>().text =
-                $"RE:Phigros {Application.version} by kagari939\n";
+            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.ChartName;
+            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.Difficulty + "  ";
 
-            if (GlobalSetting.lineImage != null)
+            if (GlobalSetting.LineImage != null)
             {
                 LoadCsvLineImage();
             }
 
             Camera.main.orthographic = true;
-            Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.fxaaEnabled
+            Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.FxaaEnabled
                 ? PostProcessLayer.Antialiasing.FastApproximateAntialiasing
                 : PostProcessLayer.Antialiasing.None;
-            Camera.main.GetComponent<PostProcessLayer>().fastApproximateAntialiasing = GlobalSetting.fxaaEnabled
+            Camera.main.GetComponent<PostProcessLayer>().fastApproximateAntialiasing = GlobalSetting.FxaaEnabled
                 ? new FastApproximateAntialiasing
                 {
                     fastMode = true,
                     keepAlpha = false
                 }
                 : null;
-            postProcessVolume.enabled = GlobalSetting.postProcessing;
+            postProcessVolume.enabled = GlobalSetting.PostProcessing;
 
-            if (!GlobalSetting.postProcessing && !GlobalSetting.fxaaEnabled)
+            if (!GlobalSetting.PostProcessing && !GlobalSetting.FxaaEnabled)
             {
                 Camera.main.GetComponent<PostProcessLayer>().enabled = false;
             }
 
-            StartCoroutine(StartPlay());
+            accText.gameObject.SetActive(GlobalSetting.DisplayAcc);
+            
+            multiplayerRank.gameObject.SetActive(GlobalSetting.IsMultiplayer);
+
+            disconnectWarn.gameObject.SetActive(false);
+            if (GlobalSetting.IsMultiplayer)
+            {
+                pauseButton.gameObject.SetActive(false);
+                Destroy(retryButton.gameObject);
+                Destroy(terminateButton.gameObject);
+            }
+
+            StartPlay();
         }
 
         void Update()
         {
-            if (audio.time >= 5f && GlobalSetting.Playing)
+            if (Screen.width * 1f / Screen.height >= aspect)
             {
-                playedFlag = true;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
+                maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
+            }
+            else
+            {
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
+                maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
-            if (GlobalSetting.Playing)
+            if (GlobalSetting.GameStarted)
             {
                 progressManager.OnUpdate();
             }
 
-            if (audio.time <= 1f && playedFlag)
+
+            if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.GameStarted)
             {
                 progressManager.StopTiming();
-                GlobalSetting.Playing = false;
+                GlobalSetting.GameStarted = false;
                 if (!GlobalSetting.IsEnding)
                 {
                     GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutOut");
                     maskSprite.DOFade(0f, 2f);
-                    StartCoroutine(LoadEnding());
+                    LoadEnding();
                 }
 
                 return;
@@ -262,16 +347,16 @@ namespace MainCore
             TEST_COUNT = 0;
             if (Camera.main.aspect >= aspect)
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.height * aspect;
-                GlobalSetting.widthOffset = (Screen.width - GlobalSetting.screenWidth) / 2f;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.height * aspect;
+                GlobalSetting.WidthOffset = (Screen.width - GlobalSetting.ScreenWidth) / 2f;
                 maskSprite.transform.localScale = new Vector3(1782, 8000, 0);
             }
             else
             {
-                GlobalSetting.screenHeight = Screen.height;
-                GlobalSetting.screenWidth = Screen.width;
-                GlobalSetting.widthOffset = 0;
+                GlobalSetting.ScreenHeight = Screen.height;
+                GlobalSetting.ScreenWidth = Screen.width;
+                GlobalSetting.WidthOffset = 0;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
 
@@ -280,21 +365,19 @@ namespace MainCore
             //Camera.main.fieldOfView = 60 * factor;
             //particleCamera.orthographicSize = 5 * factor;
             //particleCamera.fieldOfView = 60 * factor;
-#endif
-
             if (Input.GetKeyUp(KeyCode.RightArrow))
             {
-                audio.time += 5;
-                progressManager.AddDelay(5f);
+                audio.time += 5f * GlobalSetting.Pitch;
+                progressManager.AddTime(5f);
             }
             else if (Input.GetKeyUp(KeyCode.LeftArrow))
             {
-                audio.time += 1;
-                progressManager.AddDelay(1f);
+                audio.time += 1f * GlobalSetting.Pitch;
+                progressManager.AddTime(1f);
             }
-
-            comboText.text = GlobalSetting.scoreCounter.combo < 3 ? "" : $"{GlobalSetting.scoreCounter.combo}";
-            if (GlobalSetting.scoreCounter.combo < 3)
+#endif
+            comboText.text = GlobalSetting.ScoreCounter.combo < 3 ? "" : $"{GlobalSetting.ScoreCounter.combo}";
+            if (GlobalSetting.ScoreCounter.combo < 3)
             {
                 comboIndicator.text = "";
             }
@@ -306,16 +389,17 @@ namespace MainCore
             {
                 comboIndicator.text = "YAYA KAWAII";
             }
-            else if (GlobalSetting.autoPlay)
+            else if (GlobalSetting.AutoPlay)
             {
-                comboIndicator.text = GlobalSetting.recordMode ? "RECORD" : "AUTOPLAY";
+                comboIndicator.text = "AUTOPLAY";
             }
             else
             {
                 comboIndicator.text = "COMBO";
             }
 
-            scoreText.text = $"{Mathf.RoundToInt(GlobalSetting.scoreCounter.Score).ToString().PadLeft(7, '0')} ";
+            scoreText.text = $"{Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score).ToString().PadLeft(7, '0')} ";
+            accText.text = $"{100f * GlobalSetting.ScoreCounter.RuntimeAccuracy:0.00}%";
         }
 
 #if !UNITY_EDITOR
@@ -336,81 +420,94 @@ namespace MainCore
         }
 #endif
 
-        private IEnumerator StartPlay()
+        private float totalOffset;
+
+        private async void StartPlay()
         {
             //GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutIn");
 
-            //We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
+            // We pre-generate one HitFX to avoid the high Disk usage of reading the prefab.
+            // 预生成HitFX，避免读取prefab时吃硬盘
             var hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Perfect);
-            hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
+                .GetObj(HitFxJudgeType.Perfect, GlobalSetting.CurrentSkinInfo);
+            hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
+            hitFX.PlayEffect();
             hitFX = HitEffectManager.GetInstance()
-                .GetObj(HitFxJudgeType.Good);
-            hitFX.transform.localPosition = new Vector3(1000, 1000, 0);
+                .GetObj(HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
+            hitFX.transform.localPosition = new Vector3(5000, 5000, 0);
+            hitFX.PlayEffect();
 
-            maskSprite.DOFade(GlobalSetting.maskAlpha, 3f);
+            totalOffset = json.offset + GlobalSetting.UserOffset;
+            maskSprite.DOFade(GlobalSetting.MaskAlpha, 3f);
             audio.PlayScheduled(AudioSettings.dspTime + 4f);
-            progressManager.AddStartDelay(json.offset + GlobalSetting.userOffset);
+            progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
-            yield return new WaitForSeconds(4);
-            GlobalSetting.Playing = true;
+            await UniTask.Delay(4000);
+            GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
         }
 
         private void RegisterPauseMenu()
         {
-            pauseButton.OnDoubleTap.AddListener(Pause);
             backButton.OnClick.AddListener(Quit);
-            continueButton.OnClick.AddListener(UnPause);
+            continueButton.OnClick.AddListener(() => UnPause().Forget());
+            if (GlobalSetting.IsMultiplayer) return;
+            pauseButton.OnDoubleTap.AddListener(Pause);
             retryButton.OnClick.AddListener(() =>
             {
                 GlobalSetting.Reset();
-                SceneTransit.Instance.TransitTo("PlayingScene");
+                SceneTransit.Instance.JumpScene("PlayingScene");
             });
             terminateButton.OnClick.AddListener(() =>
             {
                 playedFlag = true;
                 audio.time = 0;
+                progressManager.AddTime(audio.clip.length);
             });
         }
 
         private void Quit()
         {
-            SceneTransit.Instance.TransitTo("ChartSelectorScene");
+            if (GlobalSetting.IsMultiplayer) SocketManager.QuitGame();
+            SceneTransit.Instance.Back();
         }
 
-        private IEnumerator LoadEnding()
+        private async void LoadEnding()
         {
             GlobalSetting.IsEnding = true;
             operation = SceneManager.LoadSceneAsync("LevelOver 1");
             operation.allowSceneActivation = false;
-            yield return new WaitForSeconds(2);
+            await UniTask.Delay(2000);
             operation.allowSceneActivation = true;
-            yield return operation;
+            await operation;
             //SceneTransit.Instance.TransitTo("LevelOver 1");
         }
 
-        public static async Task InitChartAuto(string path)
+        public static async Task InitChartAuto(string path, bool isInternal, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
-            Task.Run(delegate
-            {
-                var sec = 0;
-                while (true)
+            if (showMessage)
+                Task.Run(delegate
                 {
-                    PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
-                    Thread.Sleep(1000);
-                    sec++;
-                    if (cts.IsCancellationRequested)
+                    var sec = 0;
+                    while (true)
                     {
-                        cts.Token.ThrowIfCancellationRequested();
+                        PopupMessageManager.Instance.ChangeContent($"Reading chart. Waiting for {sec}s");
+                        Thread.Sleep(1000);
+                        sec++;
+                        if (cts.IsCancellationRequested)
+                        {
+                            cts.Token.ThrowIfCancellationRequested();
+                        }
                     }
-                }
-            }, cts.Token);
-            var ch = await File.ReadAllTextAsync(path).ConfigureAwait(false);
+                }, cts.Token);
+            var ch = isInternal
+                ? Resources.Load<TextAsset>(path).text
+                : await File.ReadAllTextAsync(path, cts.Token).ConfigureAwait(false);
             cts.Cancel();
-            GlobalSetting.chart = ch;
+            ch = ch.Replace("\r\n", "\n");
+            GlobalSetting.Chart = ch;
             if (!ch.Contains("}") && ch.Contains("bp"))
             {
                 await InitPecChart(ch);
@@ -421,7 +518,7 @@ namespace MainCore
             }
             else if (ch.Contains("}") && ch.Contains("numOfNotes"))
             {
-                await InitRpeChart(ch);
+                await InitRpeChart(ch, showMessage);
             }
         }
 
@@ -438,9 +535,9 @@ namespace MainCore
             ConvertEventsToLayer();
         }
 
-        private static async Task InitRpeChart(string ch)
+        private static async Task InitRpeChart(string ch, bool showMessage)
         {
-            json = await Rpe2Json.Chart123(ch).ConfigureAwait(false);
+            json = await Rpe2Json.Chart123(ch, showMessage).ConfigureAwait(false);
         }
 
         private void InitChart()
@@ -452,7 +549,7 @@ namespace MainCore
                 var jlm = t.GetComponentInChildren<JudgeLineMovement>();
                 jlm.ID = i;
                 jlm.Line = l;
-                GlobalSetting.lines.Add(jlm);
+                GlobalSetting.Lines.Add(jlm);
                 i++;
             }
 
@@ -461,20 +558,20 @@ namespace MainCore
                 foreach (note n in l.notesAbove)
                 {
                     int t;
-                    if (GlobalSetting.highLightedNotes.TryGetValue(n.time, out t))
-                        GlobalSetting.highLightedNotes[n.time]++;
+                    if (GlobalSetting.HighLightedNotes.TryGetValue(n.time, out t))
+                        GlobalSetting.HighLightedNotes[n.time]++;
                     else
-                        GlobalSetting.highLightedNotes.Add(n.time, 1);
+                        GlobalSetting.HighLightedNotes.Add(n.time, 1);
                     n.isAbove = true;
                 }
 
                 foreach (note n in l.notesBelow)
                 {
                     int t;
-                    if (GlobalSetting.highLightedNotes.TryGetValue(n.time, out t))
-                        GlobalSetting.highLightedNotes[n.time]++;
+                    if (GlobalSetting.HighLightedNotes.TryGetValue(n.time, out t))
+                        GlobalSetting.HighLightedNotes[n.time]++;
                     else
-                        GlobalSetting.highLightedNotes.Add(n.time, 1);
+                        GlobalSetting.HighLightedNotes.Add(n.time, 1);
                     n.isAbove = false;
                 }
             }
@@ -483,7 +580,7 @@ namespace MainCore
             {
                 foreach (note n in l.notesAbove)
                 {
-                    if (GlobalSetting.highLightedNotes[n.time] > 1 && GlobalSetting.highLight)
+                    if (GlobalSetting.HighLightedNotes[n.time] > 1 && GlobalSetting.HighLight)
                     {
                         n.isMulti = true;
                     }
@@ -491,15 +588,15 @@ namespace MainCore
 
                 foreach (note n in l.notesBelow)
                 {
-                    if (GlobalSetting.highLightedNotes[n.time] > 1 && GlobalSetting.highLight)
+                    if (GlobalSetting.HighLightedNotes[n.time] > 1 && GlobalSetting.HighLight)
                     {
                         n.isMulti = true;
                     }
                 }
             }
 
-            GlobalSetting.highLightedNotes.Clear();
-            GlobalSetting.maximumZOrder = json.judgeLineList.Count;
+            GlobalSetting.HighLightedNotes.Clear();
+            GlobalSetting.MaximumZOrder = json.judgeLineList.Count;
         }
 
         private static void PreparationPgrChart()
@@ -562,14 +659,14 @@ namespace MainCore
 
         private static void LoadCsvLineImage()
         {
-            for (int i = 0; i < GlobalSetting.lines.Count; i++)
+            for (int i = 0; i < GlobalSetting.Lines.Count; i++)
             {
                 try
                 {
-                    int lineId = int.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 1));
-                    var t1 = float.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 3));
+                    int lineId = int.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 1));
+                    var t1 = float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 3));
                     WWW a = new WWW("file://" + Path.Combine(PlayerPrefs.GetString("chartFolderPath", ""),
-                        GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 2)));
+                        GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 2)));
                     while (!a.isDone)
                     {
                     }
@@ -577,12 +674,12 @@ namespace MainCore
                     ;
                     t1 = t1 > 0 ? t1 : Mathf.Abs(t1);
                     t1 = (200 * t1 * Camera.main.orthographicSize / a.texture.height);
-                    var t2 = t1 / float.Parse(GlobalSetting.lineImage.GetDataByRowAndCol(i + 1, 4));
+                    var t2 = t1 / float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 4));
                     Sprite sprite = Sprite.Create(a.texture, new Rect(0, 0, a.texture.width, a.texture.height),
                         Vector2.one / 2f);
-                    GlobalSetting.lines[lineId].GetComponent<SpriteRenderer>().sprite = sprite;
-                    GlobalSetting.lines[lineId].TargetScale = new Vector3(t1, t2, 1);
-                    GlobalSetting.lines[lineId].IsImage = true;
+                    GlobalSetting.Lines[lineId].GetComponent<SpriteRenderer>().sprite = sprite;
+                    GlobalSetting.Lines[lineId].TargetScale = new Vector3(t1, t2, 1);
+                    GlobalSetting.Lines[lineId].IsImage = true;
                 }
                 catch
                 {
@@ -627,22 +724,41 @@ namespace MainCore
             }
         }
 
+        [SerializeField] private Text disconnectWarn;
+
         void Pause()
         {
-            if (GlobalSetting.Playing && !GlobalSetting.Paused && MusicTime > 3f && !GlobalSetting.Paused)
-            {
-                GlobalSetting.Paused = true;
-                progressManager.StopTiming();
-                audio.Pause();
-                audio.volume = 0;
-                audio.time -= 3f;
-                progressManager.TimeGoBack(3f, () => pauseWindow.TurnOn());
-            }
+            if (!GlobalSetting.GameStarted || GlobalSetting.Paused || !(MusicTime > 3f) || GlobalSetting.Paused) return;
+            GlobalSetting.Paused = true;
+            progressManager.StopTiming();
+            audio.Pause();
+            audio.volume = 0;
+            float delta = Mathf.Min(3f, audio.time);
+            audio.time = Mathf.Max(audio.time - 3f, 0f);
+            progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
+            videoManager.Pause();
+            if (GlobalSetting.IsMultiplayer) DisconnectListener();
         }
 
-        async void UnPause()
+        private async void DisconnectListener()
         {
-            if (GlobalSetting.Playing && GlobalSetting.Paused)
+            await UniTask.SwitchToMainThread();
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (stopwatch.ElapsedMilliseconds < 15000)
+            {
+                if (!GlobalSetting.Paused) break;
+                disconnectWarn.text = $"警告：将在 {(15000 - stopwatch.ElapsedMilliseconds) / 1000f:0.0} 秒后断开连接";
+                await UniTask.Yield();
+            }
+            disconnectWarn.text = "警告：将在 0 秒后断开连接";
+            if (!GlobalSetting.Paused) return;
+            Quit();
+        }
+
+        async UniTaskVoid UnPause()
+        {
+            if (GlobalSetting.GameStarted && GlobalSetting.Paused)
             {
                 pauseWindow.TurnOff();
                 // audio.time = Stopwatch.ElapsedMilliseconds * .001f;
@@ -650,43 +766,110 @@ namespace MainCore
                 audio.UnPause();
                 DOTween.To(() => audio.volume, (x) => audio.volume = x, 1f, 2f);
                 await Task.Delay(3000);
+                videoManager.Resume();
                 GlobalSetting.Paused = false;
             }
         }
 
-        public static void OverloadInfoWithPhiraYaml(PhiraInfoData phiraInfoData)
+        public static void ApplyPhiraOffset(float? f)
         {
-            if (phiraInfoData == null) return;
-            json.offset += phiraInfoData.offset;
-
-            if (!string.IsNullOrEmpty(phiraInfoData.music))
+            if (f == null)
             {
-                GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
-                    phiraInfoData.music);
+                return;
             }
 
-            if (!string.IsNullOrEmpty(phiraInfoData.illustration))
-            {
-                GlobalSetting.illustrationPath =
-                    Path.Combine(GlobalSetting.chartFolderPath, phiraInfoData.illustration);
-            }
-
-            GlobalSetting.charter = phiraInfoData.charter;
-            GlobalSetting.composer = phiraInfoData.composer;
-            LoadIntoManager.Charter = phiraInfoData.charter;
-            LoadIntoManager.Composer = phiraInfoData.composer;
-            LoadIntoManager.Illustrator = phiraInfoData.illustrator;
-            if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 &&
-                GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
-            {
-                GlobalSetting.chartName = phiraInfoData.name;
-                GlobalSetting.difficulty = phiraInfoData.level;
-            }
+            json.offset += (float)f;
         }
 
 #if UNITY_EDITOR
         public static Main Mian;
         public int TEST_COUNT { get; set; }
 #endif
+    }
+
+    public enum NoteStat
+    {
+        Perfect,
+        Good,
+        Bad,
+        Miss,
+        None,
+        Early,
+        Late
+    }
+
+    public enum JudgeLineStat
+    {
+        AP,
+        FC,
+        None
+    }
+
+    public class ScoreCounter
+    {
+        public int perfectCnt;
+        public int goodCnt;
+        public int badCnt;
+        public int missCnt;
+        public int combo;
+        public int early;
+        public int late;
+        public int maxcombo;
+        public int numOfNotes;
+
+        private int elapsedNoteCnt;
+
+        public float Score => GlobalSetting.NewScoreCalcType
+            ? 1e6f * (perfectCnt + goodCnt * 0.65f) / numOfNotes // 判定分100w
+            : 1e6f * (perfectCnt * 0.9f + goodCnt * 0.585f + maxcombo * 0.1f) / numOfNotes; // 判定分90w 连击分10w
+
+        public float Accuracy => (perfectCnt + goodCnt * 0.65f) / numOfNotes;
+        public float RuntimeAccuracy => elapsedNoteCnt == 0 ? 1f : (perfectCnt + goodCnt * 0.65f) / elapsedNoteCnt;
+
+        public void Add(NoteStat status)
+        {
+            switch (status)
+            {
+                case NoteStat.Perfect:
+                    perfectCnt++;
+                    combo++;
+                    elapsedNoteCnt++;
+                    break;
+                case NoteStat.Good:
+                    goodCnt++;
+                    combo++;
+                    elapsedNoteCnt++;
+                    break;
+                case NoteStat.Bad:
+                    badCnt++;
+                    combo = 0;
+                    elapsedNoteCnt++;
+                    break;
+                case NoteStat.Miss:
+                    missCnt++;
+                    combo = 0;
+                    elapsedNoteCnt++;
+                    break;
+                case NoteStat.Early:
+                    goodCnt++;
+                    early++;
+                    combo++;
+                    elapsedNoteCnt++;
+                    break;
+                case NoteStat.Late:
+                    goodCnt++;
+                    late++;
+                    combo++;
+                    elapsedNoteCnt++;
+                    break;
+            }
+
+            if (combo > maxcombo)
+                maxcombo = combo;
+            if (GlobalSetting.LineStat == JudgeLineStat.AP && goodCnt != 0)
+                GlobalSetting.LineStat = JudgeLineStat.FC;
+            if (GlobalSetting.LineStat != JudgeLineStat.None && (badCnt != 0 || missCnt != 0))
+                GlobalSetting.LineStat = JudgeLineStat.None;
+        }
     }
 }

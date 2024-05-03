@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 1783593901
   m_SortingLayer: 2
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 329f8f1411ebf9647a46e9381661b4b8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 16bd94e3ff4bb514f887ec2ee1a9d3bc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -114,12 +114,12 @@ MonoBehaviour:
     isMulti: 0
   isAbove: 0
   NormalSprites:
-  - {fileID: 21300000, guid: 329f8f1411ebf9647a46e9381661b4b8, type: 3}
-  HLsprite: {fileID: 21300000, guid: d2e5667bec9cb6c469b2720f76b85059, type: 3}
-  tapSound: {fileID: 8300000, guid: cd0da3840e52ba24eac0a90eedbe3c40, type: 3}
+  - {fileID: 21300000, guid: 16bd94e3ff4bb514f887ec2ee1a9d3bc, type: 3}
+  HLsprite: {fileID: 21300000, guid: 3028922790867aa47b8f35fd3b53646e, type: 3}
   destroyed: 0
-  badTap: {fileID: 4076665199218670655, guid: 8bc341f37858de14799cc5d220de73d8, type: 3}
+  badTap: {fileID: 4076665199218670655, guid: dbd7b8ccc0c652e478b7bd176129db28, type: 3}
   status: 4
+  originalSize: {x: 0, y: 0, z: 0}
   thisRenderer: {fileID: 1167125736409841661}
   cachedTransform: {fileID: 4166291464378599388}
   parentLine: {fileID: 0}

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using UnityEngine;
 
 namespace MainCore.Utilities
 {
@@ -6,10 +7,18 @@ namespace MainCore.Utilities
     {
         private string[][] Array;
 
+        public CSVReader(TextAsset textAsset)
+        {
+            InternalConstructor(textAsset.text);
+        }
+
         public CSVReader(string path)
         {
-            string binAsset = File.ReadAllText(path);
+            InternalConstructor(File.ReadAllText(path));
+        }
 
+        private void InternalConstructor(string binAsset)
+        {
             string[] lineArray = binAsset.Split("\r"[0]);
 
             Array = new string[lineArray.Length][];

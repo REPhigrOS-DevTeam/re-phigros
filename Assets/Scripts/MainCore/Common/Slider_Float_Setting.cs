@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace MainCore.Common
 {
-    public class Slider_Float_Setting : SettingBase<float>
+    public class Slider_Float_Setting : SettingBase<Slider, float>
     {
         protected override void OnStart()
         {
@@ -17,12 +17,12 @@ namespace MainCore.Common
 
         public override void SetValue(float value)
         {
-            (dataContainer as Slider).value = value;
+            DataContainer.value = value;
         }
 
         public override void SaveValue()
         {
-            PlayerPrefs.SetFloat(dataTag, (dataContainer as Slider).value);
+            PlayerPrefs.SetFloat(dataTag, DataContainer.value);
         }
     }
 }

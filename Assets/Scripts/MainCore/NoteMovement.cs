@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
-using Utilities;
 
 namespace MainCore
 {
     public class NoteMovement : MonoBehaviour
     {
         public int notetype = -1;
+
         public note Note;
         public int isAbove;
         public List<Sprite> NormalSprites;
@@ -26,6 +27,7 @@ namespace MainCore
         protected EffectManager holdEffect;
         protected Color[] lastColors = new Color[3];
         protected Color[] temporaryColors = new Color[3];
+        private Sprite _badTapSprite;
 
         public virtual void OnStart()
         {
@@ -33,8 +35,8 @@ namespace MainCore
             status = NoteStat.None;
             holdEffect = null;
             var scaleFactor = Note.size;
-            originalSize = new Vector3(GlobalSetting.globalNoteScale * scaleFactor,
-                isAbove * GlobalSetting.globalNoteScale, 1);
+            originalSize = new Vector3(GlobalSetting.GlobalNoteScale * scaleFactor,
+                isAbove * GlobalSetting.GlobalNoteScale, 1);
             gameObject.transform.localScale = originalSize;
             status = NoteStat.None;
 
@@ -42,14 +44,7 @@ namespace MainCore
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
             cachedTransform.localPosition = new Vector3(Note.positionX, 0, cachedTransform.localPosition.z);
 
-            if (Note.isMulti)
-            {
-                thisRenderer.sprite = HLsprite;
-            }
-            else
-            {
-                thisRenderer.sprite = NormalSprites[0];
-            }
+            thisRenderer.sprite = Note.isMulti ? HLsprite : NormalSprites[0];
         }
 
         public void OnUpdate(float noteHeight)
@@ -103,6 +98,26 @@ namespace MainCore
             }
         }
 
+        public virtual void UpdateNoteSkin(int type)
+        {
+            NormalSprites[0] = type switch
+            {
+                0 => GlobalSetting.CurrentSkinInfo.click,
+                1 => GlobalSetting.CurrentSkinInfo.drag,
+                2 => GlobalSetting.CurrentSkinInfo.flick,
+                3 => GlobalSetting.CurrentSkinInfo.holdHead,
+                _ => throw new ArgumentException()
+            };
+            HLsprite = type switch
+            {
+                0 => GlobalSetting.CurrentSkinInfo.clickMh,
+                1 => GlobalSetting.CurrentSkinInfo.dragMh,
+                2 => GlobalSetting.CurrentSkinInfo.flickMh,
+                3 => GlobalSetting.CurrentSkinInfo.holdHeadMh,
+                _ => throw new ArgumentException()
+            };
+        }
+
         protected virtual void OtherWorksOnUpdate()
         {
         }
@@ -126,11 +141,11 @@ namespace MainCore
 
         protected virtual void CheckJudgeStatus()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
             {
                 if (parentLine.PgrTime - Note.time >= 0 && status == NoteStat.None)
                 {
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     status = NoteStat.Perfect;
                     destroyed = true;
                     GlobalSetting.PlayNoteSound(notetype);
@@ -148,12 +163,12 @@ namespace MainCore
             {
                 temporaryColors[0] =
                     Color.white.SetAlpha(
-                        Mathf.Max(1 - (parentLine.PgrTime - Note.time) / parentLine.JudgeTime.bTime, 0) * Note.alpha);
+                        Mathf.Max(1 - (parentLine.PgrTime - Note.time) / GlobalSetting.GetJudgeTime().bTime, 0) * Note.alpha);
             }
 
-            if (parentLine.PgrTime >= Note.time + parentLine.JudgeTime.bTime && status == NoteStat.None)
+            if (parentLine.PgrTime >= Note.time + GlobalSetting.GetJudgeTime().bTime && status == NoteStat.None)
             {
-                GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                 status = NoteStat.Miss;
                 destroyed = true;
             }
@@ -162,7 +177,7 @@ namespace MainCore
             {
                 if (parentLine.PgrTime - Note.time > -.001f)
                 {
-                    GlobalSetting.scoreCounter.Add(status);
+                    GlobalSetting.ScoreCounter.Add(status);
                     GlobalSetting.PlayNoteSound(notetype);
                     UpdateEffect();
                     destroyed = true;
@@ -186,10 +201,10 @@ namespace MainCore
             var localPosition = new Vector3(cachedlocalPosition.x,
                 0, cachedlocalPosition.z);
             cachedTransform.localPosition = localPosition;
-            holdEffect = HitEffectManager.GetInstance()
-                .GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good);
+            holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
             holdEffect.transform.position = cachedTransform.position;
-            holdEffect.PlayParticle();
+            holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
+            holdEffect.PlayEffect();
             cachedTransform.localPosition = cachedlocalPosition;
             temporaryColors[0] = Color.clear;
         }
@@ -202,31 +217,30 @@ namespace MainCore
             if (notetype == 1 && f.IsFirstClick)
             {
                 f.ClearTapFlag();
-                if (deltaTime > parentLine.JudgeTime.bTime)
+                if (deltaTime > GlobalSetting.GetJudgeTime().bTime)
                 {
                     status = NoteStat.Bad;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Bad);
-                    Instantiate(badTap, cachedTransform.position, cachedTransform.rotation).transform.localScale =
-                        cachedTransform.lossyScale;
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Bad);
+                    GenerateBad();
                 }
-                else if (deltaTime > parentLine.JudgeTime.gTime)
+                else if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Good;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.scoreCounter.early++;
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Good);
+                    GlobalSetting.ScoreCounter.early++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
-                else if (deltaTime > -parentLine.JudgeTime.gTime)
+                else if (deltaTime > -GlobalSetting.GetJudgeTime().gTime)
                 {
                     status = NoteStat.Perfect;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     GlobalSetting.PlayNoteSound(notetype);
                 }
                 else
                 {
                     status = NoteStat.Good;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.scoreCounter.late++;
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Good);
+                    GlobalSetting.ScoreCounter.late++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
 
@@ -234,18 +248,26 @@ namespace MainCore
                 destroyed = true;
                 return true;
             }
-            else if (notetype == 2 && Mathf.Abs(deltaTime) < parentLine.JudgeTime.judgeTime)
+
+            if (notetype == 2 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime)
             {
                 status = NoteStat.Perfect;
                 return true;
             }
-            else if (notetype == 4 && Mathf.Abs(deltaTime) < parentLine.JudgeTime.judgeTime && f.IsFlick())
+            if (notetype == 4 && Mathf.Abs(deltaTime) < GlobalSetting.GetJudgeTime().judgeTime && f.IsFlick())
             {
                 status = NoteStat.Perfect;
                 return true;
             }
 
             return false;
+        }
+
+        private void GenerateBad()
+        {
+            GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
+            badTapInstance.transform.localScale = cachedTransform.lossyScale;
+            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.click_bad);
         }
     }
 }

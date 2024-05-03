@@ -67,7 +67,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Brightness: -1
+    - _Brightness: 0
     - _BumpScale: 1
     - _ColorMask: 15
     - _Constrast: 0.1
@@ -93,7 +93,7 @@ Material:
     - _StencilWriteMask: 255
     - _UVSec: 0
     - _UseUIAlphaClip: 0
-    - _Vibrancy: -1
+    - _Vibrancy: 1
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

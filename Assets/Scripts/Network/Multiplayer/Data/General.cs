@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using JetBrains.Annotations;
+using MainCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+#endif
 
 namespace Network.Multiplayer.Data
 {
@@ -15,7 +21,7 @@ namespace Network.Multiplayer.Data
 
         public static int Send(this Socket socket, object? value)
         {
-            string messageToSend = JsonConvert.SerializeObject(value);
+            string messageToSend = JsonConvert.SerializeObject(value, Formatting.None);
             Debug.Log("尝试发送" + messageToSend);
             return socket.Send(NoBomUtf8Encoding.GetBytes(messageToSend));
         }
@@ -26,25 +32,27 @@ namespace Network.Multiplayer.Data
             byte[] buffer = new byte[8];
             List<byte> dataList = new List<byte>();
             int length;
-            while ((length = socket.Receive(buffer)) > 0)
+            while (socket.Available > 0)
             {
-                for (int i = 0; i < length; i++)
+                while ((length = socket.Receive(buffer)) > 0)
                 {
-                    dataList.Add(buffer[i]);
+                    dataList.AddRange(buffer.Take(length));
+
+                    if (socket.Available <= 0 || length < buffer.Length) break;
                 }
 
-                if (socket.Available <= 0 || length < buffer.Length) break;
+                if (dataList.Count == 0) throw new NullReferenceException("Received Nothing");
             }
 
-            if (dataList.Count == 0) throw new NullReferenceException("Received Nothing");
-
             string s = NoBomUtf8Encoding.GetString(dataList.ToArray());
+            Debug.Log("接收到：" + s);
             return SplitSocketPacks(s);
         }
 
         private static JObject[] SplitSocketPacks(string s)
         {
             List<JObject> packs = new List<JObject>();
+            bool zhuanYi = false;
             bool isInString = false;
             int j = 0;
             TextElementEnumerator textElementEnumerator = StringInfo.GetTextElementEnumerator(s);
@@ -53,11 +61,25 @@ namespace Network.Multiplayer.Data
             {
                 string element = textElementEnumerator.GetTextElement();
                 if (stringBuilder.Length == 0 && element != "{") throw new ArgumentException("你这包有问题啊");
-                if (element == "\"") isInString = !isInString;
-                else if (!isInString)
+                if (element == "\\")
                 {
-                    if (element == "{") j++;
-                    if (element == "}") j--;
+                    if (!isInString) throw new ArgumentException();
+                    zhuanYi = !zhuanYi;
+                }
+                else
+                {
+                    if (element == "\"")
+                    {
+                        if (!zhuanYi)
+                            isInString = !isInString;
+                    }
+                    else if (!isInString)
+                    {
+                        if (element == "{") j++;
+                        if (element == "}") j--;
+                    }
+
+                    zhuanYi = false;
                 }
 
                 stringBuilder.Append(element);
@@ -66,36 +88,125 @@ namespace Network.Multiplayer.Data
                 packs.Add(JObject.Parse(s1));
                 stringBuilder.Clear();
             }
+
             return packs.ToArray();
+        }
+
+        public static bool TryParseHost(string url, out IPEndPoint endPoint, out string displayUrl)
+        {
+            int maoHaoWeiZhi = url.LastIndexOf(":", StringComparison.Ordinal);
+            if (maoHaoWeiZhi < 0)
+            {
+                endPoint = null;
+                displayUrl = "";
+                return false;
+            }
+            
+
+            string host = url.Substring(0, maoHaoWeiZhi);
+            string portStr = url.Substring(maoHaoWeiZhi + 1);
+            if (!int.TryParse(portStr, out int port) || port < 0 || port > 65535)
+            {
+                endPoint = null;
+                displayUrl = "";
+                return false;
+            }
+
+            if (host.StartsWith("[") && host.EndsWith("]"))
+            {
+                host = host.Substring(1);
+                host = host.Substring(0, host.Length - 1);
+                if (!IPAddress.TryParse(host, out IPAddress ipv6Address) ||
+                    ipv6Address.AddressFamily != AddressFamily.InterNetworkV6)
+                {
+                    endPoint = null;
+                    displayUrl = "";
+                    return false;
+                }
+
+                endPoint = new IPEndPoint(ipv6Address, port);
+                displayUrl = host + ":" + port;
+                return true;
+            }
+
+            if (IPAddress.TryParse(host, out IPAddress ipv4Address) &&
+                ipv4Address.AddressFamily == AddressFamily.InterNetwork)
+            {
+                endPoint = new IPEndPoint(ipv4Address, port);
+            }
+            List<IPAddress> hostAddresses;
+            try
+            {
+                hostAddresses = Dns.GetHostAddresses(host).ToList();
+                
+            }
+            catch (Exception e) when (e is SocketException or ArgumentException)
+            {
+                endPoint = null;
+                displayUrl = "";
+                return false;
+            }
+            
+            hostAddresses = hostAddresses.Where(address => address.AddressFamily is AddressFamily.InterNetwork or AddressFamily.InterNetworkV6).ToList();
+            
+            if (!Socket.OSSupportsIPv6)
+                hostAddresses = hostAddresses.Where(address => address.AddressFamily != AddressFamily.InterNetworkV6).ToList();
+            hostAddresses.Sort((a, b) =>
+            {
+                int c = (int)a.AddressFamily;
+                int d = (int)b.AddressFamily;
+                return c - d;
+            });
+            if (hostAddresses.Count == 0)
+            {
+                endPoint = null;
+                displayUrl = "";
+                return false;
+            }
+            endPoint = new IPEndPoint(hostAddresses[0], port);
+            displayUrl = host + ":" + port;
+            return true;
         }
     }
 
-    public class GeneralSendData<T>
+    public class GeneralSendData
     {
         [JsonProperty("operate")] public string Operate;
         [JsonProperty("username")] public string Username;
-        [JsonProperty("addition")] public Dictionary<string, T> Addition = new();
+        [JsonProperty("addition")] public Dictionary<string, object> Addition = new();
     }
 
-    public class LoginSendData<T> : GeneralSendData<T>
+    public class LoginSendData : GeneralSendData
     {
         [JsonProperty("verifyToken")] public string VerifyToken;
     }
 
-    public class SendDataWithToken<T> : GeneralSendData<T>
+    public class SendDataWithToken : GeneralSendData
     {
         [JsonProperty("loginToken")] public string LoginToken;
     }
-    
+
     public class GeneralReceiveData
     {
         [JsonProperty("Type")] public string Type;
     }
 
+    public class PingReceiveData : GeneralReceiveData
+    {
+        [JsonProperty("Status")] public bool Status;
+        [JsonProperty("Name")] public string Name;
+        [JsonProperty("Motd")] public string Motd;
+        [JsonProperty("DebugServer")] public bool IsDebug = false;
+        [JsonProperty("RequireVersion")] public int Version = -1;
+        [JsonProperty("ReceiveTime")] public long ReceiveTime;
+        [JsonProperty("OnlineMode")] public bool IsOnline;
+        [JsonProperty("ChartUploadMode")] public bool EnableChartUpload;
+    }
+
     public class BackReceiveData : GeneralReceiveData
     {
         [JsonProperty("Status")] public bool Status;
-        [JsonProperty("msg")] public string Message;
+        [JsonProperty("msg")] [CanBeNull] public string Message;
     }
 
     public class ActiveReceiveData : GeneralReceiveData
@@ -103,24 +214,53 @@ namespace Network.Multiplayer.Data
         [JsonProperty("operate")] public string Operate;
     }
 
+    public class SongInfo
+    {
+        [JsonProperty("FolderName")] public string FolderName;
+        [JsonProperty("SongName")] public string SongName;
+        [JsonProperty("SongComposer")] public string SongComposer;
+        [JsonProperty("SongDifficulty")] public string SongDifficulty;
+        [JsonProperty("SongCharter")] public string SongCharter;
+        [JsonProperty("SongIllustrator")] public string SongIllustrator;
+        [JsonProperty("MusicLength")] public float MusicLength;
+    }
+
     public enum ClientOperate
     {
-        LoginToServer = 0,
-        User_CreateNewRoom = 1,
-        User_CloseRoom = 2,
-        User_JoinRoom = 3,
-        Room_UpdateSong = 4,
-        Room_GameStart = 5,
-        Room_SendMessage = 6,
-        Room_GetRoomSongId = 7,
-        Room_GetRoomInfo = 8
+        Server_Sync = 0,
+        User_LoginToServer,
+        User_LeaveServer,
+        User_CreateNewRoom,
+        User_CloseRoom,
+        User_JoinRoom,
+        User_QuitRoom,
+        User_Ready,
+        User_UnReady,
+        User_GameEnd,
+        Room_UserQuitGame,
+        Room_UpdateSong,
+        Room_GameStart,
+        Room_SendMessage,
+        Room_GetRoomSongId,
+        Room_Sync,
+        Game_ScoreSync
     }
 
     public enum ServerOperate
     {
-        NewMessage = 0,
-        GameStart = 1,
-        RoomClosed = 2,
-        UpdateSong = 3
+        Message = 0,
+        GameStart,
+        RoomClosed,
+        UpdateSong,
+        ServerClosed,
+        UpdateScore,
+        PlayerQuit
+    }
+
+    public enum SongType
+    {
+        rep = 0,
+        Phizone = 1,
+        empty = 2
     }
 }

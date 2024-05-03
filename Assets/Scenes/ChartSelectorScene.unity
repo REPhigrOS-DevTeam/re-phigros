@@ -274,7 +274,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 0.4
-  m_Text: 'RE: Phigros
+  m_Text: 'RE: PhityOS
 
     <size=15>Add PEC & RPE support.</size>'
 --- !u!222 &56324386
@@ -835,6 +835,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chartNameUI: {fileID: 1220656011}
+  infoDropdown: {fileID: 1789981311}
   chartPathDropdown: {fileID: 749214952}
   musicPathDropdown: {fileID: 384728855}
   illustrationPathDropdown: {fileID: 57203090}
@@ -3326,7 +3327,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 149968, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_Name
-      value: Setting
+      value: Back
       objectReference: {fileID: 0}
     - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -3346,11 +3347,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: EnterSettings
+      value: EnterMain
       objectReference: {fileID: 0}
     - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: SelectUIControl, TOTOROWLDOX.RPGR.Core
+      value: MainCore.UI.SelectUIControl, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 11434868, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -3358,7 +3359,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11495182, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_Text
-      value: Settings
+      value: Back
       objectReference: {fileID: 0}
     - target: {fileID: 11495182, guid: 751f7137cfffd4a16b1a4c191e687d64, type: 3}
       propertyPath: m_FontData.m_Font
@@ -5675,7 +5676,7 @@ GameObject:
   - component: {fileID: 1643814568}
   - component: {fileID: 1643814567}
   m_Layer: 5
-  m_Name: Scroll View
+  m_Name: Template
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6354,9 +6355,7 @@ MonoBehaviour:
   m_ItemImage: {fileID: 1185488660}
   m_Value: 0
   m_Options:
-    m_Options:
-    - m_Text: Info
-      m_Image: {fileID: 0}
+    m_Options: []
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -6482,7 +6481,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Info
+  m_Text: 
 --- !u!222 &1812786893
 CanvasRenderer:
   m_ObjectHideFlags: 0
