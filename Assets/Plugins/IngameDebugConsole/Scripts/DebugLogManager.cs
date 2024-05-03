@@ -145,6 +145,8 @@ namespace IngameDebugConsole
 		[Tooltip( "If enabled, while typing a command, all of the matching commands' signatures will be displayed in a popup" )]
 		private bool showCommandSuggestions = true;
 
+		private bool ShowCommandSuggestions => showCommandSuggestions && enableCommand;
+
 		[SerializeField]
 		[HideInInspector]
 		[Tooltip( "If enabled, on Android platform, logcat entries of the application will also be logged to the console with the prefix \"LOGCAT: \". This may come in handy especially if you want to access the native logs of your Android plugins (like Admob)" )]
@@ -183,7 +185,9 @@ namespace IngameDebugConsole
 		[Tooltip( "If enabled, on standalone platforms, command input field will automatically be focused (start receiving keyboard input) after opening the console window" )]
 		private bool autoFocusOnCommandInputField = true;
 #endif
-
+		[SerializeField] 
+		public bool enableCommand = true;
+		
 		[Header( "Visuals" )]
 		[SerializeField]
 		private DebugLogItem logItemPrefab;
@@ -500,9 +504,16 @@ namespace IngameDebugConsole
 				commandSuggestionsContainer.gameObject.SetActive( false );
 
 			// Register to UI events
-			commandInputField.onValidateInput += OnValidateCommand;
-			commandInputField.onValueChanged.AddListener( OnEditCommand );
-			commandInputField.onEndEdit.AddListener( OnEndEditCommand );
+			if (enableCommand)
+			{
+				commandInputField.onValidateInput += OnValidateCommand;
+				commandInputField.onValueChanged.AddListener( OnEditCommand );
+				commandInputField.onEndEdit.AddListener( OnEndEditCommand );
+			}
+			else
+			{
+				commandInputField.onValidateInput += OnValidateCommandWhenDisabled;
+			}
 			hideButton.onClick.AddListener( HideLogWindow );
 			clearButton.onClick.AddListener( ClearLogs );
 			collapseButton.GetComponent<Button>().onClick.AddListener( CollapseButtonPressed );
@@ -817,7 +828,7 @@ namespace IngameDebugConsole
 						snapToBottomButton.SetActive( !snapToBottomButton.activeSelf );
 				}
 
-				if( showCommandSuggestions && commandInputField.isFocused && commandInputField.caretPosition != commandInputFieldPrevCaretPos )
+				if( ShowCommandSuggestions && commandInputField.isFocused && commandInputField.caretPosition != commandInputFieldPrevCaretPos )
 					RefreshCommandSuggestions( commandInputField.text );
 
 				if( commandInputField.isFocused && commandHistory.Count > 0 )
@@ -963,6 +974,35 @@ namespace IngameDebugConsole
 
 					// Execute the command
 					DebugLogConsole.ExecuteCommand( text );
+
+					// Snap to bottom and select the latest entry
+					SetSnapToBottom( true );
+				}
+
+				return '\0';
+			}
+
+			return addedChar;
+		}
+		
+		private char OnValidateCommandWhenDisabled( string text, int charIndex, char addedChar )
+		{ 
+			if( addedChar == '\n' ) // Command is submitted
+			{
+				// Clear the command field
+				if( clearCommandAfterExecution )
+					commandInputField.text = string.Empty;
+
+				if( text.Length > 0 )
+				{
+					if( commandHistory.Count == 0 || commandHistory[commandHistory.Count - 1] != text )
+						commandHistory.Add( text );
+
+					commandHistoryIndex = -1;
+					unfinishedCommand = null;
+
+					// Do not execute the command
+					Debug.LogWarning( "WARNING: Commands are disabled" );
 
 					// Snap to bottom and select the latest entry
 					SetSnapToBottom( true );
@@ -1310,7 +1350,7 @@ namespace IngameDebugConsole
 		// Show suggestions for the currently entered command
 		private void RefreshCommandSuggestions( string command )
 		{
-			if( !showCommandSuggestions )
+			if( !ShowCommandSuggestions )
 				return;
 
 			commandInputFieldPrevCaretPos = commandInputField.caretPosition;

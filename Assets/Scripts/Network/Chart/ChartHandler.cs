@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using MainCore;
+using MainCore.Data;
+using MainCore.Utilities;
+using Network.Account.Utils;
+using Network.Multiplayer.Data;
+using Network.Multiplayer.Managers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+using YamlDotNet.Serialization;
+
+namespace Network.Chart
+{
+    public class ChartHandler
+    {
+        private static Dictionary<string, string>
+            chartMap = new Dictionary<string, string>(); // 给房主用的, key是path，value是id
+
+        private static List<string> downloadedCharts = new List<string>(); // 给房员用的，下载好的文件我存在程序的tmp文件夹乐
+
+        private static string UserSpace = "";
+
+        public static string TmpPathRoot => Application.temporaryCachePath;
+
+        public static async Task<string> Upload(string folderPath)
+        {
+            if (string.IsNullOrEmpty(SocketManager.ChartUrlBase)) return "";
+            CheckDirectory($"{TmpPathRoot}/zip_charts");
+            string filePath = Path.GetFullPath($"{TmpPathRoot}/zip_charts/{Path.GetFileName(folderPath)}.zip");
+            if (chartMap.ContainsKey(filePath)) return chartMap[filePath];
+            ZipUtils.ZipDirectory(folderPath, filePath);
+            byte[] zipResult = await File.ReadAllBytesAsync(filePath);
+            using MultipartFormDataContent content = new MultipartFormDataContent();
+            content.Add(new ByteArrayContent(zipResult), "file", Path.GetFileName(filePath));
+            content.Add(new StringContent(SocketManager.GetServerId()), "serverid");
+            content.Add(new StringContent(SocketManager.GetRoomId()), "roomid");
+            string responseStr;
+            try
+            {
+                responseStr = await SocketManager.ChartUrlBase.UrlCombine("/upload").PostWithHttpClient(content);
+            }
+            catch (Exception e)
+            {
+                Util.DisplayException(e);
+                throw;
+            }
+            try
+            {
+                JObject response = JObject.Parse(responseStr);
+                if (response["status"].ToObject<bool>())
+                {
+                    string id = response["scoreid"].ToString();
+                    chartMap.Add(filePath, id);
+                    return id;
+                }
+            }
+            catch (JsonReaderException)
+            {
+                Util.DisplayNetworkException(responseStr);
+            }
+
+            Debug.LogError($"上传谱面{filePath}失败");
+            throw new ArgumentException();
+        }
+
+        // private static async void Delete(string id)
+        // {
+        //     using MultipartFormDataContent content = new MultipartFormDataContent();
+        //     content.Add(new StringContent(id), "scoreid");
+        //     Debug.Log("Chart to delete: " + id);
+        //     var postWithHttpClient = await RepAPI.ChartUrlBase.UrlCombine("/delete").PostWithHttpClient(content);
+        //     Debug.Log("Response: \n" + postWithHttpClient);
+        //     JObject response = JObject.Parse(postWithHttpClient);
+        //     if (response["status"].ToObject<bool>())
+        //     {
+        //         chartMap.Remove(chartMap.Where(kvp => kvp.Value == id).ToArray()[0].Key);
+        //     }
+        //     else
+        //     {
+        //         Debug.LogError($"删除谱面{id}失败");
+        //         throw new ArgumentException();
+        //     }
+        // }
+
+        public static async Task<byte[]> Download(string id)
+        {
+            if (string.IsNullOrEmpty(SocketManager.ChartUrlBase)) return null;
+            CheckDirectory($"{TmpPathRoot}/online_charts");
+            if (downloadedCharts.Contains(id)) return await ReadChartZip($"{TmpPathRoot}/online_charts/{id}");
+            byte[] bytes = await (SocketManager.ChartUrlBase.UrlCombine("/download") + $"?chartid={id}").SendGetRequestAsync();
+            await WriteChartZip($"{TmpPathRoot}/online_charts/{id}", bytes);
+            downloadedCharts.Add(id);
+            return bytes;
+        }
+
+        private static void CheckDirectory(string path)
+        {
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+        }
+
+        public static async Task<byte[]> DownloadFromPhiZone(string id) // TODO
+        {
+            return Array.Empty<byte>();
+        }
+
+        public static void OnRoomClosed()
+        {
+            downloadedCharts.Clear();
+        }
+
+        public static void OnRoomQuited()
+        {
+            chartMap.Clear();
+            downloadedCharts.Clear();
+            if (!Directory.Exists($"{TmpPathRoot}/online_charts")) return;
+            string[] strings = Directory.GetFiles($"{TmpPathRoot}/online_charts");
+            foreach (string s in strings)
+            {
+                File.Delete(s);
+            }
+        }
+
+        private static async Task<byte[]> ReadChartZip(string path)
+        {
+            return TransformByteArray(await File.ReadAllBytesAsync(path));
+        }
+
+        private static byte[] TransformByteArray(byte[] bytes)
+        {
+            return bytes.Select(b => (byte)(b ^ 0x4A)).ToArray();
+        }
+
+        private static async Task WriteChartZip(string path, byte[] bytes)
+        {
+            if (!new FileInfo(path).Directory.Exists) new FileInfo(path).Directory.Create();
+            await File.WriteAllBytesAsync(path, TransformByteArray(bytes));
+        }
+    }
+}

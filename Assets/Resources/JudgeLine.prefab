@@ -255,6 +255,9 @@ MonoBehaviour:
     skewControl: []
     yControl: []
     alphaControl: []
+    attachUI: '**tHiSisnOne AtTaCH U_i TEmPlAtE**'
+  JudgeLineDistance: 0
+  SpeedFactor: 6
 --- !u!212 &1607487622636084685
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -1,156 +1,43 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using E7.Native;
+﻿#define DISABLE_NATIVE_AUDIO
+#define USE_MA_AUDIO
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using MainCore.Common;
+using MainCore.Utilities;
 using UnityEngine;
+using UnityEngine.Networking;
+using Cysharp.Threading.Tasks;
+using MaTech.Audio;
 
 namespace MainCore
 {
-    public class HitSoundManager : MonoBehaviour
+    public class HitSoundManager : MonoSingleton<HitSoundManager>
     {
-        public static HitSoundManager Instance;
-
-        private static Dictionary<int, NativeAudioPointer> _nativeAudios;
         private static Dictionary<int, AudioSource[]> _unityAudios;
+#if USE_MA_AUDIO
+        private static Dictionary<int, AudioSample[]> _maAudios;
+#endif
         private static Dictionary<int, int> _audioIndexes;
-        private static NativeSource.PlayOptions _nativeAudioOptions;
+
         private static float _hitSoundVolume = 1f;
 
         [SerializeField] private AudioClip[] hitSounds;
         [SerializeField] private int[] hitSoundsLength;
 
-        private List<int> nativeIndexes = new();
-
-        void Awake()
+        protected override void OnAwake()
         {
-            DontDestroyOnLoad(this);
-
-            Instance = this;
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-            InitNativeAudio();
+#if USE_MA_AUDIO
+            InitMaAudio().Forget();
 #else
             InitUnityAudio();
 #endif
         }
 
-        //Handle NativeAudio's sounds later to achieve a sync.
-        void LateUpdate()
+        public static void UpdateVolume()
         {
-            if (nativeIndexes.Count == 0) return;
-
-            int tapCnt = 0, dragCnt = 0, flickCnt = 0;
-
-            foreach (var i in nativeIndexes)
-            {
-                if (i is 1 or 3) tapCnt++;
-                else if (i is 2) dragCnt++;
-                else flickCnt++;
-            }
-
-            tapCnt = tapCnt > 3 ? 3 : tapCnt;
-            dragCnt = dragCnt > 3 ? 3 : dragCnt;
-            flickCnt = flickCnt > 2 ? 2 : flickCnt;
-
-            if (dragCnt + flickCnt == 0)
-            {
-                while (tapCnt-- > 0)
-                {
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else if (dragCnt == 0)
-            {
-                int cnt = 0;
-                while (tapCnt-- > 0)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-
-                while (flickCnt-- > 0 && cnt < 3)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[4];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else if (flickCnt == 0)
-            {
-                int cnt = 0;
-                while (tapCnt-- > 0)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[1];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-
-                while (dragCnt-- > 0 && cnt < 3)
-                {
-                    cnt++;
-                    var pointer = _nativeAudios[2];
-                    var source = NativeAudio.GetNativeSourceAuto();
-                    source.Play(pointer, _nativeAudioOptions);
-                }
-            }
-            else
-            {
-                var pointer = _nativeAudios[1];
-                var source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-                pointer = _nativeAudios[2];
-                source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-                pointer = _nativeAudios[4];
-                source = NativeAudio.GetNativeSourceAuto();
-                source.Play(pointer, _nativeAudioOptions);
-            }
-
-            nativeIndexes.Clear();
-        }
-
-        public static void Init()
-        {
-            _hitSoundVolume = GlobalSetting.hitVolume;
-
-#if UNITY_ANDROID && !UNITY_EDITOR
-            if (NativeAudio.OnSupportedPlatform)
-            {
-                for (var i = 0; i < NativeAudio.GetNativeSourceCount(); i++)
-                {
-                    NativeAudio.GetNativeSource(i).SetVolume(_hitSoundVolume);
-                }
-            }
-#endif
-
-            _nativeAudioOptions.volume = _hitSoundVolume;
-        }
-
-        private async void InitNativeAudio()
-        {
-            if (!NativeAudio.OnSupportedPlatform) return;
-
-            var opt = NativeAudio.InitializationOptions.defaultOptions;
-            NativeAudio.Initialize(opt);
-            _nativeAudios = new Dictionary<int, NativeAudioPointer>();
-            _audioIndexes = new Dictionary<int, int>();
-            _nativeAudioOptions = new NativeSource.PlayOptions();
-
-            for (var i = 0; i < hitSounds.Length; i++)
-            {
-                hitSounds[i].LoadAudioData();
-                while (hitSounds[i].loadState != AudioDataLoadState.Loaded)
-                {
-                    await Task.Delay(20);
-                }
-
-                _nativeAudios.Add(i, NativeAudio.Load(hitSounds[i]));
-            }
+            _hitSoundVolume = GlobalSetting.HitVolume;
         }
 
         private void InitUnityAudio()
@@ -158,13 +45,57 @@ namespace MainCore
             _unityAudios = new Dictionary<int, AudioSource[]>();
             _audioIndexes = new Dictionary<int, int>();
 
+            RefreshUnityAudio();
+        }
+
+#if USE_MA_AUDIO
+        private async UniTaskVoid InitMaAudio()
+        {
+            _maAudios = new Dictionary<int, AudioSample[]>();
+            _audioIndexes = new Dictionary<int, int>();
+
+            MaAudio.LoadForUnity();
+            await RefreshMaAudio();
+        }
+#endif
+
+        public async void RefreshHitSounds()
+        {
+            Resources.UnloadUnusedAssets();
+            SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
+            hitSounds[0] = null;
+            hitSounds[1] = skinInfo.clickAC;
+            hitSounds[2] = skinInfo.dragAC;
+            hitSounds[3] = skinInfo.clickAC;
+            hitSounds[4] = skinInfo.flickAC;
+#if USE_MA_AUDIO
+            await RefreshMaAudio();
+#else
+            RefreshUnityAudio();
+#endif
+        }
+
+
+        private void RefreshUnityAudio()
+        {
+            foreach (AudioSource[] audioSources in _unityAudios.Values)
+            {
+                foreach (AudioSource audioSource in audioSources)
+                {
+                    Destroy(audioSource.gameObject);
+                }
+            }
+
+            _unityAudios.Clear();
+            _audioIndexes.Clear();
+
             for (var i = 0; i < hitSounds.Length; i++)
             {
                 _unityAudios.Add(i, new AudioSource[hitSoundsLength[i]]);
                 _audioIndexes.Add(i, 0);
                 for (var j = 0; j < hitSoundsLength[i]; j++)
                 {
-                    var obj = new GameObject("Unity Audio - HitSound");
+                    var obj = new GameObject($"Unity Audio - HitSound {i}-{j}");
                     obj.transform.SetParent(transform);
                     obj.transform.position = new Vector3(0, 0, -10);
                     var comp = obj.AddComponent<AudioSource>();
@@ -176,25 +107,90 @@ namespace MainCore
             }
         }
 
+#if USE_MA_AUDIO
+        private async UniTask RefreshMaAudio()
+        {
+            _maAudios.Clear();
+            _audioIndexes.Clear();
+
+            for (int i = 0; i < hitSounds.Length; i++)
+            {
+                _maAudios.Add(i, new AudioSample[hitSoundsLength[i]]);
+                _audioIndexes.Add(i, 0);
+                for (var j = 0; j < hitSoundsLength[i]; j++)
+                {
+                    if (!hitSounds[i] && (!GlobalSetting.CurrentSkinInfo || !GlobalSetting.CurrentSkinInfo.isExternal))
+                        continue;
+                    if (_maAudios[i][j] != null) _maAudios[i][j].Unload();
+                    if (i == 0)
+                    {
+                        _maAudios[i][j] = null;
+                    }
+                    else
+                    {
+                        _maAudios[i][j] = GlobalSetting.CurrentSkinInfo.isExternal
+                            ? await AudioSample.LoadFromExternalUrl(EscapeFilePath(SkinManager.Instance.skinPath + "/" +
+                                GlobalSetting.CurrentSkinInfo.id + "/" + i switch
+                                {
+                                    1 => "click.ogg",
+                                    2 => "drag.ogg",
+                                    3 => "click.ogg",
+                                    4 => "flick.ogg",
+                                    _ => throw new ArgumentOutOfRangeException(nameof(i), i, "Illegal HitSound Type Id")
+                                }))
+                            : await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                    }
+
+                    if (_maAudios[i][j] == null) continue;
+                    _maAudios[i][j].Volume = _hitSoundVolume;
+                }
+            }
+        }
+#endif
+
+        private string EscapeFilePath(string filePath)
+        {
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
+            string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
+            int system;
+            if (pathRoot.EndsWith(":/"))
+            {
+                system = 0; // Windows
+            }
+            else if (pathRoot == "/")
+            {
+                system = 1; // 其他系统
+            }
+            else
+            {
+                system = -1;
+            }
+            
+            if (system == -1) throw new ArgumentException("Invalid file path: " + filePath, nameof(filePath));
+
+            filePath = filePath.Substring(pathRoot.Length);
+
+            string pathSeparator = system switch
+            {
+                0 => "\\",
+                1 => "/",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return $"file://{pathRoot}{string.Join(pathSeparator, filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";
+        }
+
         public void Play(int soundIndex, float rewriteVolume = -1)
         {
             var orgVlm = _hitSoundVolume;
-            if (rewriteVolume >= 0 ) _hitSoundVolume = rewriteVolume;
+            if (rewriteVolume >= 0) _hitSoundVolume = rewriteVolume;
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-            PlayByNativeAudio(soundIndex);
+#if USE_MA_AUDIO
+            PlayByMaAudio(soundIndex);
 #else
             PlayByUnityAudio(soundIndex);
 #endif
 
             _hitSoundVolume = orgVlm;
-        }
-
-        private void PlayByNativeAudio(int soundIndex)
-        {
-            if (_hitSoundVolume <= 0.01f) return;
-
-            nativeIndexes.Add(soundIndex);
         }
 
         private void PlayByUnityAudio(int soundIndex)
@@ -206,8 +202,27 @@ namespace MainCore
             var source = _unityAudios[soundIndex][index];
             _audioIndexes[soundIndex] = index;
 
+            // Debug.Log(_hitSoundVolume);
+            // Debug.Log(source.clip.samples);
+            // Debug.Log($"[{string.Join(", ", f.Take(Mathf.Min(f.Length, 20)))}]");
             source.volume = _hitSoundVolume;
             source.PlayScheduled(AudioSettings.dspTime);
         }
+
+#if USE_MA_AUDIO
+        private void PlayByMaAudio(int soundIndex)
+        {
+            if (_hitSoundVolume <= 0.01f) return;
+
+            var index = _audioIndexes[soundIndex] + 1;
+            if (index >= hitSoundsLength[soundIndex]) index = 0;
+            var source = _maAudios[soundIndex][index];
+            _audioIndexes[soundIndex] = index;
+
+            source.Volume = _hitSoundVolume;
+            source.Channel = (ushort)(soundIndex * 10 + index); // 自动分配音轨
+            source.PlayImmediate();
+        }
+#endif
     }
 }

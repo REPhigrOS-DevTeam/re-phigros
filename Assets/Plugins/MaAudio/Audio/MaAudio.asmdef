@@ -1,0 +1,17 @@
+{
+    "name": "MaAudio",
+    "rootNamespace": "MaTech.Audio",
+    "references": [
+        "UniTask",
+        "MaCommon"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

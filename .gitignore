@@ -10,6 +10,7 @@ Builds/
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
 # ===================================== #
+.vs/
 ExportedObj/
 *.svd
 *.userprefs
@@ -51,5 +52,6 @@ BuildLog.htm
 # Unity3D Tests #
 # ============ #
 test-results/
+
 UserSettings/Layouts/default-2021.dwlt
 UserSettings/Layouts/CurrentMaximizeLayout.dwlt

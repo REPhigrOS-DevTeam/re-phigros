@@ -1,0 +1,17 @@
+{
+    "name": "MaCommon",
+    "rootNamespace": "MaTech.Common",
+    "references": [
+        "UniTask",
+        "Json.net"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -28,6 +29,18 @@ namespace MainCore.Data
             end = 1e9f;
            
         }
+    }
+
+    [Serializable]
+    public class Video
+    {
+        public string path { get; set; }
+        public int[] time { get; set; } = Array.Empty<int>();
+        [JsonIgnore] public float realTime { get; set; }
+        public string scale { get; set; } = "cropCenter";
+        public float alpha { get; set; } = 1.0f;
+        public float dim { get; set; } = 0.3f;
+        [JsonIgnore] public ScaleMode ScaleMode { get; set; }
     }
 
     [Serializable]
@@ -68,10 +81,10 @@ namespace MainCore.Data
     [Serializable]
     public class Extra
     {
-        public List<Bpm> bpm { get; set; }
-        public List<Effect> effects { get; set; }
+        [JsonProperty("bpm")] public List<Bpm> Bpm { get; set; }
+        [JsonProperty("videos")] public List<Video> Videos { get; set; }
+        [JsonProperty("effects")] public List<Effect> Effects { get; set; }
     }
-
 
     public class ValueConverter : TypeConverter
     {

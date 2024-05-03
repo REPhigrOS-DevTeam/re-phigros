@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -14,8 +15,8 @@ namespace MainCore
         // Start is called before the first frame update
         void Start()
         {
-            StartCoroutine(AsyncLoading());
-            if (GlobalSetting.chartPath.Contains(".pec"))
+            AsyncLoading();
+            if (GlobalSetting.ChartPath.Contains(".pec"))
                 GameObject.Find("Text").GetComponent<Text>().text = "Converting PEC to JSON\nBy lchzh3473...";
         }
 
@@ -33,11 +34,12 @@ namespace MainCore
                 operation.allowSceneActivation = true;
         }
 
-        private IEnumerator AsyncLoading()
+        private async void AsyncLoading()
         {
+            await UniTask.SwitchToMainThread();
             operation = SceneManager.LoadSceneAsync("PlayingScene");
             operation.allowSceneActivation = false;
-            yield return operation;
+            await operation;
         }
     }
 }

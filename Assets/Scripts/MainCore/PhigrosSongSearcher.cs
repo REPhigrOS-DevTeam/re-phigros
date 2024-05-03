@@ -45,7 +45,7 @@ public class PhigrosSongSearcher : MonoBehaviour
     {
     }
 
-    private string GetSong(string @songName)
+    private string GetSong(string songName)
     {
         var request = (HttpWebRequest) WebRequest.Create("https://dev.phi.zone/get_song/?name=" + @songName);
 
@@ -73,21 +73,21 @@ public class PhigrosSongSearcher : MonoBehaviour
     public void DiffChange()
     {
         int id = info.value;
-        GlobalSetting.usingApi = true;
+        GlobalSetting.UsingApi = true;
         if (songReturnCtx.songReturnItems[id].url[songReturnCtx.songReturnItems[id].url.Length - 1] != '/')
             songReturnCtx.songReturnItems[id].url += "/";
-        GlobalSetting.chartName = songReturnCtx.songReturnItems[id].name;
-        GlobalSetting.chartPath =
+        GlobalSetting.ChartName = songReturnCtx.songReturnItems[id].name;
+        GlobalSetting.ChartPath =
             songReturnCtx.songReturnItems[id].url + $"Chart_{diffDrop.captionText.text.Trim()}.json";
-        GlobalSetting.musicPath = songReturnCtx.songReturnItems[id].url + "music.wav";
-        GlobalSetting.illustrationPath = songReturnCtx.songReturnItems[id].url + "illustration.png";
+        GlobalSetting.MusicPath = songReturnCtx.songReturnItems[id].url + "music.wav";
+        GlobalSetting.IllustrationPath = songReturnCtx.songReturnItems[id].url + "illustration.png";
     }
 
     public void OnClick()
     {
-        GlobalSetting.highLight = highlightToggle.isOn;
-        GlobalSetting.userOffset = int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
-        GlobalSetting.autoPlay = GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
+        GlobalSetting.HighLight = highlightToggle.isOn;
+        GlobalSetting.UserOffset = int.Parse(GameObject.Find("DelayInput").GetComponent<InputField>().text) / 1000f;
+        GlobalSetting.AutoPlay = GameObject.Find("AutoToggle").GetComponent<Toggle>().isOn;
         UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("LoadingScene");
     }
 }

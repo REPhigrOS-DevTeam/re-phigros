@@ -1,0 +1,9 @@
+#
+Name: Fly To Meteor
+Path: 6927522
+Song: 6927522.wav
+Picture: 6927522.jpg
+Chart: 6927522.json
+Level: IN Lv.13
+Composer: ShooTinGStaR
+Charter: RPGR Charting Team

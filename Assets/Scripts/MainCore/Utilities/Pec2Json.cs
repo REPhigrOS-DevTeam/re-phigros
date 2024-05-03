@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Baracuda.Threading;
+using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
 using UnityEngine;
@@ -14,11 +14,12 @@ namespace MainCore.Utilities
     {
         public static Task<Chart> Chart123(string chart)
         {
-            string[] rawChart = chart.Split(new string[] {"\r\n"}, StringSplitOptions.None);
+            string[] rawChart = chart.Split(new[] {"\n"}, StringSplitOptions.None).Select(str => str.Trim()).ToArray();
             Chart retChart = new Chart();
             retChart.formatVersion = 114514;
-            BpmEvent[] bpms = new BpmEvent[0];
-            if (!double.IsNaN(Convert.ToDouble(rawChart[0].Trim())))
+            // GlobalSetting.composer = GlobalSetting.charter = GlobalSetting.illustrator = "Unkown";
+            BpmEvent[] bpms = Array.Empty<BpmEvent>();
+            if (!double.IsNaN(double.Parse(rawChart[0])))
                 retChart.offset = ((float) Convert.ToDouble(rawChart[0]) / 1000f - .2f);
 
             int GetLine(int lineId)
@@ -33,177 +34,189 @@ namespace MainCore.Utilities
 
             for (int i = 0; i < rawChart.Length; i++)
             {
-                string t = rawChart[i].Trim();
+                string t = rawChart[i];
                 if (t.Length == 0)
                 {
                     continue;
                 }
 
-                if (t[0] == 'b') //读bpm
+                switch (t[0])
                 {
-                    //bpms.Append());
-                    var a = bpms.ToList();
-                    a.Add(new BpmEvent(ToFloat(t.Split(' ')[2]), ToFloat(t.Split(' ')[1])));
-                    bpms = a.ToArray();
-                    if (bpms.Length >= 2)
+                    //读bpm
+                    case 'b':
                     {
-                        bpms[^2].end = bpms[^1].start;
-                    }
-                }
-                else if (t[0] == 'n') //读notes
-                {
-                    string[] splitted = t.Split(' ');
-                    if (t[1] != '2')
-                    {
-                        int lineId = GetLine(ToInt(splitted[1]));
-                        float time = RecalcTime(bpms, ToFloat(splitted[2]));
-                        float posX = ToFloat(splitted[3]) / 115.2f;
-                        bool isAbove = ToInt(splitted[4]) == 1;
-                        bool isFake = ToInt(splitted[5]) == 1;
-                        float speed = ToFloat(rawChart[i + 1].Trim().Split(' ')[1]);
-                        switch (t[1])
+                        //bpms.Append());
+                        var a = bpms.ToList();
+                        a.Add(new BpmEvent(ToFloat(t.Split(' ')[2]), ToFloat(t.Split(' ')[1])));
+                        bpms = a.ToArray();
+                        if (bpms.Length >= 2)
                         {
-                            case '1':
-                                retChart.judgeLineList[lineId].PushNote(1, isAbove, time, posX, speed, 0, 0, isFake);
-                                break;
-                            case '3':
-                                retChart.judgeLineList[lineId].PushNote(4, isAbove, time, posX, speed, 0, 0, isFake);
-                                break;
-                            case '4':
-                                retChart.judgeLineList[lineId].PushNote(2, isAbove, time, posX, speed, 0, 0, isFake);
-                                break;
+                            bpms[^2].end = bpms[^1].start;
                         }
-                    }
-                    else
-                    {
-                        int lineId = GetLine(ToInt(splitted[1]));
-                        float time = RecalcTime(bpms, ToFloat(splitted[2]));
-                        float timeEnd = RecalcTime(bpms, ToFloat(splitted[3]));
-                        float posX = ToFloat(splitted[4]) / 115.2f;
-                        float speed = ToFloat(rawChart[i + 1].Trim().Split(' ')[1]);
-                        bool isAbove = ToInt(splitted[5]) == 1;
-                        bool isFake = ToInt(splitted[6]) == 1;
-                        retChart.judgeLineList[lineId]
-                            .PushNote(3, isAbove, time, posX, speed, 0, timeEnd - time, isFake);
-                    }
 
-                    i += 2;
-                }
-                else if (t[0] == 'c') //读line事件
-                {
-                    string[] splitted = t.Split(' ');
-                    int lineId = GetLine(ToInt(splitted[1]));
-                    if ("vpda".Contains(t[1]))
-                    {
-                        float time = RecalcTime(bpms, ToFloat(splitted[2]));
-                        float v11 = ToFloat(splitted[3]);
-                        switch (t[1])
-                        {
-                            case 'v':
-                                retChart.judgeLineList[lineId]
-                                    .PushSpeedEvent(time, time, Convert.ToDouble(splitted[3]) / 7d);
-                                break;
-                            case 'p':
-                                float v12 = ToFloat(splitted[4]);
-                                retChart.judgeLineList[lineId].PushEvent(3, 1, time, time, v11 / 2048f, v11 / 2048f,
-                                    v12 / 1400f, v12 / 1400f);
-                                break;
-                            case 'd':
-                                retChart.judgeLineList[lineId].PushEvent(4, 1, time, time, -v11, -v11, 0, 0);
-                                break;
-                            case 'a':
-                                int temp = ToInt(splitted[3]);
-                                var aMode = AlphaExtendMode.VisibleAll;
-                                var visibleTime = 0f;
-                                if (temp == -1)
-                                {
-                                    aMode = AlphaExtendMode.InvisibleAll;
-                                }
-                                else if (temp == -2)
-                                {
-                                    aMode = AlphaExtendMode.VisibleUpside;
-                                }
-                                else if (temp is <= -100 and > -1000)
-                                {
-                                    aMode = AlphaExtendMode.VisibleAfterTime;
-                                    visibleTime = RecalcTime(bpms, time + (-100 - temp) / 10f) - RecalcTime(bpms, time);
-                                }
-
-                                retChart.judgeLineList[lineId].PushEvent(2, 1, time, time, temp / 255f, temp / 255f, 0,
-                                    0,
-                                    aMode, visibleTime);
-                                break;
-                        }
+                        break;
                     }
-                    else
+                    //读notes
+                    case 'n':
                     {
-                        float startTime = RecalcTime(bpms, ToFloat(splitted[2]));
-                        float endTime = RecalcTime(bpms, ToFloat(splitted[3]));
-                        float v11 = ToFloat(splitted[4]);
-                        if (t[1] == 'm')
+                        string[] splitted = t.Split(' ');
+                        if (t[1] != '2')
                         {
-                            float v12 = ToFloat(splitted[5]);
-                            int easeType = ToInt(splitted[6]);
-                            float orgv1 = 0f, orgv2 = 0f;
-                            int temp = retChart.judgeLineList[lineId].judgeLineMoveEvents.Count;
-                            if (temp > 0)
+                            int lineId = GetLine(ToInt(splitted[1]));
+                            float time = RecalcTime(bpms, ToFloat(splitted[2]));
+                            float posX = ToFloat(splitted[3]) / 115.2f;
+                            bool isAbove = ToInt(splitted[4]) == 1;
+                            bool isFake = ToInt(splitted[5]) == 1;
+                            var speed = ToFloat(t.Contains("#") ? splitted[7] : rawChart[i + 1].Split(' ')[1]);
+
+                            switch (t[1])
                             {
-                                orgv1 = retChart.judgeLineList[lineId].judgeLineMoveEvents[temp - 1].end;
-                                orgv2 = retChart.judgeLineList[lineId].judgeLineMoveEvents[temp - 1].end2;
+                                case '1':
+                                    retChart.judgeLineList[lineId].PushNote(1, isAbove, time, posX, speed, 0, 0, isFake);
+                                    break;
+                                case '3':
+                                    retChart.judgeLineList[lineId].PushNote(4, isAbove, time, posX, speed, 0, 0, isFake);
+                                    break;
+                                case '4':
+                                    retChart.judgeLineList[lineId].PushNote(2, isAbove, time, posX, speed, 0, 0, isFake);
+                                    break;
                             }
-
-                            retChart.judgeLineList[lineId].PushEvent(3, easeType, startTime, endTime, orgv1,
-                                v11 / 2048f,
-                                orgv2, v12 / 1400f);
                         }
                         else
                         {
-                            float orgv = 0;
-                            int temp;
-                            int easeType = 1;
+                            int lineId = GetLine(ToInt(splitted[1]));
+                            float time = RecalcTime(bpms, ToFloat(splitted[2]));
+                            float timeEnd = RecalcTime(bpms, ToFloat(splitted[3]));
+                            float posX = ToFloat(t.Contains("#") ? splitted[8] : splitted[4]) / 115.2f;
+                            float speed = ToFloat(rawChart[i + 1].Split(' ')[1]);
+                            bool isAbove = ToInt(splitted[5]) == 1;
+                            bool isFake = ToInt(splitted[6]) == 1;
+                            retChart.judgeLineList[lineId]
+                                .PushNote(3, isAbove, time, posX, speed, 0, timeEnd - time, isFake);
+                        }
+
+                        i += 2;
+                        break;
+                    }
+                    //读line事件
+                    case 'c':
+                    {
+                        string[] splitted = t.Split(' ');
+                        int lineId = GetLine(ToInt(splitted[1]));
+                        if ("vpda".Contains(t[1]))
+                        {
+                            float time = RecalcTime(bpms, ToFloat(splitted[2]));
+                            float v11 = ToFloat(splitted[3]);
                             switch (t[1])
                             {
-                                case 'r':
-                                    easeType = ToInt(splitted[5]);
-                                    temp = retChart.judgeLineList[lineId].judgeLineRotateEvents.Count;
-                                    if (temp > 0)
-                                    {
-                                        orgv = retChart.judgeLineList[lineId].judgeLineRotateEvents[temp - 1].end;
-                                    }
-
+                                case 'v':
                                     retChart.judgeLineList[lineId]
-                                        .PushEvent(4, easeType, startTime, endTime, orgv, -v11, 0, 0);
+                                        .PushSpeedEvent(time, time, Convert.ToDouble(splitted[3]) / 7d);
                                     break;
-                                case 'f':
-                                    temp = retChart.judgeLineList[lineId].judgeLineDisappearEvents.Count;
-                                    if (temp > 0)
-                                    {
-                                        orgv = retChart.judgeLineList[lineId].judgeLineDisappearEvents[temp - 1].end;
-                                    }
-
-                                    int aVal = ToInt(splitted[4]);
+                                case 'p':
+                                    float v12 = ToFloat(splitted[4]);
+                                    retChart.judgeLineList[lineId].PushEvent(3, 1, time, time, v11 / 2048f, v11 / 2048f,
+                                        v12 / 1400f, v12 / 1400f);
+                                    break;
+                                case 'd':
+                                    retChart.judgeLineList[lineId].PushEvent(4, 1, time, time, -v11, -v11, 0, 0);
+                                    break;
+                                case 'a':
+                                    int temp = ToInt(splitted[3]);
                                     var aMode = AlphaExtendMode.VisibleAll;
                                     var visibleTime = 0f;
-                                    if (aVal == -1)
+                                    if (temp == -1)
                                     {
                                         aMode = AlphaExtendMode.InvisibleAll;
                                     }
-                                    else if (aVal == -2)
+                                    else if (temp == -2)
                                     {
                                         aMode = AlphaExtendMode.VisibleUpside;
                                     }
-                                    else if (aVal is <= -100 and > -1000)
+                                    else if (temp is <= -100 and > -1000)
                                     {
                                         aMode = AlphaExtendMode.VisibleAfterTime;
-                                        visibleTime = RecalcTime(bpms, startTime + (-100 - aVal) / 10f) -
-                                                      RecalcTime(bpms, startTime);
+                                        visibleTime = RecalcTime(bpms, time + (-100 - temp) / 10f) - RecalcTime(bpms, time);
                                     }
 
-                                    retChart.judgeLineList[lineId].PushEvent(2, easeType, startTime, endTime, orgv,
-                                        aVal / 255f, 0, 0, aMode, visibleTime);
+                                    retChart.judgeLineList[lineId].PushEvent(2, 1, time, time, temp / 255f, temp / 255f, 0,
+                                        0,
+                                        aMode, visibleTime);
                                     break;
                             }
                         }
+                        else
+                        {
+                            float startTime = RecalcTime(bpms, ToFloat(splitted[2]));
+                            float endTime = RecalcTime(bpms, ToFloat(splitted[3]));
+                            float v11 = ToFloat(splitted[4]);
+                            if (t[1] == 'm')
+                            {
+                                float v12 = ToFloat(splitted[5]);
+                                int easeType = ToInt(splitted[6]);
+                                float orgv1 = 0f, orgv2 = 0f;
+                                int temp = retChart.judgeLineList[lineId].judgeLineMoveEvents.Count;
+                                if (temp > 0)
+                                {
+                                    orgv1 = retChart.judgeLineList[lineId].judgeLineMoveEvents[temp - 1].end;
+                                    orgv2 = retChart.judgeLineList[lineId].judgeLineMoveEvents[temp - 1].end2;
+                                }
+
+                                retChart.judgeLineList[lineId].PushEvent(3, easeType, startTime, endTime, orgv1,
+                                    v11 / 2048f,
+                                    orgv2, v12 / 1400f);
+                            }
+                            else
+                            {
+                                float orgv = 0;
+                                int temp;
+                                int easeType = 1;
+                                switch (t[1])
+                                {
+                                    case 'r':
+                                        easeType = ToInt(splitted[5]);
+                                        temp = retChart.judgeLineList[lineId].judgeLineRotateEvents.Count;
+                                        if (temp > 0)
+                                        {
+                                            orgv = retChart.judgeLineList[lineId].judgeLineRotateEvents[temp - 1].end;
+                                        }
+
+                                        retChart.judgeLineList[lineId]
+                                            .PushEvent(4, easeType, startTime, endTime, orgv, -v11, 0, 0);
+                                        break;
+                                    case 'f':
+                                        temp = retChart.judgeLineList[lineId].judgeLineDisappearEvents.Count;
+                                        if (temp > 0)
+                                        {
+                                            orgv = retChart.judgeLineList[lineId].judgeLineDisappearEvents[temp - 1].end;
+                                        }
+
+                                        int aVal = ToInt(splitted[4]);
+                                        var aMode = AlphaExtendMode.VisibleAll;
+                                        var visibleTime = 0f;
+                                        if (aVal == -1)
+                                        {
+                                            aMode = AlphaExtendMode.InvisibleAll;
+                                        }
+                                        else if (aVal == -2)
+                                        {
+                                            aMode = AlphaExtendMode.VisibleUpside;
+                                        }
+                                        else if (aVal is <= -100 and > -1000)
+                                        {
+                                            aMode = AlphaExtendMode.VisibleAfterTime;
+                                            visibleTime = RecalcTime(bpms, startTime + (-100 - aVal) / 10f) -
+                                                          RecalcTime(bpms, startTime);
+                                        }
+
+                                        retChart.judgeLineList[lineId].PushEvent(2, easeType, startTime, endTime, orgv,
+                                            aVal / 255f, 0, 0, aMode, visibleTime);
+                                        break;
+                                }
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
@@ -359,7 +372,7 @@ namespace MainCore.Utilities
 
     public static class Rpe2Json
     {
-        public static async Task<Chart> Chart123(string chart)
+        public static async Task<Chart> Chart123(string chart, bool showMessage)
         {
             RpeChartData rpeChartData = JsonUtility.FromJson<RpeChartData>(chart);
             Chart retChart = new Chart();
@@ -373,25 +386,23 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0)
+            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
             {
-                GlobalSetting.musicPath = Path.Combine(GlobalSetting.chartFolderPath,
+                GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
                     rpeChartData.META.song);
-                GlobalSetting.illustrationPath =
-                    Path.Combine(GlobalSetting.chartFolderPath, rpeChartData.META.background);
-                GlobalSetting.charter = rpeChartData.META.charter;
-                GlobalSetting.composer = rpeChartData.META.composer;
-                if (GlobalSetting.YayaKawaii != GlobalSetting.YayaMode.绝冲 && GlobalSetting.PepoyoDaisuki != GlobalSetting.PepoyoMode.Yande)
-                {
-                    GlobalSetting.chartName = rpeChartData.META.name;
-                    GlobalSetting.difficulty = rpeChartData.META.level;
-                }
+                GlobalSetting.IllustrationPath =
+                    Path.Combine(GlobalSetting.ChartFolderPath, rpeChartData.META.background);
+                GlobalSetting.Charter = rpeChartData.META.charter;
+                GlobalSetting.Composer = rpeChartData.META.composer;
+                GlobalSetting.Illustrator = "Unknown";
+                GlobalSetting.ChartName = rpeChartData.META.name;
+                GlobalSetting.Difficulty = rpeChartData.META.level;
             }
 
             //Convert BPM
-            rpeChartData.BPMList.OrderBy(x => Frac(x.startTime)).ToList().ForEach(x =>
+            rpeChartData.BPMList.OrderBy(x => x.startTime.Frac()).ToList().ForEach(x =>
             {
-                bpms.Add(new BpmEvent(x.bpm, Frac(x.startTime)));
+                bpms.Add(new BpmEvent(x.bpm, x.startTime.Frac()));
                 if (bpms.Count >= 2)
                 {
                     bpms[^2].end = bpms[^1].start;
@@ -420,24 +431,22 @@ namespace MainCore.Utilities
                 //Convert extended
                 if (rpeChartData.judgeLineList[i].Texture != "line.png")
                 {
-                    var path = Path.Combine(GlobalSetting.chartFolderPath,
+                    var path = Path.Combine(GlobalSetting.ChartFolderPath,
                         rpeChartData.judgeLineList[i].Texture);
                     if (File.Exists(path))
                     {
                         retChart.judgeLineList[i].useImage = true;
-                        PopupMessageManager.Instance.ChangeContent(
+                        if (showMessage) PopupMessageManager.Instance.ChangeContent(
                             $"Loading custom judge line image:\n{rpeChartData.judgeLineList[i].Texture}");
                         FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
                         byte[] bytes = new byte[fs.Length];
                         fs.Read(bytes, 0, (int) fs.Length);
                         await fs.DisposeAsync();
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            var t2d = new Texture2D(512, 270);
-                            t2d.LoadImage(bytes);
-                            Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), Vector2.one / 2f);
-                            retChart.judgeLineList[i].customImage = sprite;
-                        });
+                        await UniTask.SwitchToMainThread();
+                        var t2d = new Texture2D(512, 270);
+                        t2d.LoadImage(bytes);
+                        Sprite sprite = Sprite.Create(t2d, new Rect(0, 0, t2d.width, t2d.height), Vector2.one / 2f);
+                        retChart.judgeLineList[i].customImage = sprite;
                     }
                 }
 
@@ -447,8 +456,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -459,8 +468,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -471,8 +480,8 @@ namespace MainCore.Utilities
                     {
                         start = ToColor(e.start),
                         end = ToColor(e.end),
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType
                     });
                 }
@@ -483,8 +492,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easingType = e.easingType
                     });
                 }
@@ -495,8 +504,8 @@ namespace MainCore.Utilities
                     {
                         start = e.start,
                         end = e.end,
-                        startTime = RecalcTime(bpms, Frac(e.startTime)),
-                        endTime = RecalcTime(bpms, Frac(e.endTime)),
+                        startTime = RecalcTime(bpms, e.startTime.Frac()),
+                        endTime = RecalcTime(bpms, e.endTime.Frac()),
                         easeType = e.easingType == 0 ? 1 : e.easingType,
                         easingLeft = e.easingLeft,
                         easingRight = e.easingRight
@@ -692,8 +701,8 @@ namespace MainCore.Utilities
                         {
                             value = e.start / 4.5f,
                             endValue = e.end / 4.5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime))
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac())
                         });
                     }
 
@@ -741,8 +750,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 255f,
                             end = e.end / 255f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -758,8 +767,8 @@ namespace MainCore.Utilities
                         {
                             start = -e.start,
                             end = -e.end,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -775,8 +784,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 675f / 2f + .5f,
                             end = e.end / 675f / 2f + .5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -792,8 +801,8 @@ namespace MainCore.Utilities
                         {
                             start = e.start / 450f / 2f + .5f,
                             end = e.end / 450f / 2f + .5f,
-                            startTime = RecalcTime(bpms, Frac(e.startTime)),
-                            endTime = RecalcTime(bpms, Frac(e.endTime)),
+                            startTime = RecalcTime(bpms, e.startTime.Frac()),
+                            endTime = RecalcTime(bpms, e.endTime.Frac()),
                             easeType = e.easingType,
                             easingLeft = e.easingLeft,
                             easingRight = e.easingRight
@@ -812,14 +821,14 @@ namespace MainCore.Utilities
                     if (t.type != 2)
                     {
                         retChart.judgeLineList[i].PushNote(NoteType(t.type), t.above == 1,
-                            RecalcTime(bpms, Frac(t.startTime)), t.positionX / 70.3125f / 1.08f, t.speed,
+                            RecalcTime(bpms, t.startTime.Frac()), t.positionX / 70.3125f / 1.08f, t.speed,
                             0, 0, t.isFake, t.yOffset / 450f / 1.08f, t.size, t.visibleTime, t.alpha / 255f);
                     }
                     else
                     {
                         retChart.judgeLineList[i].PushNote(NoteType(t.type), t.above == 1,
-                            RecalcTime(bpms, Frac(t.startTime)), t.positionX / 70.3125f / 1.08f, t.speed,
-                            0, RecalcTime(bpms, Frac(t.endTime)) - RecalcTime(bpms, Frac(t.startTime)), t.isFake,
+                            RecalcTime(bpms, t.startTime.Frac()), t.positionX / 70.3125f / 1.08f, t.speed,
+                            0, RecalcTime(bpms, t.endTime.Frac()) - RecalcTime(bpms, t.startTime.Frac()), t.isFake,
                             t.yOffset / 450f / 1.08f, t.size, t.visibleTime, t.alpha / 255f);
                     }
                 }
@@ -867,17 +876,6 @@ namespace MainCore.Utilities
             }
 
             return timePhi;
-        }
-
-        private static float Frac(int[] frac)
-        {
-            if (frac.Length == 3)
-            {
-                if (frac.Length == 3) return frac[0] + (float) frac[1] / frac[2];
-                return frac[0];
-            }
-
-            return frac.Length > 0 ? frac[0] : 0f;
         }
 
         private static Color ToColor(int[] frac)

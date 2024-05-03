@@ -1,4 +1,5 @@
 ﻿using System;
+using MainCore.Utilities;
 using UnityEngine;
 
 namespace MainCore
@@ -7,19 +8,26 @@ namespace MainCore
     {
         public Sprite HLspriteHoldBody;
         public Sprite HLspriteHoldEnd;
-        public SpriteRenderer[] holdRenders = new SpriteRenderer[3];
+        public SpriteRenderer[] holdRenders = new SpriteRenderer[4];
         public Transform[] holdParts = new Transform[3];
         private bool holdCatched = false;
         private float holdEffectCnt = 0.2f;
 
         private float holdEventScale = 1f;
-        private float holdLengthFactor = 4.25f;
+        private float holdLengthFactor => Note.isMulti ? GlobalSetting.CurrentSkinInfo.holdMhLengthFactor : GlobalSetting.CurrentSkinInfo.holdLengthFactor;
         private bool holdMissed = false;
         private bool holdOK = false;
         private float holdOriginLength = 0;
         private float holdRealLength = 0;
 
         private float releaseCounter = 0f;
+
+        private float holdBodyUnit;
+
+        private int spriteId = 0;
+
+        private float holdCompactFactor = 0f;
+        private float holdEndHalf = 0f;
 
         public override void OnStart()
         {
@@ -41,26 +49,63 @@ namespace MainCore
             if (Note.isMulti)
             {
                 holdRenders[0].sprite = HLsprite;
-                holdRenders[1].sprite = HLspriteHoldBody;
+                holdRenders[1].sprite = Instantiate(HLspriteHoldBody);
                 holdRenders[2].sprite = HLspriteHoldEnd;
             }
             else
             {
                 holdRenders[0].sprite = NormalSprites[0];
-                holdRenders[1].sprite = NormalSprites[1];
+                holdRenders[1].sprite = Instantiate(NormalSprites[1]);
                 holdRenders[2].sprite = NormalSprites[2];
             }
 
             holdOriginLength = (parentLine.CalculateNoteHeight(Note.time + Note.holdTime) -
                                 parentLine.CalculateNoteHeight(Note.time));
+            holdBodyUnit = holdRenders[1].sprite.rect.width / holdRenders[1].sprite.pixelsPerUnit;
+                
+            if (GlobalSetting.CurrentSkinInfo.holdCompact)
+            {
+                holdEndHalf = GlobalSetting.CurrentSkinInfo.holdEnd.rect.height /
+                              GlobalSetting.CurrentSkinInfo.holdEnd.pixelsPerUnit;
+                holdCompactFactor = GlobalSetting.CurrentSkinInfo.holdHead.rect.height /
+                               GlobalSetting.CurrentSkinInfo.holdHead.pixelsPerUnit + holdEndHalf;
+            }
+            
+            if (GlobalSetting.CurrentSkinInfo.holdRepeat)
+            {
+                holdRenders[1].drawMode = SpriteDrawMode.Tiled;
+                holdRenders[1].tileMode = SpriteTileMode.Continuous;
+                float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
+                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.GlobalNoteScale);
+                // holdRenders[3].sprite = Instantiate(holdRenders[1].sprite);
+                // holdRenders[3].drawMode = SpriteDrawMode.Tiled;
+                // holdRenders[3].tileMode = SpriteTileMode.Continuous;
+                // holdRenders[3].gameObject.transform.localPosition = new Vector3(0f, 1000f, 0f);
+                // holdRenders[3].size = new Vector2(holdBodyUnit, 1000f);
+                // SpriteMask spriteMask = holdRenders[3].gameObject.GetComponent<SpriteMask>();
+                // spriteMask.enabled = true;
+                // spriteMask.sprite = holdRenders[3].sprite;
+                // spriteMask.sortingLayerID = 1783593901; // Notes
+                // spriteMask.sortingOrder = spriteId;
+            }
+            // else
+            // {
+            //     holdRenders[3].sprite = null;
+            //     holdRenders[3].gameObject.GetComponent<SpriteMask>().enabled = false;
+            // }
 
             cachedTransform = transform;
             cachedTransform.localEulerAngles = new Vector3(0, 0, 0);
             cachedTransform.localPosition = new Vector3(Note.positionX, 0, 0);
 
-            holdParts[0].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
-            holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
-            holdParts[2].localScale = new Vector3(GlobalSetting.globalNoteScale, GlobalSetting.globalNoteScale, 1.0f);
+            holdParts[0].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
+            holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
+            holdParts[2].localScale = new Vector3(GlobalSetting.GlobalNoteScale, GlobalSetting.GlobalNoteScale, 1.0f);
+        }
+
+        public void GiveSortId(int id)
+        {
+            spriteId = id;
         }
 
 
@@ -75,7 +120,7 @@ namespace MainCore
             }
             else
             {
-                if (parentLine.PgrTime < Note.time)
+                if (parentLine.PgrTime < Note.time || GlobalSetting.CurrentSkinInfo.holdKeepHead)
                     temporaryColors[0] = new Color(1, 1, 1, Note.alpha);
                 else
                     temporaryColors[0] = new Color(1, 1, 1, 0f);
@@ -86,7 +131,7 @@ namespace MainCore
 
         protected override void CheckJudgeStatus()
         {
-            if (GlobalSetting.autoPlay)
+            if (GlobalSetting.AutoPlay)
             {
                 if (parentLine.PgrTime >= Note.time && !holdCatched)
                 {
@@ -96,9 +141,9 @@ namespace MainCore
                 }
 
                 if (parentLine.PgrTime >=
-                    Note.time + Math.Max(0, Note.holdTime - parentLine.JudgeTime.judgeTime) && !holdOK)
+                    Note.time + Math.Max(0, Note.holdTime - GlobalSetting.GetJudgeTime().judgeTime) && !holdOK)
                 {
-                    GlobalSetting.scoreCounter.Add(NoteStat.Perfect);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Perfect);
                     holdOK = true;
                 }
 
@@ -119,13 +164,13 @@ namespace MainCore
                 JudgeHold();
             if (Note.time <= parentLine.PgrTime)
             {
-                if (parentLine.PgrTime - Note.time >= parentLine.JudgeTime.bTime && !holdCatched &&
-                    !GlobalSetting.autoPlay)
+                if (parentLine.PgrTime - Note.time >= GlobalSetting.GetJudgeTime().bTime && !holdCatched &&
+                    !GlobalSetting.AutoPlay)
                 {
                     holdMissed = true;
                     if (status != NoteStat.Miss)
                     {
-                        GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                        GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                         status = NoteStat.Miss;
                     }
 
@@ -142,13 +187,22 @@ namespace MainCore
                 else if (parentLine.PgrTime >= Note.time + .2f) destroyed = true;
             }
 
-            if (Note.time - parentLine.PgrTime < -parentLine.JudgeTime.bTime && !holdCatched &&
+            if (Note.time - parentLine.PgrTime < -GlobalSetting.GetJudgeTime().bTime && !holdCatched &&
                 status == NoteStat.None) //没接住miss
             {
-                GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                 status = NoteStat.Miss;
                 holdMissed = true;
             }
+        }
+
+        public override void UpdateNoteSkin(int type)
+        {
+            base.UpdateNoteSkin(type);
+            NormalSprites[1] = GlobalSetting.CurrentSkinInfo.holdBody;
+            NormalSprites[2] = GlobalSetting.CurrentSkinInfo.holdEnd;
+            HLspriteHoldBody = GlobalSetting.CurrentSkinInfo.holdBodyMh;
+            HLspriteHoldEnd = GlobalSetting.CurrentSkinInfo.holdEndMh;
         }
 
         protected override void OtherWorksOnUpdate()
@@ -194,10 +248,10 @@ namespace MainCore
                 holdEffectCnt += Time.deltaTime;
                 if (holdEffectCnt >= 0.2f)
                 {
-                    holdEffect = HitEffectManager.GetInstance()
-                        .GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good);
+                    holdEffect = HitEffectManager.GetInstance().GetObj(status == NoteStat.Perfect ? HitFxJudgeType.Perfect : HitFxJudgeType.Good, GlobalSetting.CurrentSkinInfo);
                     holdEffect.transform.position = cachedTransform.position;
-                    holdEffect.PlayParticle();
+                    holdEffect.transform.rotation = GlobalSetting.CurrentSkinInfo.hitFxRotate ? cachedTransform.rotation : Quaternion.identity;
+                    holdEffect.PlayEffect();
                     holdEffectCnt = 0;
                 }
             }
@@ -213,13 +267,13 @@ namespace MainCore
                 if (!holdCatched && f.IsFirstClick)
                 {
                     f.ClearTapFlag();
-                    if (deltaTime > parentLine.JudgeTime.gTime)
+                    if (deltaTime > GlobalSetting.GetJudgeTime().gTime)
                     {
                         status = NoteStat.Early;
                         //GlobalSetting.scoreCounter.early++;
                         GlobalSetting.PlayNoteSound(notetype);
                     }
-                    else if (deltaTime > -parentLine.JudgeTime.gTime)
+                    else if (deltaTime > -GlobalSetting.GetJudgeTime().gTime)
                     {
                         status = NoteStat.Perfect;
                         GlobalSetting.PlayNoteSound(notetype);
@@ -241,35 +295,36 @@ namespace MainCore
 
         private void HoldLengthReset()
         {
-            if (Note.time <= parentLine.PgrTime)
+            float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
+            float nowLength = (float) (Note.speed * Math.Max(0, parentLine.CalculateNoteHeight(Note.time + Note.holdTime)) * parentLine.SpeedFactor);
+            holdRealLength = Note.time <= parentLine.PgrTime ? nowLength : originalLength;
+            if (GlobalSetting.CurrentSkinInfo.holdRepeat)
             {
-                var clampedLength = Math.Max(0, parentLine.CalculateNoteHeight(Note.time + Note.holdTime));
-                //holdRealLength = (float) (.3f * Note.speed * clampedLength * speedFactor / 6.75f);
-                holdRealLength = (float) (Note.speed * clampedLength * parentLine.SpeedFactor / holdLengthFactor);
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
-                holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);
+                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdCompactFactor + holdRealLength <= 0 ? 0f : GlobalSetting.GlobalNoteScale, 1.0f);
             }
             else
             {
-                holdRealLength = (float) (Note.speed * holdOriginLength * parentLine.SpeedFactor / holdLengthFactor);
-                holdParts[1].localScale = new Vector3(GlobalSetting.globalNoteScale, holdRealLength, 1.0f);
-                holdParts[2].localPosition = new Vector3(0, holdRealLength * holdLengthFactor, 0);
+                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + holdLengthFactor);
+                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
             }
+
+            holdParts[1].localPosition = new Vector3(0, holdRealLength + holdEndHalf, 0);
+            holdParts[2].localPosition = new Vector3(0, holdRealLength, 0);
         }
 
         private void JudgeHold()
         {
-            if (Note.time + Note.holdTime - parentLine.JudgeTime.judgeTime <= parentLine.PgrTime)
+            if (Note.time + Note.holdTime - GlobalSetting.GetJudgeTime().judgeTime <= parentLine.PgrTime)
             {
                 holdOK = true;
-                GlobalSetting.scoreCounter.Add(status);
+                GlobalSetting.ScoreCounter.Add(status);
                 return;
             }
 
             holdCatched = false;
-            for (int i = 0; i < JudgementManager.m_instance.numOfFingers; i++)
+            for (int i = 0; i < JudgementManager.Instance.numOfFingers; i++)
             {
-                var f = JudgementManager.m_instance.fingers[i];
+                var f = JudgementManager.Instance.fingers[i];
                 float dx = parentLine.PositionX[i];
                 if (f.phase != TouchPhase.Canceled &&
                     JudgementManager.NoteInJudgeArea(dx, cachedTransform.localPosition.x, f.IsKeyboard))
@@ -284,11 +339,11 @@ namespace MainCore
             {
                 releaseCounter += Time.deltaTime;
                 holdCatched = true;
-                if (releaseCounter > parentLine.JudgeTime.gTime)
+                if (releaseCounter > GlobalSetting.GetJudgeTime().gTime)
                 {
                     holdCatched = false;
                     holdMissed = true;
-                    GlobalSetting.scoreCounter.Add(NoteStat.Miss);
+                    GlobalSetting.ScoreCounter.Add(NoteStat.Miss);
                     status = NoteStat.Miss;
                 }
             }

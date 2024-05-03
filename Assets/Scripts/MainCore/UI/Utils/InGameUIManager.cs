@@ -17,7 +17,7 @@ public static class InGameUIManager
     /// /// <param name="confirmtext">确认按钮的text</param>
     /// <param name="cancelAction">取消后的行动</param>
     /// <param name="canceltext">取消按钮的text</param>
-    public static void ShowModalWindow(string title, string content, Action confirmAction,
+    public static void ShowModalWindow(string title, string content, Action confirmAction = null,
         string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
         Action alternateAction = null, string alternatetext = "Alternate")
     {
@@ -49,7 +49,23 @@ public static class InGameUIManager
         string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
         Action alternateAction = null, string alternatetext = "Alternate")
     {
-        if (IsActive) return;
+        if (IsActive)
+        {
+            queue.Enqueue(new WindowInfo
+            {
+                withClose = true,
+                title = title,
+                content = content,
+                confirmAction = confirmAction,
+                confirmText = confirmtext,
+                cancelAction = cancelAction,
+                cancelText = canceltext,
+                alternateAction = alternateAction,
+                alternateText = alternatetext
+            });
+            return;
+        }
+
         confirmAction += HideModalWindow;
 
         if (cancelAction != null)

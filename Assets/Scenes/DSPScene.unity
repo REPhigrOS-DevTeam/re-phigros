@@ -685,7 +685,7 @@ RectTransform:
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &945544438
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -702,7 +702,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
 --- !u!114 &946289606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1164,7 +1164,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e12d2ad6549142b99a87d5622ca45e1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataContainer: {fileID: 946289606}
   dataTag: dsp_pow
   defaultValue: 8
   shower: {fileID: 748844239}
@@ -1711,7 +1710,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: de5e440584cf02e488d96e75b711fd2b, type: 3}
+  m_audioClip: {fileID: 8300000, guid: d8173f44bef0d5745ac98b62638382a3, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1

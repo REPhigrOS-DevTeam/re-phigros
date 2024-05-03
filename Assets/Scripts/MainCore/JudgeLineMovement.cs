@@ -15,14 +15,6 @@ using Utilities;
 
 namespace MainCore
 {
-    public class JudgeTime
-    {
-        public float bTime;
-        public float gTime;
-        public float judgeTime;
-        public float pTime;
-    }
-
     public sealed class JudgeLineMovement : MonoBehaviour
     {
         //Constant fields
@@ -38,7 +30,7 @@ namespace MainCore
         public judgeLine Line;
         public double JudgeLineDistance = 0; // { get; private set; }
         public float SpeedFactor = 6f; // { get; private set; } = 1;
-        public readonly JudgeTime JudgeTime = new JudgeTime();
+
         private float alphaVal = 0;
         private NativeArray<float> floorPosArray;
         [NonSerialized] public int ID;
@@ -50,7 +42,7 @@ namespace MainCore
         [NonSerialized] public List<float> PositionX = new List<float>(20);
         [NonSerialized] public List<note> ProcessingNotes = new();
         private NativeArray<float3> sizeArray;
-        private SpriteRenderer sr;
+        private SpriteRenderer sr, sr2;
 
         //Public fields
         [NonSerialized] public Vector3 TargetScale = new Vector3(10, 3, 1);
@@ -80,7 +72,7 @@ namespace MainCore
 
         void Awake()
         {
-            SpeedFactor = GlobalSetting.noteSpeedFactor * 6f;
+            SpeedFactor = GlobalSetting.NoteSpeedFactor * 6f;
         }
 
         void Start()
@@ -91,13 +83,14 @@ namespace MainCore
         // Update is called once per frame
         void Update()
         {
-            if (!GlobalSetting.Playing)
+            if (!GlobalSetting.GameStarted)
             {
                 sr.color = Color.clear;
-                sr.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
+                sr.sortingOrder = Line.zOrder * GlobalSetting.MaximumZOrder + ID;
+                // sr2.sortingOrder = Line.zOrder * GlobalSetting.maximumZOrder + ID;
                 return;
             }
-
+            
             PgrTime = Main.Instance.progressManager.NowTime;
 
             JudgeLineDistance = CalculateNoteHeight_internal(PgrTime);
@@ -114,7 +107,7 @@ namespace MainCore
         //Let the workers have an entire frame to work on the fucking thing
         private void LateUpdate()
         {
-            if (!GlobalSetting.Playing) return;
+            if (!GlobalSetting.GameStarted) return;
             noteUpdateHandle.Complete();
             try
             {
@@ -133,6 +126,7 @@ namespace MainCore
             mainCamera = Camera.main;
 
             sr = gameObject.GetComponent<SpriteRenderer>();
+            // sr2 = gameObject.transform.parent.Find("Mask").gameObject.GetComponent<SpriteRenderer>();
 
             if (Line.useImage)
             {
@@ -149,9 +143,9 @@ namespace MainCore
 
             if (!IsImage)
                 TargetScale = new Vector2(
-                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.aspect / sr.sprite.texture.width,
+                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
                     220 * 0.008f * Camera.main.orthographicSize / sr.sprite.texture.height);
-            if (GlobalSetting.formatVersion == 1)
+            if (GlobalSetting.FormatVersion == 1)
             {
                 foreach (judgeLineSpeedEvent b in Line.speedEvents)
                 {
@@ -162,15 +156,12 @@ namespace MainCore
                 }
             }
 
-            JudgeTime.bTime = 0.16f;
-            JudgeTime.gTime = 0.08f;
-            JudgeTime.judgeTime = 0.2f;
             transform.localScale = TargetScale;
             for (int i = 0; i < 20; i++)
                 PositionX.Add(0f);
             ProcessingNotes = Line.notesBelow.Concat(Line.notesAbove).ToList();
             ArrangeFloorPosition();
-            if (GlobalSetting.isMirror)
+            if (GlobalSetting.IsMirror)
             {
                 for (var layer = 0; layer < Line.rpeLayers.Count; layer++)
                 {
@@ -182,7 +173,7 @@ namespace MainCore
 
                     foreach (var i in Line.rpeLayers[layer].moveXEvents)
                     {
-                        if (GlobalSetting.formatVersion != 1)
+                        if (GlobalSetting.FormatVersion != 1)
                         {
                             i.start = 1 - i.start;
                             i.end = 1 - i.end;
@@ -203,7 +194,7 @@ namespace MainCore
         {
             ProcessingNotes.Remove(i);
             NoteMovement t;
-            if (GlobalSetting.isMirror)
+            if (GlobalSetting.IsMirror)
                 i.positionX = -i.positionX;
             switch (type)
             {
@@ -239,7 +230,7 @@ namespace MainCore
             var flickTime = 9999f;
             var tempNoteList = new List<NoteMovement>();
             var noteDistances = new List<float>();
-            var tolerance = JudgeTime.judgeTime + PgrTime;
+            var tolerance = GlobalSetting.GetJudgeTime().judgeTime + PgrTime;
             for (var j = 0; j < NotesCanBeUpdated.Count; j++)
             {
                 var i = NotesCanBeUpdated[j];
@@ -308,7 +299,7 @@ namespace MainCore
             {
                 var n = ProcessingNotes[index];
                 var height = (float)(n.floorPosition - JudgeLineDistance + n.yOffset) * SpeedFactor * n.speed;
-                if (height <= MinimumDistanceToShow && NotesCanBeUpdated.Count < 5000)
+                if ((height <= MinimumDistanceToShow || n.time - PgrTime <= GlobalSetting.GetJudgeTime().bTime + Time.deltaTime) && NotesCanBeUpdated.Count < 5000)
                 {
                     InitNote(n.type, n, n.isAbove ? 1 : -1);
                 }
@@ -370,14 +361,14 @@ namespace MainCore
 
         public void ResetScale()
         {
-            StartCoroutine(ResetScaleCoroutine());
+            ResetScaleCoroutine();
         }
 
-        private IEnumerator ResetScaleCoroutine()
+        private async void ResetScaleCoroutine()
         {
-            yield return new WaitForSeconds(0.2f);
+            await new WaitForSeconds(0.2f);
             transform.localScale = TargetScale;
-            if (GlobalSetting.is3D)
+            if (GlobalSetting.Is3D)
             {
                 JudgeLineTopTransform.eulerAngles = new Vector3(30, 0, 0);
             }
@@ -495,8 +486,8 @@ namespace MainCore
             MoveEventValue = GameUtils.GetTransformedXY(new Vector2(x * 160f / 9f, y * 10f));
             if (Line.father > -1)
             {
-                var t = GlobalSetting.lines[Line.father].MoveEventValue;
-                var r = GlobalSetting.lines[Line.father].RotateEventValue;
+                var t = GlobalSetting.Lines[Line.father].MoveEventValue;
+                var r = GlobalSetting.Lines[Line.father].RotateEventValue;
                 var matrix = Matrix4x4.TRS(t, Quaternion.Euler(0, 0, r), Vector3.one);
                 t = matrix.MultiplyPoint3x4(MoveEventValue);
                 transform1.position = t;
@@ -557,7 +548,7 @@ namespace MainCore
 
             var i = GameUtils.GetEventFromCurrentTime(Line.rpeLayers[layer].moveXEvents, PgrTime);
 
-            if (GlobalSetting.formatVersion is not 1)
+            if (GlobalSetting.FormatVersion is not 1)
             {
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
                 i.endTime = i.endTime > 10000000 ? i.startTime + 1 : i.endTime;
@@ -592,7 +583,7 @@ namespace MainCore
 
             var i = GameUtils.GetEventFromCurrentTime(Line.rpeLayers[layer].moveYEvents, PgrTime);
 
-            if (GlobalSetting.formatVersion is not 1)
+            if (GlobalSetting.FormatVersion is not 1)
             {
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
                 i.endTime = i.endTime > 10000000 ? i.startTime + 1 : i.endTime;
@@ -699,7 +690,7 @@ namespace MainCore
                 int easeType = 0;
 
                 if (Line.extended.colorEvents.Count == 0)
-                    return GlobalSetting.lineColors[GlobalSetting.lineStat].SetAlpha(alphaVal);
+                    return GlobalSetting.LineColors[GlobalSetting.LineStat].SetAlpha(alphaVal);
 
                 var i = GameUtils.GetEventFromCurrentTime(Line.extended.colorEvents, PgrTime);
                 i.startTime = i.startTime < 0 ? 0 : i.startTime;
