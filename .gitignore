@@ -40,6 +40,7 @@ Thumbs.db
 BuildLog.htm
 *.txt
 !ProjectSettings/ProjectVersion.txt
+!license.txt
 *.xml
 *.log
 *.xsl
