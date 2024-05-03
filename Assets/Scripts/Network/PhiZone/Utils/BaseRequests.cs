@@ -34,7 +34,7 @@ namespace Network.PhiZone.Utils
             }
             if (body != null)
             {
-                await using StreamWriter streamWriter = new StreamWriter(httpWebRequest.GetRequestStream());
+                using StreamWriter streamWriter = new StreamWriter(httpWebRequest.GetRequestStream());
                 await streamWriter.WriteAsync(JObject.FromObject(body).ToString());
             }
 
