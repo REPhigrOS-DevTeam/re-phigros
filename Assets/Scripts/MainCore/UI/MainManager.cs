@@ -185,7 +185,7 @@ namespace MainCore.UI
             {
                 return null;
             }
-            catch (Uniasset.NativeException)
+            catch (FormatException)
             {
                 InGameUIManager.ShowModalWindowWithClose("错误", "文件格式不正确", () => { }, "确定");
                 return null;

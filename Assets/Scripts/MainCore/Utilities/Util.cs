@@ -11,11 +11,9 @@ using MainCore.Data;
 using MainCore.UI;
 using Newtonsoft.Json;
 using NLayer;
-#if true
-using Uniasset.Audio;
+#if UNITY_EDITOR || !UNITY_IOS
+// using Uniasset.Audio;
 using Uniasset.Image;
-#else
-using Unimage;
 #endif
 using UnityEngine;
 using UnityEngine.Networking;
@@ -55,32 +53,43 @@ namespace MainCore.Utilities
 
         public static Texture2D ReadFileAsTexture(byte[] data)
         {
-#if true
-            ImageAsset imageAsset = new ImageAsset(); // 不建议using
-            imageAsset.Load(data);
-            Texture2D texture2D = imageAsset.ToTexture2D(noLongerReadable: false);
-            imageAsset.Dispose();
-            return texture2D;
-#else
+#if UNITY_EDITOR || !UNITY_IOS
             try
             {
-                UnimageProcessor unimageProcessor = new UnimageProcessor();
-                unimageProcessor.Load(data);
-                unimageProcessor.Resize(unimageProcessor.Width, unimageProcessor.Height);
-                Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
-                unimageProcessor.Dispose();
-                return texture;
+                ImageAsset imageAsset = new ImageAsset(); // 不建议using
+                imageAsset.Load(data);
+                Texture2D texture2D = imageAsset.ToTexture2D(noLongerReadable: false);
+                imageAsset.Dispose();
+                return texture2D;
             }
-            catch (UnimageException)
+            catch (Uniasset.NativeException e)
             {
-                return null;
+                throw new FormatException(e.Message);
             }
+#else
+            Texture2D texture = new Texture2D(0, 0);
+
+            if (texture.LoadImage(data)) return texture;
+            throw new FormatException();
+            // try
+            // {
+            //     UnimageProcessor unimageProcessor = new UnimageProcessor();
+            //     unimageProcessor.Load(data);
+            //     unimageProcessor.Resize(unimageProcessor.Width, unimageProcessor.Height);
+            //     Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
+            //     unimageProcessor.Dispose();
+            //     return texture;
+            // }
+            // catch (UnimageException)
+            // {
+            //     return null;
+            // }
 #endif
         }
 
         public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
         {
-#if true
+#if UNITY_EDITOR || !UNITY_IOS
             await UniTask.SwitchToMainThread();
             ImageAsset imageAsset = new ImageAsset(); // 不建议using
             await imageAsset.LoadAsync(data);
@@ -122,20 +131,20 @@ namespace MainCore.Utilities
             }
         }
 
-        public static AudioClip ReadMusicAsAudioClip(string path, string clipName = "")
-        {
-            AudioAsset audioAsset = new AudioAsset();
-            byte[] readAllBytes = File.ReadAllBytes(path);
-            audioAsset.Load(readAllBytes);
-            NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
-            float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
-            int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
-            nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
-            AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
-                false);
-            audioClip.SetData(pcmBuffer, 0);
-            return audioClip;
-        }
+        // public static AudioClip ReadMusicAsAudioClip(string path, string clipName = "")
+        // {
+        //     AudioAsset audioAsset = new AudioAsset();
+        //     byte[] readAllBytes = File.ReadAllBytes(path);
+        //     audioAsset.Load(readAllBytes);
+        //     NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
+        //     float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
+        //     int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
+        //     nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
+        //     AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
+        //         false);
+        //     audioClip.SetData(pcmBuffer, 0);
+        //     return audioClip;
+        // }
 
         public static async UniTask<AudioClip> ReadMusicAsAudioClipAsync(string path, string clipName = "")
         {
