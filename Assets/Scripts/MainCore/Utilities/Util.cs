@@ -168,21 +168,21 @@ namespace MainCore.Utilities
                     mpegFile.Dispose();
                     return ac;
                 }
-                case AudioType.OGGVORBIS:
-                {
+                // case AudioType.OGGVORBIS:
+                // {
                     // Load the data into a stream
                 
-                    NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                    int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
-                    
-                    float[] samples = new float[vorbis.TotalSamples];
-                    int _ = vorbis.ReadSamples(samples, 0, samples.Length);
-                
-                    AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
-                        false);
-                    ac.SetData(samples, 0);
-                    vorbis.Dispose();
-                    return ac;
+                    // NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    // int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                    //
+                    // float[] samples = new float[vorbis.TotalSamples];
+                    // int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                    //
+                    // AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                    //     false);
+                    // ac.SetData(samples, 0);
+                    // vorbis.Dispose();
+                    // return ac;
                     // use PCMReader
                     //
                     // AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
@@ -203,8 +203,15 @@ namespace MainCore.Utilities
                     //     });
                     // // Return the clip
                     // return ac1;
-                }
+                // }
                 case AudioType.WAV:
+                {
+                    WAV wav = new WAV(await File.ReadAllBytesAsync(path));
+                    AudioClip audioClip = AudioClip.Create(clipName, wav.SampleCount, wav.ChannelCount, wav.Frequency, false);
+                    audioClip.SetData(wav.TotalChannel, 0);
+                    return audioClip;
+                }
+                case AudioType.OGGVORBIS:
                 case AudioType.UNKNOWN:
                 {
                     await UniTask.SwitchToMainThread();
