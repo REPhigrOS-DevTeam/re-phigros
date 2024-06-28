@@ -733,6 +733,53 @@ namespace MainCore.Utilities
             return result.ToArray();
         }
 #endif
+        
+        public static void UnzipChartArchive(string zipFile, Action onUnZipFinished,
+            Action<InGameUIManager.WindowInfo> logger)
+        {
+            string songFolderName = Path.GetFileNameWithoutExtension(zipFile);
+            string destFolderPath = Path.Combine(Util.DataPath, songFolderName);
+            if (Directory.Exists(destFolderPath))
+            {
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "提示",
+                    content = $"歌曲“{songFolderName}已存在，确认覆盖？”",
+                    confirmAction = () =>
+                    {
+                        Directory.Delete(destFolderPath, true);
+                        Unzip();
+                        onUnZipFinished();
+                    },
+                    confirmText = "确定",
+                    cancelAction = InGameUIManager.HideModalWindow,
+                    cancelText = "取消"
+                });
+                return;
+            }
+
+            Unzip();
+            onUnZipFinished();
+
+            void Unzip()
+            {
+                ZipUtils.UnZip(zipFile, destFolderPath);
+                string externalTextureZip = destFolderPath + "/" + "texture.zip";
+                if (File.Exists(externalTextureZip))
+                {
+                    ZipUtils.UnZip(externalTextureZip, destFolderPath);
+                    File.Delete(externalTextureZip);
+                }
+
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "提示",
+                    content = "解压成功",
+                    confirmAction = () => {},
+                    confirmText = "确定"
+                });
+            }
+        }
     }
 
     public class GameFilePathInfo

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public static class InGameUIManager
@@ -25,7 +26,6 @@ public static class InGameUIManager
         {
             queue.Enqueue(new WindowInfo
             {
-                withClose = false,
                 title = title,
                 content = content,
                 confirmAction = confirmAction,
@@ -49,23 +49,6 @@ public static class InGameUIManager
         string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
         Action alternateAction = null, string alternatetext = "Alternate")
     {
-        if (IsActive)
-        {
-            queue.Enqueue(new WindowInfo
-            {
-                withClose = true,
-                title = title,
-                content = content,
-                confirmAction = confirmAction,
-                confirmText = confirmtext,
-                cancelAction = cancelAction,
-                cancelText = canceltext,
-                alternateAction = alternateAction,
-                alternateText = alternatetext
-            });
-            return;
-        }
-
         confirmAction += HideModalWindow;
 
         if (cancelAction != null)
@@ -78,8 +61,20 @@ public static class InGameUIManager
             alternateAction += HideModalWindow;
         }
 
-        InGameModalWindow.Instance.Show(title, content, confirmAction, confirmtext, cancelAction, canceltext,
-            alternateAction, alternatetext);
+        ShowModalWindow(title, content, confirmAction, confirmtext, cancelAction, canceltext, alternateAction, alternatetext);
+    }
+
+    public static void ShowModalWindowWithCloseFromWindowInfo(WindowInfo windowInfo)
+    {
+        windowInfo.confirmAction += HideModalWindow;
+        if (windowInfo.cancelAction != null) windowInfo.cancelAction += HideModalWindow;
+        if (windowInfo.alternateAction != null) windowInfo.alternateAction += HideModalWindow;
+        ShowModalWindowFromWindowInfo(windowInfo);
+    }
+
+    public static void ShowModalWindowFromWindowInfo(WindowInfo windowInfo)
+    {
+        ShowModalWindow(windowInfo.title, windowInfo.content, windowInfo.confirmAction, windowInfo.confirmText, windowInfo.cancelAction, windowInfo.cancelText, windowInfo.alternateAction, windowInfo.alternateText);
     }
 
     /// <summary>
@@ -102,34 +97,17 @@ public static class InGameUIManager
     {
         if (queue.Count == 0) return;
         if (!queue.TryDequeue(out WindowInfo windowInfo)) return;
-        if (windowInfo.withClose)
-        {
-            windowInfo.confirmAction += HideModalWindow;
 
-            if (windowInfo.cancelAction != null)
-            {
-                windowInfo.cancelAction += HideModalWindow;
-            }
-
-            if (windowInfo.alternateAction != null)
-            {
-                windowInfo.alternateAction += HideModalWindow;
-            }
-        }
-
-        InGameModalWindow.Instance.Show(windowInfo.title, windowInfo.content, windowInfo.confirmAction,
-            windowInfo.confirmText, windowInfo.cancelAction, windowInfo.cancelText, windowInfo.alternateAction,
-            windowInfo.alternateText);
+        ShowModalWindowFromWindowInfo(windowInfo);
     }
 
-    public static IEnumerator Join()
+    public static async UniTask Join()
     {
-        yield return new WaitWhile(() => IsActive);
+        await UniTask.WaitWhile(() => IsActive);
     }
 
-    class WindowInfo
+    public class WindowInfo
     {
-        public bool withClose;
         public string title;
         public string content;
         public Action confirmAction;

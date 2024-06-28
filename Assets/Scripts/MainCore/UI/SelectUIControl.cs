@@ -92,7 +92,7 @@ namespace MainCore.UI
             GlobalSetting.Reset();
         }
 
-        private void RefreshGameFolder()
+        public void RefreshGameFolder()
         {
             string text = "";
             if (infoDropdown.value != 1)
@@ -113,10 +113,6 @@ namespace MainCore.UI
             }
 
             OnChangeDropdown();
-        }
-
-        private void Update()
-        {
         }
 
         public void EnterGame()
@@ -231,7 +227,7 @@ namespace MainCore.UI
             await UniTask.SwitchToThreadPool();
 
             GlobalSetting.IsMultiplayer = false;
-            
+
             (Sprite sprite, Exception exception) = GlobalSetting.IllustrationPath == ""
                 ? (Resources.Load<Sprite>("1920x1080_Black"), null)
                 : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath));
@@ -317,6 +313,7 @@ namespace MainCore.UI
                 list.Add(f.Name.Trim());
 #endif
             }
+
             list.Sort();
 
             return list;
@@ -363,43 +360,15 @@ namespace MainCore.UI
             SceneTransit.Instance.Back();
         }
 
-        public void UnzipPez()
+        public void TryUnzipPez()
         {
-            OpenFile.LoadFile(OnLoadPezSucceeded, () => { }, new[] { new ExtensionFilter("RPE谱包", "pez") }, null,
+            OpenFile.LoadFile(zipFile =>
+                {
+                    GameUtils.UnzipChartArchive(zipFile, RefreshGameFolder, InGameUIManager.ShowModalWindowWithCloseFromWindowInfo);
+                }, () => { }, new[] { new ExtensionFilter("RPE谱包", "pez") }, null,
                 "选择Pez...", "确定");
         }
-
-        private void OnLoadPezSucceeded(string zipFile)
-        {
-            string songFolderName = Path.GetFileNameWithoutExtension(zipFile);
-            string destFolderPath = Path.Combine(Util.DataPath, songFolderName);
-            if (Directory.Exists(destFolderPath))
-            {
-                InGameUIManager.ShowModalWindow("提示", $"歌曲“{songFolderName}已存在，确认覆盖？”", () =>
-                {
-                    Directory.Delete(destFolderPath, true);
-                    InGameUIManager.HideModalWindowForcely();
-                    Unzip();
-                }, "确定", () => { InGameUIManager.HideModalWindow(); }, "取消");
-                return;
-            }
-
-            Unzip();
-
-            void Unzip()
-            {
-                ZipUtils.UnZip(zipFile, destFolderPath);
-                string externalTextureZip = destFolderPath + "/" + "texture.zip";
-                if (File.Exists(externalTextureZip))
-                {
-                    ZipUtils.UnZip(externalTextureZip, destFolderPath);
-                    File.Delete(externalTextureZip);
-                }
-
-                InGameUIManager.ShowModalWindowWithClose("提示", "解压成功", () => { }, "确定");
-                RefreshGameFolder();
-            }
-        }
+        
 #if !UNITY_EDITOR
         private void OnApplicationFocus(bool hasFocus)
         {

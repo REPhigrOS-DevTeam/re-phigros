@@ -1,0 +1,19 @@
+{
+    "name": "RPGR.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:363a3288c06c1c14cbbeedbda31215f9",
+        "GUID:c5ecc461727906345a35491a0440694f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

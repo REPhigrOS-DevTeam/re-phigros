@@ -3,7 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using MainCore;
-using MainCore.ECS_ver;
+using MainCore.ECS;
 using MainCore.Utilities;
 using UnityEngine;
 

@@ -7,11 +7,10 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
+using Button = UnityEngine.UI.Button;
 using Random = UnityEngine.Random;
 
-namespace MainCore.ECS_ver
+namespace MainCore.ECS
 {
     public class EffectSystemManager : MonoSingleton<EffectSystemManager>
     {
