@@ -95,7 +95,10 @@ public class BridgeForNative : MonoBehaviour
 
         try
         {
-            GameUtils.UnzipChartArchive(filePath, () =>
+            if (!Directory.Exists(Application.temporaryCachePath)) Directory.CreateDirectory(Application.temporaryCachePath);
+            string tmpFilePath = Path.Combine(Application.temporaryCachePath, Path.GetFileName(filePath)); // 防止丢失权限，存储到缓存里
+            File.Copy(filePath, tmpFilePath, true);
+            GameUtils.UnzipChartArchive(tmpFilePath, () =>
             {
                 Camera mainCamera = Camera.main;
                 if (mainCamera && mainCamera.TryGetComponent(out SelectUIControl selectUIControl))

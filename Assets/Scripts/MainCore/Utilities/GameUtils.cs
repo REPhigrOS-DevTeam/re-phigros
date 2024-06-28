@@ -517,7 +517,8 @@ namespace MainCore.Utilities
                     break;
                 case InfoType.RpeJson:
                     RpeChartData.RpeMeta rpeMeta = obj as RpeChartData.RpeMeta;
-                    gameFilePathInfo.Chart = Directory.GetFiles(directory, "*.json").Select(Path.GetFileName).Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
+                    gameFilePathInfo.Chart = Directory.GetFiles(directory, "*.json").Select(Path.GetFileName)
+                        .Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
                     gameFilePathInfo.Music = rpeMeta.song;
                     gameFilePathInfo.Illustration = rpeMeta.background;
                     break;
@@ -632,19 +633,24 @@ namespace MainCore.Utilities
 
             skinInfo.hitFx = hitFx.ToArray();
             // 读取note们
-            (skinInfo.click_bad, _) = (skinInfo.click, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
-            (skinInfo.clickMh, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
+            (skinInfo.click_bad, _) = (skinInfo.click, _) =
+                await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
+            (skinInfo.clickMh, _) =
+                await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
             Texture2D dragTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag.png"));
             skinInfo.drag = Sprite.Create(dragTex, new Rect(0, 0, dragTex.width, dragTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * dragTex.width / skinInfo.click.rect.width, 1);
-            Texture2D dragMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
+            Texture2D dragMhTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
             skinInfo.dragMh = Sprite.Create(dragMhTex, new Rect(0, 0, dragMhTex.width, dragMhTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.clickMh.pixelsPerUnit * dragMhTex.width / skinInfo.clickMh.rect.width,
                 1);
-            Texture2D flickTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
+            Texture2D flickTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
             skinInfo.flick = Sprite.Create(flickTex, new Rect(0, 0, flickTex.width, flickTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * flickTex.width / skinInfo.click.rect.width, 1);
-            Texture2D flickMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
+            Texture2D flickMhTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
             skinInfo.flickMh = Sprite.Create(flickMhTex, new Rect(0, 0, flickMhTex.width, flickMhTex.height),
                 new Vector2(0.5f, 0.5f),
                 skinInfo.clickMh.pixelsPerUnit * flickMhTex.width / skinInfo.clickMh.rect.width,
@@ -652,7 +658,8 @@ namespace MainCore.Utilities
             try
             {
                 // hold
-                Texture2D holdTexture = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
+                Texture2D holdTexture =
+                    await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
                 Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
                     phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width);
                 skinInfo.holdHead = holdSprites[0];
@@ -733,7 +740,7 @@ namespace MainCore.Utilities
             return result.ToArray();
         }
 #endif
-        
+
         public static void UnzipChartArchive(string zipFile, Action onUnZipFinished,
             Action<InGameUIManager.WindowInfo> logger)
         {
@@ -763,6 +770,18 @@ namespace MainCore.Utilities
 
             void Unzip()
             {
+                if (!File.Exists(zipFile)) // 防止确认覆盖期间文件被删
+                {
+                    logger(new InGameUIManager.WindowInfo
+                    {
+                        title = "错误",
+                        content = "文件不存在",
+                        confirmAction = () => { },
+                        confirmText = "确定"
+                    });
+                    return;
+                }
+
                 ZipUtils.UnZip(zipFile, destFolderPath);
                 string externalTextureZip = destFolderPath + "/" + "texture.zip";
                 if (File.Exists(externalTextureZip))
@@ -775,7 +794,7 @@ namespace MainCore.Utilities
                 {
                     title = "提示",
                     content = "解压成功",
-                    confirmAction = () => {},
+                    confirmAction = () => { },
                     confirmText = "确定"
                 });
             }
