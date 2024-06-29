@@ -358,7 +358,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0442347332592504593221904064284e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debugFilePath: "file://G:/RPGR-Data/\u3081\u3093\u3078\u3089\u30FC\u3081\u3093.pez"
+  debugFilePath: "G:\\RPGR-Data\\\u3081\u3093\u3078\u3089\u30FC\u3081\u3093.pez"
 --- !u!1 &343583533
 GameObject:
   m_ObjectHideFlags: 0

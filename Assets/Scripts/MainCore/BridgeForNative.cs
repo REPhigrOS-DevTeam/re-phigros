@@ -1,15 +1,17 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security;
 using JetBrains.Annotations;
 using MainCore.Native;
 using MainCore.UI;
 using MainCore.Utilities;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class BridgeForNative : MonoBehaviour
 {
-    [SerializeField] private string debugFileUri;
+    [SerializeField] private string debugFilePath;
 
     private void Awake()
     {
@@ -21,7 +23,7 @@ public class BridgeForNative : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Home))
         {
-            ProcessFilePath(debugFileUri, InGameUIManager.ShowModalWindowWithCloseFromWindowInfo);
+            ProcessFilePath(File.Exists(debugFilePath) && Path.GetExtension(debugFilePath).ToLowerInvariant() is ".zip" or ".pez", debugFilePath, InGameUIManager.ShowModalWindowWithCloseFromWindowInfo);
         }
     }
 #endif
@@ -44,28 +46,54 @@ public class BridgeForNative : MonoBehaviour
 #if UNITY_ANDROID && !UNITY_EDITOR
         var filePath = AndroidNativeInterface.GetSharedFile();
 #else
-        var filePath = GetFilePath(debugFileUri, logger);
+        var filePath = debugFilePath;
 #endif
-        ProcessFilePath(filePath, logger);
+        ProcessFilePath(filePath != null, filePath, logger);
         AndroidNativeInterface.RemoveSharedFile();
     }
 
 #if UNITY_IOS && !UNITY_EDITOR || true
     [UsedImplicitly]
-    public void Callback_GetiOSSharedFile(string uri)
+    public void Callback_GetiOSSharedFile(string str)
     {
-        ProcessFilePath(uri, InGameUIManager.ShowModalWindowWithCloseFromWindowInfo);
+        int indexOf = str.IndexOf('\n', StringComparison.Ordinal);
+        bool state = bool.Parse(str[..indexOf]);
+        string path = str[(indexOf + 1)..];
+        Action<InGameUIManager.WindowInfo> logger = InGameUIManager.ShowModalWindowWithCloseFromWindowInfo;
+        ProcessFilePath(state, GetFilePath(path, logger), logger);
     }
 #endif
 
     #endregion
 
     [UsedImplicitly]
-    private void ProcessFilePath(string uri, Action<InGameUIManager.WindowInfo> logger)
+    private void ProcessFilePath(bool state, string filePath, Action<InGameUIManager.WindowInfo> logger)
     {
-        string filePath = GetFilePath(uri, logger);
-        if (string.IsNullOrEmpty(filePath)) return;
-        
+        if (!state)
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "错误",
+                    content = "url为空",
+                    confirmAction = () => { },
+                    confirmText = "确定"
+                });
+            }
+            else
+            {
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "错误",
+                    content = $"url或文件路径非法：{filePath}",
+                    confirmAction = () => { },
+                    confirmText = "确定"
+                });
+            }
+            return;
+        }
+
         Debug.Log("[Unity callback] File Path is: " + filePath);
 
         if (!File.Exists(filePath))
@@ -152,7 +180,7 @@ public class BridgeForNative : MonoBehaviour
             });
         }
     }
-
+    
     private string GetFilePath(string uri, Action<InGameUIManager.WindowInfo> logger)
     {
         if (string.IsNullOrEmpty(uri))
@@ -180,6 +208,6 @@ public class BridgeForNative : MonoBehaviour
             return "";
         }
 
-        return uri["file://".Length..];
+        return UnityWebRequest.UnEscapeURL(uri["file://".Length..]);
     }
 }

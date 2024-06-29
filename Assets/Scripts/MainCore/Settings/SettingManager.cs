@@ -239,8 +239,9 @@ namespace MainCore.Settings
                     ? $"e{GlobalSetting.CurrentSkinInfo.id}"
                     : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
             PlayerPrefs.Save();
+            
 #if UNITY_IPHONE && !UNITY_EDITOR
-            PlayerPrefs.SetString("file_path", Application.persistentDataPath);
+            PlayerPrefs.DeleteKey("file_path");
             PlayerPrefs.Save();
 
             if (!Directory.Exists(Util.DataPath))

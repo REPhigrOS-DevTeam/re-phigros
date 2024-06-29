@@ -46,7 +46,7 @@ namespace MainCore.UI
         void Start()
         {
 #if UNITY_IPHONE && !UNITY_EDITOR
-            PlayerPrefs.SetString("file_path", Application.persistentDataPath);
+            PlayerPrefs.DeleteKey("file_path");
             PlayerPrefs.Save();
 #endif
 

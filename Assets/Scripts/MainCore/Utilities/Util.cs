@@ -583,21 +583,23 @@ namespace MainCore.Utilities
             return new Color(colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f, colorByte[0] / 255f);
         }
 
-        public static string GetGameFilePath()
+        private static string GetGameFilePath()
         {
-            return Application.platform switch
+            switch (Application.platform)
             {
-                RuntimePlatform.OSXEditor => Application.persistentDataPath,
-                RuntimePlatform.OSXPlayer => Application.persistentDataPath,
-                RuntimePlatform.WindowsPlayer => Application.persistentDataPath,
-                RuntimePlatform.WindowsEditor => Application.persistentDataPath,
-                RuntimePlatform.IPhonePlayer => Application.persistentDataPath,
-                RuntimePlatform.LinuxPlayer => Application.persistentDataPath,
-                RuntimePlatform.LinuxEditor => Application.persistentDataPath,
-                RuntimePlatform.Android => new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data")
-                    .FullName,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                case RuntimePlatform.OSXEditor:
+                case RuntimePlatform.OSXPlayer:
+                case RuntimePlatform.WindowsPlayer:
+                case RuntimePlatform.WindowsEditor:
+                case RuntimePlatform.IPhonePlayer:
+                case RuntimePlatform.LinuxPlayer:
+                case RuntimePlatform.LinuxEditor:
+                    return Application.persistentDataPath;
+                case RuntimePlatform.Android:
+                    return new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data").FullName;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
 #if !RELEASE_VERSION
