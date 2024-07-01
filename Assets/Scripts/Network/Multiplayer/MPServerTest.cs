@@ -581,7 +581,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetButtonState(RoomState state)
     {
-        if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return;
+        if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return; // 仅输入单个RoomState
         foreach (GameObject button in buttonToState.Keys)
         {
             button.SetActive((buttonToState[button] & state) == state);
