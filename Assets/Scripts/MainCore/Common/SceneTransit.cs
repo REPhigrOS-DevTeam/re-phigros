@@ -135,16 +135,14 @@ namespace MainCore.Common
                 await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
             }
 
+            OnSceneClosing.Invoke();
             transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
             transitMaterial.DOFloat(1f, Cutoff, .5f);
-
-            OnSceneClosing.Invoke();
             await UniTask.Delay(500);
-            operation.allowSceneActivation = true;
-
             transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
             transitMaterial.DOFloat(0f, Cutoff, .5f).OnComplete(() => { transitMaterial.SetFloat(Cutoff, 0f); })
                 .OnKill(() => { transitMaterial.SetFloat(Cutoff, 0f); });
+            operation.allowSceneActivation = true;
             await UniTask.Delay(500);
             transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
             if (transitAnimation)
