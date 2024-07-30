@@ -35,7 +35,7 @@ namespace MainCore.UI
                 _stopwatch.Start();
                 playMusic.interactable = false;
                 playMusic.GetComponentInChildren<Text>().text = "重新测试";
-                source.Play();
+                source.PlayScheduled(AudioSettings.dspTime);
                 _isStarted = true;
                 _totalDelay = 0;
                 _count = 0;

@@ -444,7 +444,7 @@ namespace MainCore
             progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
             yield return new WaitForSeconds(4);
-            audio.Play();
+            audio.PlayScheduled(AudioSettings.dspTime);
             GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
             RegisterPauseMenu();

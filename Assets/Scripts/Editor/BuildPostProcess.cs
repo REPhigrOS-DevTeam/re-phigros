@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿/*using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Callbacks;
@@ -41,4 +41,4 @@ namespace Editor
             plist.WriteToFile(Path.Combine(path, "info.plist"));
         }
     }
-}
+}*/
