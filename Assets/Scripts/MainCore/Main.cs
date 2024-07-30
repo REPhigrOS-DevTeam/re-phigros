@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -302,7 +303,7 @@ namespace MainCore
                 Destroy(terminateButton.gameObject);
             }
 
-            StartPlay();
+            StartCoroutine(StartPlay());
         }
 
         void Update()
@@ -328,7 +329,7 @@ namespace MainCore
             }
 
 
-            if (progressManager.NowNoDelayTime >= audio.clip.length && GlobalSetting.GameStarted)
+            if (progressManager.NowTime >= audio.clip.length && GlobalSetting.GameStarted)
             {
                 progressManager.StopTiming();
                 GlobalSetting.GameStarted = false;
@@ -422,7 +423,7 @@ namespace MainCore
 
         private float totalOffset;
 
-        private async void StartPlay()
+        private IEnumerator StartPlay()
         {
             //GameObject.Find("CutInOut").GetComponent<Animation>().Play("CutIn");
 
@@ -439,10 +440,11 @@ namespace MainCore
 
             totalOffset = json.offset + GlobalSetting.UserOffset;
             maskSprite.DOFade(GlobalSetting.MaskAlpha, 3f);
-            audio.PlayScheduled(AudioSettings.dspTime + 4f);
+            
             progressManager.AddStartDelay(totalOffset);
             //totalOffset -= .05f; //fixed delay
-            await UniTask.Delay(4000);
+            yield return new WaitForSeconds(4);
+            audio.Play();
             GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
             RegisterPauseMenu();
@@ -728,7 +730,7 @@ namespace MainCore
 
         void Pause()
         {
-            if (!GlobalSetting.GameStarted || GlobalSetting.Paused || !(MusicTime > 3f) || GlobalSetting.Paused) return;
+            if (!GlobalSetting.GameStarted || GlobalSetting.Paused) return;
             GlobalSetting.Paused = true;
             progressManager.StopTiming();
             audio.Pause();

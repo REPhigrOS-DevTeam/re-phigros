@@ -50,4 +50,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CharacterAdjustScene.unity
     guid: cd01a74094628da45aff6b2bd0be8bb7
+  - enabled: 1
+    path: Assets/Scenes/DelayCorrectionScene.unity
+    guid: 05760e7d57ba7334cb1ae5539d256fb5
   m_configObjects: {}

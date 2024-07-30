@@ -49,9 +49,9 @@ namespace MainCore.UI
 
             sfx = GetComponent<AudioSource>();
             sfx.volume = volume;
+            if (sfx) sfx.PlayScheduled(AudioSettings.dspTime + 3f);
             await UniTask.Delay(3000);
-            speed = 1400 / beatTime;
-            if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
+            speed = 1400.0f / beatTime;
             delay = beatTime / 2f;
             // auxiliaryLineTransform.localPosition = new Vector2(0f, 1000f);
             HeartBeat();

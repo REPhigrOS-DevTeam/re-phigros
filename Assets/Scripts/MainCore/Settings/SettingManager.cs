@@ -17,12 +17,12 @@ namespace MainCore.Settings
     public class SettingManager : MonoBehaviour
     {
         [SerializeField] private LeanButton saveNExit;
+        [SerializeField] private LeanButton delayCorrectionEnter;
         [SerializeField] private LeanButton dspEnter;
         [SerializeField] private LeanButton logOut;
         [SerializeField] private InputField_File_Selector dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
-        [SerializeField] private DelayCorrect delayCorrect;
         [SerializeField] private RectTransform internalSkinParent, externalSkinParent;
         [SerializeField] private GameObject skinItemPrefab;
         [SerializeField] private Button openSkinSelector, closeSkinSelector;
@@ -69,13 +69,11 @@ namespace MainCore.Settings
             {
                 skinSelectorCanvas.SetActive(true);
                 skinPreview.SetActive(true);
-                delayCorrect.SetRunning(false);
             });
             closeSkinSelector.onClick.AddListener(() =>
             {
                 skinSelectorCanvas.SetActive(false);
                 skinPreview.SetActive(false);
-                delayCorrect.SetRunning(true);
             });
             openAbout.onClick.AddListener(() =>
             {
@@ -85,6 +83,9 @@ namespace MainCore.Settings
             {
                 aboutCanvas.SetActive(false);
             });
+            saveNExit.OnClick.AddListener(SaveNExit);
+            dspEnter.OnClick.AddListener(IntoDSP);
+            delayCorrectionEnter.OnClick.AddListener(IntoDelayCorrection);
             if (GlobalSetting.IsOffline)
             {
                 logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
@@ -102,8 +103,6 @@ namespace MainCore.Settings
 #if UNITY_IPHONE && !UNITY_EDITOR
             dataPath.Lock();
 #endif
-            saveNExit.OnClick.AddListener(SaveNExit);
-            dspEnter.OnClick.AddListener(IntoDSP);
             // 彩蛋们
             SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
@@ -230,6 +229,16 @@ namespace MainCore.Settings
             if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
             SceneTransit.Instance.LoadScene("DSPScene");
         }
+        
+        private void IntoDelayCorrection()
+        {
+            string? qwq = null;
+            if (PlayerPrefs.HasKey(dataPath.BaseData.DataTag)) qwq = PlayerPrefs.GetString(dataPath.BaseData.DataTag);
+            broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.Save();
+            if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
+            SceneTransit.Instance.LoadScene("DelayCorrectionScene");
+        }
 
         private void SaveNExit()
         {
@@ -291,8 +300,6 @@ namespace MainCore.Settings
 
         private void OnSkinChanged()
         {
-            HitSoundManager.Instance.RefreshHitSounds();
-            delayCorrect.OnSkinChanged();
             skinPreviewer.UpdateSkin();
             EffectSystemManager.Instance.UpdateSkin();
         }

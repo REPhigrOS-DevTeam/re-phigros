@@ -17,7 +17,7 @@
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "REPhityOS",
             "CompanyName": "totorowldox",
-            "Version": "1.29"
+            "Version": "1.30"
         },
         {
             "$type": "Unity.Build.Common.RunSettings, Unity.Build",
@@ -81,6 +81,10 @@
                 },
                 {
                     "Scene": "GlobalObjectId_V1-1-cd01a74094628da45aff6b2bd0be8bb7-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-05760e7d57ba7334cb1ae5539d256fb5-102900000-0",
                     "AutoLoad": false
                 }
             ]

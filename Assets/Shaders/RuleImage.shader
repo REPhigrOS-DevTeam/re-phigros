@@ -73,6 +73,7 @@ Shader "Unlit/RuleImage"
     		    //fixed4 tranTex = tex2D(_TranTex, i.uv);
     			
     		    if(_Cutoff < 0.005) return _Color; //Edge cut
+    			if(_Cutoff > 0.995) return _Color * 0;
 
     			fixed fmin = _Cutoff - _Factor;
     			fixed fmax = _Cutoff + _Factor;

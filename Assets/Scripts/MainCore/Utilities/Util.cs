@@ -11,10 +11,6 @@ using MainCore.Data;
 using MainCore.UI;
 using Newtonsoft.Json;
 using NLayer;
-#if UNITY_EDITOR || !UNITY_IOS
-// using Uniasset.Audio;
-using Uniasset.Image;
-#endif
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
@@ -53,53 +49,16 @@ namespace MainCore.Utilities
 
         public static Texture2D ReadFileAsTexture(byte[] data)
         {
-#if UNITY_EDITOR || !UNITY_IOS
-            try
-            {
-                ImageAsset imageAsset = new ImageAsset(); // 不建议using
-                imageAsset.Load(data);
-                Texture2D texture2D = imageAsset.ToTexture2D(noLongerReadable: false);
-                imageAsset.Dispose();
-                return texture2D;
-            }
-            catch (Uniasset.NativeException e)
-            {
-                throw new FormatException(e.Message);
-            }
-#else
             Texture2D texture = new Texture2D(0, 0);
 
             if (texture.LoadImage(data)) return texture;
             throw new FormatException();
-            // try
-            // {
-            //     UnimageProcessor unimageProcessor = new UnimageProcessor();
-            //     unimageProcessor.Load(data);
-            //     unimageProcessor.Resize(unimageProcessor.Width, unimageProcessor.Height);
-            //     Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
-            //     unimageProcessor.Dispose();
-            //     return texture;
-            // }
-            // catch (UnimageException)
-            // {
-            //     return null;
-            // }
-#endif
         }
 
         public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
         {
-#if UNITY_EDITOR || !UNITY_IOS
-            await UniTask.SwitchToMainThread();
-            ImageAsset imageAsset = new ImageAsset(); // 不建议using
-            await imageAsset.LoadAsync(data);
-            Texture2D texture2D = await imageAsset.ToTexture2DAsync(noLongerReadable: false);
-            imageAsset.Dispose();
-            return texture2D;
-#else
             await UniTask.SwitchToMainThread();
             return ReadFileAsTexture(data);
-#endif
         }
 
         public static (Sprite, Exception) ReadFileAsSprite(byte[] data, float ppu = 100f)
@@ -159,7 +118,18 @@ namespace MainCore.Utilities
             //     false);
             // audioClip.SetData(pcmBuffer, 0);
             // return audioClip;
+            
             AudioType? audioType = await GetAudioTypeFromFile(path);
+            await UniTask.SwitchToMainThread();
+            Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, audioType??AudioType.UNKNOWN);
+            await uwr.SendWebRequest();
+            if (uwr.error != null) throw new ArgumentException();
+            AudioClip audioClip1 = DownloadHandlerAudioClip.GetContent(uwr);
+            audioClip1.name = clipName;
+            return audioClip1;
+            
+            /*
             switch (audioType)
             {
                 case null:
@@ -234,7 +204,7 @@ namespace MainCore.Utilities
                 }
                 default:
                     throw new ArgumentOutOfRangeException();
-            }
+            }*/
         }
 
         private static async UniTask<AudioType?> GetAudioTypeFromFile(string path)

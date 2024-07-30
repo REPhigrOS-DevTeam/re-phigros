@@ -117,6 +117,7 @@ namespace MainCore.UI
 
         public void EnterGame()
         {
+            PopupMessageManager.Instance.Message("Loading...");
             UniTask.Void(EnterGameInternal);
         }
 
@@ -210,7 +211,8 @@ namespace MainCore.UI
                 await UniTask.WaitWhile(() => InGameUIManager.IsActive);
                 await UniTask.SwitchToThreadPool();
             }
-
+            
+            Debug.Log("Info file loaded");
             //We load chart from here.
             await Main.InitChartAuto(GlobalSetting.ChartPath, false).ConfigureAwait(false);
             if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
@@ -223,7 +225,7 @@ namespace MainCore.UI
             }
 
             await UniTask.SwitchToMainThread();
-            PopupMessageManager.Instance.ChangeContent("loading...");
+            PopupMessageManager.Instance.ChangeContent("Loading...");
             await UniTask.SwitchToThreadPool();
 
             GlobalSetting.IsMultiplayer = false;
