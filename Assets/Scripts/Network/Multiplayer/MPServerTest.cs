@@ -469,8 +469,8 @@ public class MPServerTest : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        await Main.InitChartAuto(GlobalSetting.ChartPath, false, false).ConfigureAwait(false);
-        if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+        await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, false, false).ConfigureAwait(false);
+        if (GlobalSetting.InfoType == InfoType.InfoYml) ChartLoader.ApplyPhiraOffset((float)obj);
 
         // extra init
         string extraJsonPath = directory + "/extra.json";
@@ -511,7 +511,7 @@ public class MPServerTest : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
         }
 
-        Main.music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
+        Main.Music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
 #else
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
         if (chartInfo.Chart == null)
@@ -539,7 +539,6 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.IsMultiplayer = true;
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
-        GlobalSetting.UsingApi = false;
         GlobalSetting.ReadUserSettings();
         GlobalSetting.AutoPlay = false;
         GlobalSetting.StrictJudgeMode = false;

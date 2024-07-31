@@ -16,7 +16,6 @@ namespace MainCore
         public float NowTime;
 
         //下面是dsp!
-        private float startDspTime;
         private float lastUpdateDspTime;
 
         public delegate void OnResolutionError();
@@ -37,7 +36,6 @@ namespace MainCore
         public void StartTiming()
         {
             _stopwatch.Start();
-            startDspTime = lastUpdateDspTime = (float)AudioSettings.dspTime;
         }
 
         public void StopTiming()

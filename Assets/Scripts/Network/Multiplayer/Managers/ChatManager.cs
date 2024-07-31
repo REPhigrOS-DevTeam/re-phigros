@@ -194,7 +194,7 @@ namespace Network.Multiplayer.Managers
                     GlobalSetting.MusicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
                     GlobalSetting.IllustrationPath =
                         $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Illustration)}";
-                    await Main.InitChartAuto(GlobalSetting.ChartPath, true).ConfigureAwait(false);
+                    await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, true).ConfigureAwait(false);
                     TextAsset extraJsonObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/extra");
                     if (extraJsonObject != null)
                     {
@@ -216,11 +216,10 @@ namespace Network.Multiplayer.Managers
                     GlobalSetting.LineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
                     await UniTask.SwitchToMainThread();
                     GlobalSetting.BackgroundImage = Resources.Load<Sprite>(GlobalSetting.IllustrationPath);
-                    Main.music = Resources.Load<AudioClip>(GlobalSetting.MusicPath);
+                    Main.Music = Resources.Load<AudioClip>(GlobalSetting.MusicPath);
                     GlobalSetting.IsMultiplayer = false;
                     GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
-                    GlobalSetting.UsingApi = false;
                     GlobalSetting.ReadUserSettings();
                     HitSoundManager.UpdateVolume();
                     PopupMessageManager.Instance.Clear();

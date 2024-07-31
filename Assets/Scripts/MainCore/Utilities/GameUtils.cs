@@ -49,13 +49,6 @@ namespace MainCore.Utilities
             return AudioSettings.Reset(config);
         }
 
-        public static void AddTestCount()
-        {
-#if UNITY_EDITOR
-            Main.Mian.TEST_COUNT++;
-#endif
-        }
-
         public static void Print(this Exception exception)
         {
             Debug.LogException(exception);

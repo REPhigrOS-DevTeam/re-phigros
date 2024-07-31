@@ -214,8 +214,8 @@ namespace MainCore.UI
             
             Debug.Log("Info file loaded");
             //We load chart from here.
-            await Main.InitChartAuto(GlobalSetting.ChartPath, false).ConfigureAwait(false);
-            if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+            await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, false).ConfigureAwait(false);
+            if (GlobalSetting.InfoType == InfoType.InfoYml) ChartLoader.ApplyPhiraOffset((float)obj);
 
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
                 (GlobalSetting.Composer.ToLowerInvariant().Contains("pepoyo") ||
@@ -245,7 +245,7 @@ namespace MainCore.UI
             GlobalSetting.BackgroundImage = sprite;
 
             await UniTask.SwitchToMainThread();
-            Main.music = null;
+            Main.Music = null;
             AudioClip music;
             try
             {
@@ -269,9 +269,7 @@ namespace MainCore.UI
                 return;
             }
 
-            Main.music = music;
-
-            GlobalSetting.UsingApi = false;
+            Main.Music = music;
 
             await UniTask.SwitchToMainThread();
             PopupMessageManager.Instance.Clear();

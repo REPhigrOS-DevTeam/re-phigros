@@ -4,7 +4,6 @@ using MainCore.Common;
 using MainCore.Data;
 using MainCore.Utilities;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace MainCore
 {
@@ -71,11 +70,9 @@ namespace MainCore
         public static Dictionary<JudgeLineStat, Color> LineColors = new Dictionary<JudgeLineStat, Color>();
         public static float ScreenHeight;
         public static float ScreenWidth;
-        public static float WidthOffset = 0f;
         public static string Chart = "";
         public static Extra ExtraEvents = null;
         public static CSVReader LineImage;
-        public static bool UsingApi = false;
         public static bool IsMirror;
         public static bool Is3D;
         public static bool DisableBlur;
@@ -116,23 +113,6 @@ namespace MainCore
 
         public static float MusicLength { get; set; }
 
-        public static float OrthographicSize
-        {
-            get
-            {
-#if UNITY_EDITOR
-                orthographicSize = Camera.main.orthographicSize;
-#else
-            if (orthographicSize < 0)
-            {
-                orthographicSize = Camera.main.orthographicSize;
-            }
-#endif
-
-                return orthographicSize;
-            }
-        }
-
         private static string externalSkinName;
 
         public static SkinInfo CurrentSkinInfo;
@@ -152,23 +132,6 @@ namespace MainCore
             HitSoundManager.Instance.Play(notetype);
         }
 
-        public static void PlayClipAtPoint(AudioClip clip, Vector3 position, float volume)
-        {
-            GameObject gameObject = new GameObject("One shot audio")
-            {
-                transform =
-                {
-                    position = position
-                }
-            };
-            AudioSource audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.clip = clip;
-            audioSource.spatialBlend = 1f;
-            audioSource.volume = volume;
-            audioSource.PlayScheduled(AudioSettings.dspTime);
-            Object.Destroy(gameObject, clip.length * Time.timeScale);
-        }
-
         public static void Reset()
         {
             GameStarted = false;
@@ -182,7 +145,6 @@ namespace MainCore
             Lines.Clear();
             LineColors.Clear();
             LineStat = JudgeLineStat.AP;
-            // ObjectPool.GetInstance().reset();
             HitEffectManager.GetInstance().Reset();
             NotePool.GetInstance().Reset();
             LineImage = null;
