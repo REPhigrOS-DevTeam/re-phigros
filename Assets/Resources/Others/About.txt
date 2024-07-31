@@ -1,0 +1,24 @@
+Re: PhityOS制作名单
+// 排名不分先后
+
+制作人 | Producer:
+kagari939
+
+程序组 | Programmer:
+羽毛球awa, kagari939, Sky
+
+美术组 | Illustration:
+星鹿ELEC
+
+PV组 | PV:
+凌刃
+
+运营 | Operation:
+SICK, 提醒酱
+
+打击音效 | Hit Sound Effects:
+小赵同学
+
+使用MaAudio音频库
+
+感谢所有为Re:Phityos做出贡献的人员 | Thanks to everyone who contributed to Re:Phityos
