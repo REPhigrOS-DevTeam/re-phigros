@@ -1974,7 +1974,7 @@ GameObject:
   - component: {fileID: 992230560}
   - component: {fileID: 992230562}
   - component: {fileID: 992230561}
-  - component: {fileID: 992230563}
+  - component: {fileID: 992230564}
   m_Layer: 8
   m_Name: Image
   m_TagString: Untagged
@@ -1991,16 +1991,16 @@ RectTransform:
   m_GameObject: {fileID: 992230559}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.15625, y: 1.15625, z: 0}
+  m_LocalScale: {x: 1.1983199, y: 1.1983199, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 39988684}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2560, y: 1778}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &992230561
 MonoBehaviour:
@@ -2040,7 +2040,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 992230559}
   m_CullTransparentMesh: 1
---- !u!114 &992230563
+--- !u!114 &992230564
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2049,9 +2049,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 992230559}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bd37f945679b0a4ca88623b4bfbab9e, type: 3}
+  m_Script: {fileID: 11500000, guid: 32a493a35c9fe2b409935a7d163d9e70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  delta: 1
+  noFix: 0
 --- !u!1 &1001600890
 GameObject:
   m_ObjectHideFlags: 0
@@ -2654,8 +2656,8 @@ MonoBehaviour:
   maxUpdateRate: Infinity
   preview: 1
   blurAlgorithmSelection: 0
-  blurConfig: {fileID: 11400000, guid: 97a5a4d08639e04448d818a986306f49, type: 2}
-  downsample: 2
+  blurConfig: {fileID: 11400000, guid: 51a75d4684eb1b74a8555016d9ae373f, type: 2}
+  downsample: 3
   blurRegion:
     serializedVersion: 2
     x: 0

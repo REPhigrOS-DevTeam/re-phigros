@@ -55,28 +55,16 @@ namespace Editor
             IntoScene("SettingsScene");
         }
 
-        [MenuItem("Scene Tools/Into LoadInto")]
-        private static void IntoLoadInto()
+        [MenuItem("Scene Tools/Into LoadingScene")]
+        private static void IntoLoadingScene()
         {
-            IntoScene("LoadInto");
+            IntoScene("LoadingScene");
         }
 
         [MenuItem("Scene Tools/Into WahtThe")]
         private static void IntoWahtThe()
         {
             IntoScene("WahtThe");
-        }
-
-        [MenuItem("Scene Tools/Unbuild/Into Loading")]
-        private static void IntoLoading()
-        {
-            IntoScene("LoadingScene");
-        }
-
-        [MenuItem("Scene Tools/Unbuild/Into Result")]
-        private static void IntoResult()
-        {
-            IntoScene("ResultScene");
         }
 
         [MenuItem("Scene Tools/Into Network")]

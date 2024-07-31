@@ -11,8 +11,7 @@ namespace MainCore.UI
     public class LoadIntoManager : MonoBehaviour
     {
         [SerializeField] private Text chartName;
-        [SerializeField] private Text difficulty;
-        [SerializeField] private Text difficultyNumber;
+        [SerializeField] private Text level;
         [SerializeField] private Text charter;
         [SerializeField] private Text illustrator;
         [SerializeField] private Text composer;
@@ -20,9 +19,8 @@ namespace MainCore.UI
         [SerializeField] private Image songCover;
         [SerializeField] private Image backgroundImage;
 
-        [SerializeField] private Animator slideInto;
-        [SerializeField] private Animator cutOut;
-        [SerializeField] private AudioClip enter;
+        [SerializeField] private Animator animator;
+        private static readonly int Loaded = Animator.StringToHash("Loaded");
 
         public static string Charter { get; set; } = "Unknown";
         public static string Composer { get; set; } = "Unknown";
@@ -48,16 +46,7 @@ namespace MainCore.UI
             songCover.sprite = GlobalSetting.BackgroundImage;
             backgroundImage.sprite = GlobalSetting.BackgroundImage;
 
-            try //Try Parse difficulty
-            {
-                string s = GlobalSetting.Difficulty.Substring(GlobalSetting.Difficulty.LastIndexOf(' ') + 1);
-                difficultyNumber.text = s.Substring(s.LastIndexOf('.') + 1).Trim();
-                difficulty.text = GlobalSetting.Difficulty.Substring(0, GlobalSetting.Difficulty.LastIndexOf(' ')).Trim();
-            }
-            catch
-            {
-                difficultyNumber.text = GlobalSetting.Difficulty;
-            }
+            level.text = GlobalSetting.Difficulty;
 
             Charter = GlobalSetting.Charter;
             Composer = GlobalSetting.Composer;
@@ -73,19 +62,16 @@ namespace MainCore.UI
         IEnumerator YieldDoAnimation()
         {
             yield return new WaitForSeconds(1);
-            GlobalSetting.PlayClipAtPoint(enter, new Vector3(0, 0, -10), 1);
             SceneTransit.Instance.ReplaceScene("PlayingScene");
             var operation = SceneManager.LoadSceneAsync("PlayingScene");
             operation.allowSceneActivation = false;
-            slideInto.enabled = true;
-            yield return new WaitForSeconds(5);
+            yield return new WaitForSeconds(3);
             while (operation.progress < .9f)
             {
                 yield return new WaitForSeconds(.2f);
             }
-
-            cutOut.enabled = true;
-            yield return new WaitForSeconds(1);
+            animator.SetBool(Loaded, true);
+            yield return new WaitForSeconds(1.5f);
             operation.allowSceneActivation = true;
         }
     }

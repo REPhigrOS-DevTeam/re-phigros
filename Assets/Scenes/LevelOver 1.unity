@@ -5527,7 +5527,7 @@ MonoBehaviour:
   maxUpdateRate: Infinity
   preview: 1
   blurAlgorithmSelection: 0
-  blurConfig: {fileID: 11400000, guid: eb443652ecf017041aac3557733cdd2c, type: 2}
+  blurConfig: {fileID: 11400000, guid: 51a75d4684eb1b74a8555016d9ae373f, type: 2}
   downsample: 3
   blurRegion:
     serializedVersion: 2
@@ -5978,7 +5978,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1672507580
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6572,7 +6572,7 @@ RectTransform:
   m_GameObject: {fileID: 1802896175}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1163836, y: 1.1163836, z: 1}
+  m_LocalScale: {x: 1.2495303, y: 1.2495303, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1125220463}
@@ -6603,7 +6603,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 82ee2564df9240a45aabb183c6ac138a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a84b35439c7d40c47858d41ca9b89482, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -6968,7 +6968,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 82ee2564df9240a45aabb183c6ac138a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a84b35439c7d40c47858d41ca9b89482, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7518,7 +7518,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1954124333
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7594,7 +7594,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1955660059
 MonoBehaviour:
   m_ObjectHideFlags: 0

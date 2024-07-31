@@ -275,7 +275,7 @@ namespace MainCore.UI
 
             await UniTask.SwitchToMainThread();
             PopupMessageManager.Instance.Clear();
-            SceneTransit.Instance.LoadScene("LoadInto");
+            SceneTransit.Instance.LoadScene("LoadingScene");
         }
 
         public void OnClickPath()
