@@ -142,9 +142,11 @@ namespace MainCore
             }
 
             if (!IsImage)
+            {
                 TargetScale = new Vector2(
-                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
+                    236f * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
                     220 * 0.008f * Camera.main.orthographicSize / sr.sprite.texture.height);
+            }
             if (GlobalSetting.FormatVersion == 1)
             {
                 foreach (judgeLineSpeedEvent b in Line.speedEvents)

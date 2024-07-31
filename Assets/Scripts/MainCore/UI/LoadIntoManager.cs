@@ -30,6 +30,7 @@ namespace MainCore.UI
         // Start is called before the first frame update
         void Start()
         {
+            PopupMessageManager.Instance.Clear();
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             {
                 GlobalSetting.ChartName = "♡枇杷树上挂♡粒粒油滴下♡让我们一起守护最好的枇杷油♡";

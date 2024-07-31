@@ -106,10 +106,7 @@ namespace MainCore
         public static bool IsEnding { get; set; }
         public static bool Paused { get; set; }
 
-        public static float Aspect
-        {
-            get { return ScreenWidth / ScreenHeight; }
-        }
+        public static float Aspect => ScreenWidth / ScreenHeight;
 
         public static float MusicLength { get; set; }
 
