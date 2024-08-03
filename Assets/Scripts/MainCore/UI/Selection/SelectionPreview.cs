@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using LeTai.Asset.TranslucentImage;
 using MainCore.Common;
@@ -19,6 +20,7 @@ namespace MainCore.UI.Selection
         [SerializeField] private PullableScrollRect refreshControl;
 
         private bool _firstTime = false;
+        private bool _previewingIllustration = false;
 
         public static BeatmapInfo SelectedInfo { get; private set; } = null;
 
@@ -33,6 +35,7 @@ namespace MainCore.UI.Selection
             refreshControl.OnRefresh.AddListener(PreviewIllustration);
             refreshControl.PullDistanceRequiredRefresh = 150f;
             backgroundImage.GetComponent<Button>().onClick.AddListener(StopPreviewIllustration);
+            backgroundImage.GetComponent<Button>().interactable = false;
         }
 
         public void UpdatePreview(BeatmapInfo info)
@@ -53,27 +56,36 @@ namespace MainCore.UI.Selection
             level.text = info.SongLevel;
         }
 
-        private void PreviewIllustration()
+        private async void PreviewIllustration()
         {
-            if (!HasSelected())
+            if (!HasSelected() || _previewingIllustration)
             {
                 return;
             }
+            _previewingIllustration = true;
             translucentSource.preview = false;
             mainCanvasGroup.blocksRaycasts = false;
             backgroundImage.DOFade(1, .6f);
             mainCanvasGroup.DOFade(0, .6f);
+            await UniTask.Delay(600);
+            backgroundImage.GetComponent<Button>().interactable = true;
         }
         
-        private void StopPreviewIllustration()
+        private async void StopPreviewIllustration()
         {
             if (!HasSelected())
             {
                 return;
             }
+            backgroundImage.GetComponent<Button>().interactable = false;
             translucentSource.preview = true;
+            backgroundImage.DOKill();
+            mainCanvasGroup.DOKill();
             backgroundImage.DOFade(0, .6f);
-            mainCanvasGroup.DOFade(1, .6f).OnComplete(() => mainCanvasGroup.blocksRaycasts = true);
+            mainCanvasGroup.DOFade(1, .6f);
+            await UniTask.Delay(600);
+            mainCanvasGroup.blocksRaycasts = true;
+            _previewingIllustration = false;
         }
 
         private bool HasSelected() => SelectedInfo != null;

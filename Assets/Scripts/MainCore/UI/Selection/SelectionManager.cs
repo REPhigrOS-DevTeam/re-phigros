@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using MainCore.Common;
 using MainCore.Serialized;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Newtonsoft.Json;
+using SFB;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,9 +17,10 @@ namespace MainCore.UI.Selection
     {
         [SerializeField] private SelectionInfoBinder songCardPrototype;
         [SerializeField] private RectTransform contentTransform;
-        [SerializeField] private Button back, start, setting;
+        [SerializeField] private Button back, start, setting, import;
         [SerializeField] private Image backgroundImage;
         [SerializeField] private Image fallbackBackgroundImage;
+        [SerializeField] private PullableScrollRect refreshScroll;
         
         private BeatmapCatalog _catalog;
         private bool _loading = false;
@@ -36,6 +39,9 @@ namespace MainCore.UI.Selection
                 backgroundImage.sprite = fallbackBackgroundImage.sprite;
                 SceneTransit.Instance.LoadScene("SettingsScene");
             });
+            import.onClick.AddListener(TryUnzipPez);
+            refreshScroll.PullDistanceRequiredRefresh = 150f;
+            refreshScroll.OnRefresh.AddListener(RefreshGameFolder);
             ReadCatalog();
             RefreshGameFolder();
         }
@@ -109,6 +115,15 @@ namespace MainCore.UI.Selection
         {
             var catalogPath = Path.Combine(Application.persistentDataPath, "beatmap_catalog.json");
             File.WriteAllText(catalogPath, JsonConvert.SerializeObject(_catalog));
+        }
+        
+        private void TryUnzipPez()
+        {
+            OpenFile.LoadFile(zipFile =>
+                {
+                    GameUtils.UnzipChartArchive(zipFile, RefreshGameFolder, InGameUIManager.ShowModalWindowWithCloseFromWindowInfo);
+                }, () => { }, new[] { new ExtensionFilter("RPE谱包", "pez") }, null,
+                "选择Pez...", "确定");
         }
         
         private static List<string> GetFolders(string path)
