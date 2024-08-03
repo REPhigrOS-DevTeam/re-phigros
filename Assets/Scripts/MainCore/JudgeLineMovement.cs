@@ -741,7 +741,7 @@ namespace MainCore
                     {
                         if (end.Length >= start.Length)
                         {
-                            int deltaLength = (end.Length - start.Length) * Mathf.RoundToInt(now);
+                            int deltaLength = Mathf.RoundToInt((end.Length - start.Length) * now);
                             int deltaPoint = start.Length + deltaLength;
                             if (end.StartsWith(start))
                                 targetStr = end.Substring(0, deltaPoint);
@@ -751,7 +751,7 @@ namespace MainCore
                         }
                         else
                         {
-                            int deltaLength = (start.Length - end.Length) * Mathf.RoundToInt(now);
+                            int deltaLength = Mathf.RoundToInt((start.Length - end.Length) * now);
                             int deltaPoint = start.Length - deltaLength;
                             if (start.StartsWith(end))
                                 targetStr = start.Substring(0, deltaPoint);

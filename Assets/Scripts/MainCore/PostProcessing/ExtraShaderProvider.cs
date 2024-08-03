@@ -219,13 +219,17 @@ namespace MainCore.PostProcessing
                         {
                             value.realStartTime = RecalcTime(value.startTime.Frac());
                             value.realEndTime = RecalcTime(value.endTime.Frac());
+
+                            if (value.realEndTime == value.realStartTime)
+                            {
+                                value.realEndTime += .01f;
+                            }
                         }
 
                         if (value.realStartTime > currentTime || value.realEndTime < currentTime)
                         {
                             continue;
                         }
-
                         var f = EaseUtils.GetEaseResult((EaseUtils.EaseType) value.easingType,
                             currentTime - value.realStartTime, value.realEndTime - value.realStartTime,
                             value.start, value.end, value.easingLeft, value.easingRight);
