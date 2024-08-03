@@ -190,7 +190,7 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnUpdateSongReceived += OnSongReceived;
         SocketManager.OnGameStarted += playerList =>
         {
-            GlobalSetting.playerList = playerList;
+            GlobalSetting.PlayerList = playerList;
             EnterGame();
         };
         SocketManager.OnGetRoomListSucceeded += list =>
@@ -271,7 +271,6 @@ public class MPServerTest : MonoBehaviour
                 $" - 难度：{info.SongDifficulty}\n" +
                 $" - 谱师：{info.SongCharter}\n" +
                 $" - 曲绘绘师：{info.SongIllustrator}\n" +
-                $" - 曲目长度：{info.MusicLength:0.##}s\n" +
                 $" - [备用]文件夹名称：{info.FolderName}",
                 MessageType.Room);
         OnUpdateSongReceived(id, type, JObject.FromObject(info));
@@ -413,8 +412,8 @@ public class MPServerTest : MonoBehaviour
 
     private async Task<bool> ProcessChart(string directory)
     {
-#if true
-        GlobalSetting.ChartFolderPath = directory;
+#if false
+        GlobalSetting.CurrentBeatmapInfo.BasePath = directory;
         string originalPath = PlayerPrefs.GetString("chartFolderPath", Application.persistentDataPath);
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
@@ -512,7 +511,9 @@ public class MPServerTest : MonoBehaviour
         }
 
         Main.Music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
-#else
+
+//#else
+
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
         if (chartInfo.Chart == null)
         {

@@ -93,7 +93,7 @@ namespace Network.Multiplayer.Managers
             Application.quitting += LeaveServer;
             Application.wantsToQuit += () => true;
 #endif
-            SceneTransit.OnSceneClosing += () =>
+            SceneTransit.OnSceneClosing.AddListener(() =>
             {
                 OnUpdateSongReceived = (_, _, _) => { };
                 OnSendPrepared = _ => { };
@@ -115,7 +115,7 @@ namespace Network.Multiplayer.Managers
                 OnGetRoomSongIdSucceeded = () => { };
                 OnUpdateScoreReceived = _ => { };
                 OnUserQuitGame = _ => { };
-            };
+            });
         }
 
         public static void Set(bool online, bool chart)

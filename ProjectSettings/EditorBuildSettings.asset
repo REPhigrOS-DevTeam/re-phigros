@@ -23,18 +23,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SettingsScene.unity
     guid: 5cac6fb6eece08a4189baf127e41d4cc
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/Scenes/TEST/NetworkTest.unity
     guid: bd44713326932b443935dbae5a16d819
-  - enabled: 0
-    path: Assets/Scenes/LoadInto.unity
-    guid: 627027ef07d0484408277989b163b309
   - enabled: 1
     path: Assets/Scenes/WahtThe.unity
     guid: 6e7d485c042492e4191f6d6ca0c528d7
@@ -56,4 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/LoadingScene.unity
     guid: ffbb6edaa01f39c428740cfee4a72a68
+  - enabled: 1
+    path: Assets/Scenes/BeatmapSelectScene.unity
+    guid: 7e0aad95016560b43bbc7884ac9ece06
   m_configObjects: {}

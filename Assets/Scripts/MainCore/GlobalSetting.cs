@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using MainCore.Common;
 using MainCore.Data;
+using MainCore.Serialized;
 using MainCore.Utilities;
 using UnityEngine;
 
@@ -52,11 +53,12 @@ namespace MainCore
             Yande
         }
 
-        public static string ChartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
-        public static string ChartFolderPath = "";
-        public static string ChartName = "Apollo";
-        public static string MusicPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollos.wav";
-        public static string IllustrationPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\Apollo.png";
+        //public static string ChartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
+        //public static string ChartFolderPath = "";
+        //public static string ChartName = "Apollo";
+        //public static string MusicPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollos.wav";
+        //public static string IllustrationPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\Apollo.png";
+        public static BeatmapInfo CurrentBeatmapInfo { get; set; } = new ();
         public static int FormatVersion = 3;
         public static Dictionary<float, int> HighLightedNotes = new Dictionary<float, int>();
         public static float GlobalNoteScale = 0.25f;
@@ -65,14 +67,13 @@ namespace MainCore
         public static ScoreCounter ScoreCounter = new ScoreCounter();
         public static float NoteSpeedFactor = 1f;
         public static float UserOffset;
-        public static string Difficulty = "Diff";
+        //public static string Difficulty = "Diff";
         public static JudgeLineStat LineStat = JudgeLineStat.AP;
         public static Dictionary<JudgeLineStat, Color> LineColors = new Dictionary<JudgeLineStat, Color>();
         public static float ScreenHeight;
         public static float ScreenWidth;
-        public static string Chart = "";
-        public static Extra ExtraEvents = null;
-        public static CSVReader LineImage;
+        //public static string Chart = "";
+        //public static CSVReader LineImage;
         public static bool IsMirror;
         public static bool Is3D;
         public static bool DisableBlur;
@@ -83,11 +84,11 @@ namespace MainCore
         public static int MaximumZOrder = 0;
         // public static Sprite illustration;
         public static Resolution OriginResolution;
-        public static string Charter;
-        public static string Composer;
-        public static string Illustrator;
+        //public static string Charter;
+        //public static string Composer;
+        //public static string Illustrator;
         public static bool IsMultiplayer;
-        public static InfoType InfoType = InfoType.Empty;
+        //public static InfoType InfoType = InfoType.Empty;
         public static string Username;
         public static string VerifyToken;
         public static bool IsOffline => string.IsNullOrEmpty(Username);
@@ -97,11 +98,10 @@ namespace MainCore
 
 
         // public static bool oldTexture = false;
-        public static Sprite BackgroundImage = null;
+        //public static Sprite BackgroundImage = null;
 
-        public static List<JudgeLineMovement> Lines = new List<JudgeLineMovement>();
+        public static readonly List<JudgeLineMovement> Lines = new List<JudgeLineMovement>();
 
-        private static float orthographicSize = -1f;
         public static bool GameStarted { get; set; }
         public static bool IsEnding { get; set; }
         public static bool Paused { get; set; }
@@ -110,7 +110,7 @@ namespace MainCore
 
         public static float MusicLength { get; set; }
 
-        private static string externalSkinName;
+        private static string _externalSkinName;
 
         public static SkinInfo CurrentSkinInfo;
 
@@ -120,7 +120,7 @@ namespace MainCore
 
         public static bool DisplayAcc = false;
 
-        public static string[] playerList;
+        public static string[] PlayerList;
 
         public static void PlayNoteSound(int notetype)
         {
@@ -144,12 +144,12 @@ namespace MainCore
             LineStat = JudgeLineStat.AP;
             HitEffectManager.GetInstance().Reset();
             NotePool.GetInstance().Reset();
-            LineImage = null;
-            Composer = "Unknown";
-            Charter = "Unknown";
-            Illustrator = "Unknown";
-            InfoType = InfoType.Empty;
-            playerList = null;
+            PlayerList = null;
+        }
+
+        public static void SetBeatmap(BeatmapInfo info)
+        {
+            CurrentBeatmapInfo = info;
         }
 
         public static void ReadUserSettings()

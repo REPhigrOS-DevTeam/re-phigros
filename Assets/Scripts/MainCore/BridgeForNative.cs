@@ -5,6 +5,7 @@ using System.Security;
 using JetBrains.Annotations;
 using MainCore.Native;
 using MainCore.UI;
+using MainCore.UI.Selection;
 using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -128,11 +129,8 @@ public class BridgeForNative : MonoBehaviour
             File.Copy(filePath, tmpFilePath, true);
             GameUtils.UnzipChartArchive(tmpFilePath, () =>
             {
-                Camera mainCamera = Camera.main;
-                if (mainCamera && mainCamera.TryGetComponent(out SelectUIControl selectUIControl))
-                {
-                    selectUIControl.RefreshGameFolder();
-                }
+                var sm = GameObject.Find("[Manager]").GetComponent<SelectionManager>();
+                sm.RefreshGameFolder();
             }, logger);
         }
         catch (IOException e)

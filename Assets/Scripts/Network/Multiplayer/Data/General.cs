@@ -222,7 +222,6 @@ namespace Network.Multiplayer.Data
         [JsonProperty("SongDifficulty")] public string SongDifficulty;
         [JsonProperty("SongCharter")] public string SongCharter;
         [JsonProperty("SongIllustrator")] public string SongIllustrator;
-        [JsonProperty("MusicLength")] public float MusicLength;
     }
 
     public enum ClientOperate

@@ -1779,7 +1779,7 @@ RectTransform:
   m_GameObject: {fileID: 802025088}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.1491383, y: 1.1491383, z: 1}
+  m_LocalScale: {x: 1.05, y: 1.05, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1668061104}
@@ -1810,7 +1810,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 33f624562feb02c499b258eaab22d808, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5c79cadf5d0987e4e8ff7e4f90107e9f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3097,6 +3097,7 @@ GameObject:
   - component: {fileID: 1120894769}
   - component: {fileID: 1120894768}
   - component: {fileID: 1120894770}
+  - component: {fileID: 1120894771}
   m_Layer: 0
   m_Name: BackgroundCamera
   m_TagString: Untagged
@@ -3177,7 +3178,7 @@ MonoBehaviour:
   maxUpdateRate: Infinity
   preview: 1
   blurAlgorithmSelection: 0
-  blurConfig: {fileID: 11400000, guid: eb443652ecf017041aac3557733cdd2c, type: 2}
+  blurConfig: {fileID: 11400000, guid: 51a75d4684eb1b74a8555016d9ae373f, type: 2}
   downsample: 3
   blurRegion:
     serializedVersion: 2
@@ -3185,6 +3186,19 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!114 &1120894771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1120894766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a6548e86c40a5e4ba0dc9842d199a6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  strength: 8
 --- !u!1 &1136824618
 GameObject:
   m_ObjectHideFlags: 0

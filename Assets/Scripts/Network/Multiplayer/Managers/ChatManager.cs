@@ -46,7 +46,7 @@ namespace Network.Multiplayer.Managers
             if (!inited)
             {
                 inited = true;
-                SceneTransit.OnSceneClosing += () => Instance = null;
+                SceneTransit.OnSceneClosing.AddListener(delegate { Instance = null; });
                 internalCharts =
                     JsonConvert.DeserializeObject<InternalChartDataList>(Resources.Load<TextAsset>("Charts/Meta").text);
             }
@@ -184,39 +184,38 @@ namespace Network.Multiplayer.Managers
                 string id = ifMessage.text.Substring(10);
                 if (internalCharts.TryGet(id, out var chart))
                 {
-                    GlobalSetting.InfoType = InfoType.Internal;
-                    GlobalSetting.ChartName = chart.SongInfo.SongName;
-                    GlobalSetting.Difficulty = chart.SongInfo.SongDifficulty;
-                    GlobalSetting.Charter = chart.SongInfo.SongCharter;
-                    GlobalSetting.Composer = chart.SongInfo.SongComposer;
-                    GlobalSetting.Illustrator = chart.SongInfo.SongIllustrator;
-                    GlobalSetting.ChartPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Chart)}";
-                    GlobalSetting.MusicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
-                    GlobalSetting.IllustrationPath =
+                    //GlobalSetting.InfoType = InfoType.Internal;
+                    GlobalSetting.CurrentBeatmapInfo.SongName = chart.SongInfo.SongName;
+                    GlobalSetting.CurrentBeatmapInfo.SongLevel = chart.SongInfo.SongDifficulty;
+                    GlobalSetting.CurrentBeatmapInfo.Charter = chart.SongInfo.SongCharter;
+                    GlobalSetting.CurrentBeatmapInfo.Composer = chart.SongInfo.SongComposer;
+                    GlobalSetting.CurrentBeatmapInfo.Illustrator = chart.SongInfo.SongIllustrator;
+                    GlobalSetting.CurrentBeatmapInfo.ChartPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Chart)}";
+                    GlobalSetting.CurrentBeatmapInfo.MusicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
+                    GlobalSetting.CurrentBeatmapInfo.IllustrationPath =
                         $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Illustration)}";
-                    await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, true).ConfigureAwait(false);
+                    await ChartLoader.InitChartAuto(GlobalSetting.CurrentBeatmapInfo.ChartPath, true).ConfigureAwait(false);
                     TextAsset extraJsonObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/extra");
                     if (extraJsonObject != null)
                     {
                         try
                         {
-                            GlobalSetting.ExtraEvents =
+                            GlobalSetting.CurrentBeatmapInfo.ExtraEvents =
                                 JsonConvert.DeserializeObject<Extra>(extraJsonObject.text);
                         }
                         catch (Exception)
                         {
-                            GlobalSetting.ExtraEvents = null;
+                            GlobalSetting.CurrentBeatmapInfo.ExtraEvents = null;
                         }
                     }
                     else
                     {
-                        GlobalSetting.ExtraEvents = null;
+                        GlobalSetting.CurrentBeatmapInfo.ExtraEvents = null;
                     }
                     TextAsset lineCsvObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/line");
-                    GlobalSetting.LineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
+                    GlobalSetting.CurrentBeatmapInfo.LineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
                     await UniTask.SwitchToMainThread();
-                    GlobalSetting.BackgroundImage = Resources.Load<Sprite>(GlobalSetting.IllustrationPath);
-                    Main.Music = Resources.Load<AudioClip>(GlobalSetting.MusicPath);
+                    GlobalSetting.CurrentBeatmapInfo.Illustration = Resources.Load<Sprite>(GlobalSetting.CurrentBeatmapInfo.IllustrationPath);
                     GlobalSetting.IsMultiplayer = false;
                     GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;

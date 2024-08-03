@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using MainCore.Data;
 using MainCore.UI;
 using MainCore.Utilities;
@@ -13,7 +14,8 @@ namespace MainCore
     {
         public static Chart Chart { get; private set; } = new ();
 
-        public static async Task InitChartAuto(string path, bool isInternal, bool showMessage = true)
+        [CanBeNull]
+        public static async Task<string> InitChartAuto(string path, bool isInternal, bool showMessage = true)
         {
             var cts = new CancellationTokenSource();
             if (showMessage)
@@ -25,6 +27,7 @@ namespace MainCore
                     {
                         if (cts.IsCancellationRequested)
                         {
+                            PopupMessageManager.Instance.Clear();
                             cts.Token.ThrowIfCancellationRequested();
                             return;
                         }
@@ -40,7 +43,6 @@ namespace MainCore
             
             cts.Cancel();
             rawChart = rawChart.Replace("\r\n", "\n");
-            GlobalSetting.Chart = rawChart;
             if (!rawChart.Contains("}") && rawChart.Contains("bp"))
             {
                 await InitPecChart(rawChart);
@@ -53,6 +55,7 @@ namespace MainCore
             {
                 await InitRpeChart(rawChart, showMessage);
             }
+            return rawChart;
         }
 
         private static Task InitPgrChart(string ch)
@@ -133,16 +136,16 @@ namespace MainCore
             {
                 try
                 {
-                    int lineId = int.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 1));
-                    var t1 = float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 3));
-                    WWW a = new WWW("file://" + Path.Combine(PlayerPrefs.GetString("chartFolderPath", ""),
-                        GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 2)));
+                    int lineId = int.Parse(GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 1));
+                    var t1 = float.Parse(GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 3));
+                    WWW a = new WWW("file://" + Path.Combine(PlayerPrefs.GetString(GlobalSetting.CurrentBeatmapInfo.BasePath, ""),
+                        GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 2)));
                     while (!a.isDone)
                     {
                     }
                     t1 = t1 > 0 ? t1 : Mathf.Abs(t1);
                     t1 = (200 * t1 * Camera.main.orthographicSize / a.texture.height);
-                    var t2 = t1 / float.Parse(GlobalSetting.LineImage.GetDataByRowAndCol(i + 1, 4));
+                    var t2 = t1 / float.Parse(GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 4));
                     Sprite sprite = Sprite.Create(a.texture, new Rect(0, 0, a.texture.width, a.texture.height),
                         Vector2.one / 2f);
                     GlobalSetting.Lines[lineId].GetComponent<SpriteRenderer>().sprite = sprite;

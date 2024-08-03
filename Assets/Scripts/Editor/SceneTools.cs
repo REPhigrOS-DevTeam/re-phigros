@@ -25,10 +25,10 @@ namespace Editor
             IntoScene("MainScene");
         }
 
-        [MenuItem("Scene Tools/Into ChartSelector")]
+        [MenuItem("Scene Tools/Into BeatmapSelector")]
         private static void IntoChartSelector()
         {
-            IntoScene("ChartSelectorScene");
+            IntoScene("BeatmapSelectScene");
         }
 
         [MenuItem("Scene Tools/Into Playing")]

@@ -1,13 +1,8 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
 using MainCore.Common;
 using MainCore.Data;
 using MainCore.UI.Utils;
@@ -15,12 +10,8 @@ using MainCore.Utilities;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using SFB;
-using SimpleFileBrowser;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
-using Utilities;
-using YamlDotNet.Serialization;
 using Random = UnityEngine.Random;
 using UniTask = Cysharp.Threading.Tasks.UniTask;
 
@@ -39,8 +30,6 @@ namespace MainCore.UI
         private bool chartLoading, otherLoading;
         private float speed;
         private string tempPath;
-
-        //private string internalPath = Application.persistentDataPath.Substring(0, Application.persistentDataPath.IndexOf("/Android"));
 
         // Start is called before the first frame update
         void Start()
@@ -128,14 +117,15 @@ namespace MainCore.UI
             chartLoading = true;
             PlayerPrefs.SetString("chartFolderPath", tempPath);
 
-            GlobalSetting.ChartFolderPath = tempPath;
+            GlobalSetting.CurrentBeatmapInfo.BasePath = tempPath;
 
             SongInfo songInfo;
             GameFilePathInfo pathInfo;
+            InfoType infoType;
             object obj;
-            (songInfo, GlobalSetting.InfoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
+            (songInfo, infoType, pathInfo, obj) = await GameUtils.GetInfoForPlay(tempPath);
 
-            switch (GlobalSetting.InfoType)
+            switch (infoType)
             {
                 case InfoType.Empty:
                 case InfoType.RpeJson:
@@ -166,18 +156,11 @@ namespace MainCore.UI
                     GlobalSetting.MusicPath = Path.Combine(tempPath, pathInfo.Music);
                     GlobalSetting.IllustrationPath = Path.Combine(tempPath, pathInfo.Illustration);
                     break;
+                case InfoType.Internal:
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    break;
             }
-//#if UNITY_EDITOR || UNITY_STANDALONE_WIN
-//            GlobalSetting.chartpath = tempPath + "\\" + chartPathDropdown.captionText.text;
-//            GlobalSetting.musicPath = tempPath + "\\" + musicPathDropdown.captionText.text;
-//            GlobalSetting.illustrationPath = tempPath + "\\" + illustrationPathDropdown.captionText.text;
-//#else
-            //tempPath = Path.Combine(internalPath, tempPath.Substring(tempPath.IndexOf("/0") + 2, tempPath.Length));
-            // chart settings
-
-//#endif
+            
             await UniTask.SwitchToMainThread();
             PlayerPrefs.Save();
             GlobalSetting.ReadUserSettings();
@@ -190,36 +173,27 @@ namespace MainCore.UI
             {
                 try
                 {
-                    GlobalSetting.ExtraEvents =
+                    GlobalSetting.CurrentBeatmapInfo.ExtraEvents =
                         JsonConvert.DeserializeObject<Extra>(await File.ReadAllTextAsync(extraJsonPath));
                 }
                 catch (Exception)
                 {
-                    GlobalSetting.ExtraEvents = null;
+                    GlobalSetting.CurrentBeatmapInfo.ExtraEvents = null;
                 }
             }
             else
             {
-                GlobalSetting.ExtraEvents = null;
-            }
-
-            if (GlobalSetting.ExtraEvents is { Videos: { Count: > 0 } })
-            {
-                await UniTask.SwitchToMainThread();
-                InGameUIManager.ShowModalWindowWithClose("警告", "RPGR不支持视频\n<size=10>（其实是不完全支持）（小声）</size>\n除非你愿意捐400美金",
-                    () => { }, "确定");
-                await UniTask.WaitWhile(() => InGameUIManager.IsActive);
-                await UniTask.SwitchToThreadPool();
+                GlobalSetting.CurrentBeatmapInfo.ExtraEvents = null;
             }
             
             Debug.Log("Info file loaded");
             //We load chart from here.
-            await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, false).ConfigureAwait(false);
-            if (GlobalSetting.InfoType == InfoType.InfoYml) ChartLoader.ApplyPhiraOffset((float)obj);
+            await ChartLoader.InitChartAuto(GlobalSetting.CurrentBeatmapInfo.ChartPath, false).ConfigureAwait(false);
+            if (infoType == InfoType.InfoYml) ChartLoader.ApplyPhiraOffset((float)obj);
 
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
-                (GlobalSetting.Composer.ToLowerInvariant().Contains("pepoyo") ||
-                 GlobalSetting.Composer.Contains("ぺぽよ") || GlobalSetting.Composer.Contains("ペポヨ")))
+                (GlobalSetting.CurrentBeatmapInfo.Composer.ToLowerInvariant().Contains("pepoyo") ||
+                 GlobalSetting.CurrentBeatmapInfo.Composer.Contains("ぺぽよ") || GlobalSetting.CurrentBeatmapInfo.Composer.Contains("ペポヨ")))
             {
                 GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Yande;
             }
@@ -230,9 +204,9 @@ namespace MainCore.UI
 
             GlobalSetting.IsMultiplayer = false;
 
-            (Sprite sprite, Exception exception) = GlobalSetting.IllustrationPath == ""
+            (Sprite sprite, Exception exception) = GlobalSetting.CurrentBeatmapInfo.IllustrationPath == ""
                 ? (Resources.Load<Sprite>("1920x1080_Black"), null)
-                : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(GlobalSetting.IllustrationPath));
+                : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(GlobalSetting.CurrentBeatmapInfo.IllustrationPath));
             if (exception != null)
             {
                 await UniTask.SwitchToMainThread();
@@ -242,14 +216,14 @@ namespace MainCore.UI
                 return;
             }
 
-            GlobalSetting.BackgroundImage = sprite;
+            GlobalSetting.CurrentBeatmapInfo.Illustration = sprite;
 
             await UniTask.SwitchToMainThread();
             Main.Music = null;
             AudioClip music;
             try
             {
-                music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
+                music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.CurrentBeatmapInfo.MusicPath);
             }
             catch (Exception e)
             {
@@ -286,11 +260,11 @@ namespace MainCore.UI
             illustrationPathDropdown.AddOptions(GetFileName(tempPath, ".png", ".bmp", ".jpg", ".jpeg"));
             if (File.Exists(tempPath + "/line.csv"))
             {
-                GlobalSetting.LineImage = new CSVReader(tempPath + "/line.csv");
+                GlobalSetting.CurrentBeatmapInfo.LineImage = new CSVReader(tempPath + "/line.csv");
             }
             else
             {
-                GlobalSetting.LineImage = null;
+                GlobalSetting.CurrentBeatmapInfo.LineImage = null;
             }
         }
 
@@ -319,18 +293,12 @@ namespace MainCore.UI
             return list;
         }
 
-        public void SpeedChange()
-        {
-            speed = float.Parse(GameObject.Find("SpeedDropdown").GetComponent<Dropdown>().captionText.text.Trim('x'));
-            GlobalSetting.NoteSpeedFactor = speed;
-        }
-
         public void OnChangeDropdown()
         {
             if (infoDropdown.options.Count == 0) return;
             string t = infoDropdown.captionText.text;
 
-            tempPath = Path.Combine(Util.DataPath /*Application.persistentDataPath*/, t);
+            tempPath = Path.Combine(Util.DataPath /*Application.persistentDataPath#1#, t);
 
             if (t.Sum(x => x == '.' ? 1 : 0) >= 2)
             {
@@ -387,4 +355,4 @@ namespace MainCore.UI
         }
 #endif
     }
-}
+}*/

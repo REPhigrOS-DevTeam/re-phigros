@@ -27,7 +27,7 @@ namespace MainCore.PostProcessing
 
         private void Awake()
         {
-            data = GlobalSetting.ExtraEvents;
+            data = GlobalSetting.CurrentBeatmapInfo.ExtraEvents;
             Arrangement();
             totalMaterials = new Material[data.Effects.Count];
             for (var i = 0; i < data.Effects.Count; i++)
@@ -169,7 +169,7 @@ namespace MainCore.PostProcessing
             {
                 shaderNames.Add(shaderName);
                 totalMaterials[id] = new Material(shader);
-                Debug.Log($"Loading shader succeeded: {shaderName}.");
+                Debug.Log($"Shader {shaderName} loaded.");
                 return;
             }
             

@@ -32,7 +32,7 @@ namespace MainCore.UI
         private void Awake()
         {
             settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
-            singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("ChartSelectorScene"));
+            singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("BeatmapSelectScene", 0));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             login.onClick.AddListener(() => SceneTransit.Instance.LoadScene("LoginScene"));
             openCharaPreview.onClick.AddListener(() =>

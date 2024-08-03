@@ -386,9 +386,9 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
+            /*if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
             {
-                GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
+                /*GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
                     rpeChartData.META.song);
                 GlobalSetting.IllustrationPath =
                     Path.Combine(GlobalSetting.ChartFolderPath, rpeChartData.META.background);
@@ -396,8 +396,8 @@ namespace MainCore.Utilities
                 GlobalSetting.Composer = rpeChartData.META.composer;
                 GlobalSetting.Illustrator = "Unknown";
                 GlobalSetting.ChartName = rpeChartData.META.name;
-                GlobalSetting.Difficulty = rpeChartData.META.level;
-            }
+                GlobalSetting.Difficulty = rpeChartData.META.level;#1#
+            }*/
 
             //Convert BPM
             rpeChartData.BPMList.OrderBy(x => x.startTime.Frac()).ToList().ForEach(x =>
@@ -431,7 +431,7 @@ namespace MainCore.Utilities
                 //Convert extended
                 if (rpeChartData.judgeLineList[i].Texture != "line.png")
                 {
-                    var path = Path.Combine(GlobalSetting.ChartFolderPath,
+                    var path = Path.Combine(GlobalSetting.CurrentBeatmapInfo.BasePath,
                         rpeChartData.judgeLineList[i].Texture);
                     if (File.Exists(path))
                     {

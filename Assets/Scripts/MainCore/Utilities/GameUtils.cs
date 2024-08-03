@@ -7,6 +7,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
+using MainCore.Settings;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -36,6 +37,9 @@ namespace MainCore.Utilities
         {
             return new Vector2(xy.x * ScreenDelta, xy.y);
         }
+
+        public static UniTask WaitForSceneLoaded(this AsyncOperation operation) =>
+            UniTask.WaitUntil(() => operation.progress >= .9f);
 
         public static float GetAspectX(float x)
         {
@@ -399,44 +403,43 @@ namespace MainCore.Utilities
 
                 if (!useLchzh)
                 {
-                    string[] jsons = Directory.GetFiles(directory, "*.json")
-                        .Where(str => Path.GetFileName(str).ToLowerInvariant() != "extra.json").ToArray();
-                    if (jsons.Length > 0)
+                    // info init
+                    var infoPath = directory + "/info.txt";
+                    if (File.Exists(infoPath))
                     {
-                        string ch = await File.ReadAllTextAsync(jsons[0]);
-                        if (!ch.Contains("formatVersion") && ch.Contains("}") && ch.Contains("numOfNotes"))
-                        {
-                            rpeMeta = JsonUtility.FromJson<RpeChartData>(ch).META;
-                            infoType = InfoType.RpeJson;
-                        }
+                        infoTxtReader = new InfoTxtReader(infoPath);
+                        infoType = InfoType.InfoTxt;
                     }
                     else
                     {
-                        // info init
-                        var infoPath = directory + "/info.txt";
-                        if (File.Exists(infoPath))
+                        string[] jsons = Directory.GetFiles(directory, "*.json")
+                            .Where(str => Path.GetFileName(str).ToLowerInvariant() != "extra.json").ToArray();
+                        if (jsons.Length > 0)
                         {
-                            infoTxtReader = new InfoTxtReader(infoPath);
-                            infoType = InfoType.InfoTxt;
+                            string ch = await File.ReadAllTextAsync(jsons[0]);
+                            if (!ch.Contains("formatVersion") && ch.Contains("}") && ch.Contains("numOfNotes"))
+                            {
+                                rpeMeta = JsonUtility.FromJson<RpeChartData>(ch).META;
+                                infoType = InfoType.RpeJson;
+                            }
                         }
                     }
                 }
             }
 
-            string musicPath = directory + "/" +
-                               (phiraChartInfoData != null && !string.IsNullOrEmpty(phiraChartInfoData.music)
-                                   ? phiraChartInfoData.music
-                                   : lchzhInfo != null
-                                       ? lchzhInfo.Music
-                                       : rpeMeta != null
-                                           ? rpeMeta.song
-                                           : infoTxtReader != null
-                                               ? infoTxtReader.GetSongFileName()
-                                               : Path.GetFileName(Directory.GetFiles(directory)
-                                                   .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                                       Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
-
-            float? musicLength = (await Util.ReadMusicAsAudioClipAsync(musicPath))?.length;
+            // string musicPath = directory + "/" +
+            //                    (phiraChartInfoData != null && !string.IsNullOrEmpty(phiraChartInfoData.music)
+            //                        ? phiraChartInfoData.music
+            //                        : lchzhInfo != null
+            //                            ? lchzhInfo.Music
+            //                            : rpeMeta != null
+            //                                ? rpeMeta.song
+            //                                : infoTxtReader != null
+            //                                    ? infoTxtReader.GetSongFileName()
+            //                                    : Path.GetFileName(Directory.GetFiles(directory)
+            //                                        .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+            //                                            Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+            //
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
@@ -460,8 +463,7 @@ namespace MainCore.Utilities
                     rpeMeta != null ? rpeMeta.charter :
                     infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
                 SongIllustrator = phiraChartInfoData != null ? phiraChartInfoData.illustrator :
-                    lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
-                MusicLength = musicLength ?? -1f
+                    lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown"
             }, infoType, infoType switch
             {
                 InfoType.Empty => null,
@@ -514,6 +516,8 @@ namespace MainCore.Utilities
                         .Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
                     gameFilePathInfo.Music = rpeMeta.song;
                     gameFilePathInfo.Illustration = rpeMeta.background;
+                    break;
+                case InfoType.Internal:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

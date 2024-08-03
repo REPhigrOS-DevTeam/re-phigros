@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+/*using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -112,4 +112,4 @@ namespace MainCore
              if (camera) Destroy(camera.GetComponent<MediaPlayer>());
          }
      }
-}
+}*/

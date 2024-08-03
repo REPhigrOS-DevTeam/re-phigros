@@ -23,7 +23,6 @@ namespace MainCore
 {
     public class Main : MonoSingleton<Main>
     {
-        public static AudioClip Music;
         public static float MusicTime => _audioSource.time;
 
         public ProgressManager progressManager;
@@ -60,7 +59,7 @@ namespace MainCore
         {
             if (GlobalSetting.IsMultiplayer)
             {
-                foreach (string player in GlobalSetting.playerList)
+                foreach (string player in GlobalSetting.PlayerList)
                 {
                     _runtimeScores.Add(player, 0);
                 }
@@ -160,11 +159,12 @@ namespace MainCore
         protected override void OnAwake()
         {
             //Init GlobalSetting
+            GlobalSetting.LineColors.Clear();
             GlobalSetting.LineColors.Add(JudgeLineStat.AP, GlobalSetting.CurrentSkinInfo.perfectColor);
             GlobalSetting.LineColors.Add(JudgeLineStat.FC, GlobalSetting.CurrentSkinInfo.goodColor);
             GlobalSetting.LineColors.Add(JudgeLineStat.None, new Color(1, 1, 1, 1));
             GlobalSetting.GameStarted = false;
-            GlobalSetting.MusicLength = Music.length;
+            GlobalSetting.MusicLength = GlobalSetting.CurrentBeatmapInfo.Music.length;
             GlobalSetting.FormatVersion = ChartLoader.Chart.formatVersion;
             GlobalSetting.ScoreCounter.NumOfNotes = ChartLoader.Chart.numOfNotes;
 
@@ -177,7 +177,7 @@ namespace MainCore
             //Init audio
             _audioSource = gameObject.AddComponent<AudioSource>();
             _audioSource.playOnAwake = false;
-            _audioSource.clip = Music;
+            _audioSource.clip = GlobalSetting.CurrentBeatmapInfo.Music;
             _audioSource.pitch = GlobalSetting.Pitch;
             
             //Init play
@@ -221,8 +221,6 @@ namespace MainCore
                 GlobalSetting.GameStarted = false;
                 if (!GlobalSetting.IsEnding)
                 {
-                    uiCanvasGroup.DOFade(0f, 2f);
-                    maskSprite.DOFade(0f, 2f);
                     LoadEnding();
                 }
             }
@@ -260,8 +258,10 @@ namespace MainCore
         private void SetupUI()
         {
             uiCanvasGroup.alpha = 0;
-            uiCanvasGroup.DOFade(1.0f, 2f);
-            illustration.sprite = GlobalSetting.BackgroundImage;
+            uiCanvasGroup.DOFade(1.0f, 1f);
+            maskSprite.DOFade(GlobalSetting.MaskAlpha, 1f);
+            
+            illustration.sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
             if (GlobalSetting.DisableBlur)
             {
                 GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
@@ -278,8 +278,8 @@ namespace MainCore
                 GlobalSetting.ScreenWidth = Screen.width;
                 maskSprite.transform.localScale = new Vector3(8000, 8000, 0);
             }
-            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.ChartName;
-            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.Difficulty + "  ";
+            GameObject.Find("SongNameLeftBottom").GetComponent<Text>().text = "   " + GlobalSetting.CurrentBeatmapInfo.SongName;
+            GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.CurrentBeatmapInfo.SongLevel + "  ";
             
             Camera.main.orthographic = true;
             Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.FxaaEnabled
@@ -356,7 +356,7 @@ namespace MainCore
             terminateButton.OnClick.AddListener(() =>
             {
                 _audioSource.time = 0;
-                progressManager.AddTime(_audioSource.clip.length);
+                progressManager.AddTime(_audioSource.clip.length * 2);
             });
         }
 
@@ -374,11 +374,10 @@ namespace MainCore
             hitFX.PlayEffect();
 
             _totalOffset = ChartLoader.Chart.offset + GlobalSetting.UserOffset;
-            maskSprite.DOFade(GlobalSetting.MaskAlpha, 2f);
             
             progressManager.AddStartDelay(_totalOffset);
             //totalOffset -= .05f; //fixed delay
-            yield return new WaitForSeconds(2);
+            yield return new WaitForSeconds(1);
             _audioSource.PlayScheduled(AudioSettings.dspTime);
             GlobalSetting.GameStarted = true;
             progressManager.StartTiming();
@@ -386,10 +385,12 @@ namespace MainCore
 
         private async void LoadEnding()
         {
+            uiCanvasGroup.DOFade(0f, 1f);
+            maskSprite.DOFade(0f, 1f);
             GlobalSetting.IsEnding = true;
             _endingSceneLoadOperation = SceneManager.LoadSceneAsync("LevelOver 1");
             _endingSceneLoadOperation.allowSceneActivation = false;
-            await UniTask.Delay(2000);
+            await UniTask.Delay(1000);
             _endingSceneLoadOperation.allowSceneActivation = true;
             await _endingSceneLoadOperation;
         }
@@ -439,9 +440,9 @@ namespace MainCore
                 }
             }
             
-            if (GlobalSetting.ExtraEvents != null)
+            if (GlobalSetting.CurrentBeatmapInfo.ExtraEvents != null)
             {
-                if (GlobalSetting.ExtraEvents.Effects != null)
+                if (GlobalSetting.CurrentBeatmapInfo.ExtraEvents.Effects != null)
                 {
                     Camera.main.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                     uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
@@ -452,7 +453,7 @@ namespace MainCore
             GlobalSetting.HighLightedNotes.Clear();
             GlobalSetting.MaximumZOrder = ChartLoader.Chart.judgeLineList.Count;
             
-            if (GlobalSetting.LineImage != null)
+            if (GlobalSetting.CurrentBeatmapInfo.LineImage != null)
             {
                 ChartLoader.LoadCsvLineImage();
             }

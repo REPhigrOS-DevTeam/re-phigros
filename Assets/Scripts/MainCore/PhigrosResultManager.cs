@@ -21,26 +21,26 @@ namespace MainCore
                 GameObject.Find("UICamera").GetComponent<TranslucentImageSource>().enabled = false;
             }
 
-            int lastScore = 0;
+            var lastScore = 0;
             try
             {
-                lastScore = SaveManager.GetScore(GlobalSetting.Chart);
+                lastScore = SaveManager.GetScore(GlobalSetting.CurrentBeatmapInfo.RawChart);
             }
             catch
             {
                 // ignored
             }
 
-            int deltaScore = Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score) - lastScore;
-            acc = (GlobalSetting.ScoreCounter.Accuracy * 100f).ToString("0.00") + "%";
-            score = Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score).ToString().PadLeft(7, '0');
-            GameObject.Find("SongsName").GetComponent<Text>().text = GlobalSetting.ChartName;
+            var deltaScore = Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score) - lastScore;
+            _acc = (GlobalSetting.ScoreCounter.Accuracy * 100f).ToString("0.00") + "%";
+            _score = Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score).ToString().PadLeft(7, '0');
+            GameObject.Find("SongsName").GetComponent<Text>().text = GlobalSetting.CurrentBeatmapInfo.SongName;
             GameObject.Find("Perfect").GetComponent<Text>().text = GlobalSetting.ScoreCounter.PerfectCnt.ToString();
             GameObject.Find("Good").GetComponent<Text>().text = GlobalSetting.ScoreCounter.GoodCnt.ToString();
             GameObject.Find("Bad").GetComponent<Text>().text = GlobalSetting.ScoreCounter.BadCnt.ToString();
             GameObject.Find("Miss").GetComponent<Text>().text = GlobalSetting.ScoreCounter.MissCnt.ToString();
-            GameObject.Find("Accuracy").GetComponent<Text>().text = acc;
-            GameObject.Find("ScoreText").GetComponent<Text>().text = score;
+            GameObject.Find("Accuracy").GetComponent<Text>().text = _acc;
+            GameObject.Find("ScoreText").GetComponent<Text>().text = _score;
 
             Text history = GameObject.Find("History").GetComponent<Text>();
             Text other = GameObject.Find("Other").GetComponent<Text>();
@@ -75,15 +75,15 @@ namespace MainCore
             }
 
             GameObject.Find("MaxCombo").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Maxcombo.ToString();
-            GameObject.Find("Difficulty").GetComponent<Text>().text = GlobalSetting.Difficulty;
-            GameObject.Find("CoverImage").GetComponent<Image>().sprite = GlobalSetting.BackgroundImage;
-            GameObject.Find("Translucent Image").GetComponent<Image>().sprite = GlobalSetting.BackgroundImage;
+            GameObject.Find("Difficulty").GetComponent<Text>().text = GlobalSetting.CurrentBeatmapInfo.SongLevel;
+            GameObject.Find("CoverImage").GetComponent<Image>().sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            GameObject.Find("Translucent Image").GetComponent<Image>().sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
             GameObject.Find("Early").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Early.ToString();
             GameObject.Find("Late").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Late.ToString();
             if (!GlobalSetting.AutoPlay && !isSlower && !GlobalSetting.NewScoreCalcType)
-                SaveManager.SaveScore(GlobalSetting.Chart,
+                SaveManager.SaveScore(GlobalSetting.CurrentBeatmapInfo.RawChart,
                     Mathf.RoundToInt(GlobalSetting.ScoreCounter.Score).ToString().PadLeft(7, '0'));
-            getRank(GlobalSetting.ScoreCounter.Score);
+            GetRank(GlobalSetting.ScoreCounter.Score);
             PlayerPrefs.Save();
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Yande)
             {
@@ -99,10 +99,10 @@ namespace MainCore
             }
         }
 
-        private string score;
-        private string acc;
+        private string _score;
+        private string _acc;
 
-        private void getRank(float scoreNum)
+        private void GetRank(float scoreNum)
         {
             foreach (GameObject o in ranks)
             {
@@ -132,7 +132,7 @@ namespace MainCore
             //StartCoroutine(Utils.SwitchSceneAfterSeconds(2f, "ChartSelectorScene"));
             if (GlobalSetting.IsMultiplayer)
             {
-                SocketManager.EndGame(score, acc);
+                SocketManager.EndGame(_score, _acc);
             }
 
             GC.Collect();

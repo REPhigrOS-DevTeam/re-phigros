@@ -5447,6 +5447,7 @@ GameObject:
   - component: {fileID: 1596608050}
   - component: {fileID: 1596608049}
   - component: {fileID: 1596608051}
+  - component: {fileID: 1596608052}
   m_Layer: 0
   m_Name: UICamera
   m_TagString: MainCamera
@@ -5535,6 +5536,19 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!114 &1596608052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1596608047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a6548e86c40a5e4ba0dc9842d199a6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  strength: 8
 --- !u!1 &1599237791
 GameObject:
   m_ObjectHideFlags: 0
@@ -6572,7 +6586,7 @@ RectTransform:
   m_GameObject: {fileID: 1802896175}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2495303, y: 1.2495303, z: 1}
+  m_LocalScale: {x: 1.2188041, y: 1.2188041, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1125220463}
@@ -6603,7 +6617,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a84b35439c7d40c47858d41ca9b89482, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5c79cadf5d0987e4e8ff7e4f90107e9f, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
