@@ -8,6 +8,7 @@ using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.Settings;
+using MainCore.UI.Utils;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -353,10 +354,17 @@ namespace MainCore.Utilities
             RpeChartData.RpeMeta rpeMeta = null;
             if (File.Exists(phiraInfoPath))
             {
-                IDeserializer deserializer = new DeserializerBuilder().Build();
-                phiraChartInfoData =
-                    deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
-                infoType = InfoType.InfoYml;
+                IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+                try
+                {
+                    phiraChartInfoData =
+                        deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                    infoType = InfoType.InfoYml;
+                }
+                catch(Exception e)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("警告", $"错误的info.yml格式\n{e.Message}", () => { }, "确认");
+                }
             }
             else
             {

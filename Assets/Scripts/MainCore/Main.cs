@@ -10,6 +10,7 @@ using LeTai.Asset.TranslucentImage;
 using MainCore.Common;
 using MainCore.PostProcessing;
 using MainCore.UI;
+using MainCore.UI.Utils;
 using Network.Multiplayer.Managers;
 using TMPro;
 using UnityEngine;

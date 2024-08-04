@@ -6,137 +6,140 @@ using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InGameModalWindow : MonoSingleton<InGameModalWindow>
+namespace MainCore.UI.Utils
 {
-    [SerializeField] private Image backPanel;
-    [SerializeField] private Image modalWindow;
-
-    [Space(10)] [SerializeField] private Text headerText;
-
-    [SerializeField] private Text bodyText;
-    [SerializeField] private Text confirmText;
-    [SerializeField] private Text cancelText;
-    [SerializeField] private Text alternateText;
-
-    [Space(10)] [SerializeField] private Button confirmButton;
-
-    [SerializeField] private Button cancelButton;
-    [SerializeField] private Button alternateButton;
-    private Action alternate = null;
-    private Action cancel = null;
-
-    private Action confirm;
-
-    public bool IsActive { get; private set; }
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private void Start()
+    public class InGameModalWindow : MonoSingleton<InGameModalWindow>
     {
-        backPanel.gameObject.SetActive(false);
-    }
+        [SerializeField] private Image backPanel;
+        [SerializeField] private Image modalWindow;
 
-    /// <summary>
-    /// 打开一个模态窗口
-    /// </summary>
-    /// <param name="title">标题</param>
-    /// <param name="content">内容</param>
-    /// <param name="confirmAction">确认后的行动</param>
-    /// /// <param name="confirmtext">确认按钮的text</param>
-    /// <param name="cancelAction">取消后的行动</param>
-    /// <param name="canceltext">取消按钮的text</param>
-    public void Show(string title, string content, Action confirmAction = null, string confirmtext = "Confirm",
-        Action cancelAction = null, string canceltext = "Cancel", Action alternateAction = null,
-        string alternatetext = "Alternate")
-    {
-        IsActive = true;
-        backPanel.gameObject.SetActive(true);
-        backPanel.color = new Color(0, 0, 0, 0);
-        modalWindow.rectTransform.anchoredPosition = new Vector2(0, -800f);
-        modalWindow.rectTransform.localScale = new Vector3(0, 0);
+        [Space(10)] [SerializeField] private Text headerText;
 
-        headerText.text = title;
-        bodyText.text = content;
+        [SerializeField] private Text bodyText;
+        [SerializeField] private Text confirmText;
+        [SerializeField] private Text cancelText;
+        [SerializeField] private Text alternateText;
 
-        confirm = confirmAction;
-        if (confirmAction != null)
+        [Space(10)] [SerializeField] private Button confirmButton;
+
+        [SerializeField] private Button cancelButton;
+        [SerializeField] private Button alternateButton;
+        private Action alternate = null;
+        private Action cancel = null;
+
+        private Action confirm;
+
+        public bool IsActive { get; private set; }
+
+        //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private void Start()
         {
-            confirmButton.gameObject.SetActive(true);
-            confirmButton.onClick.AddListener(confirmClicked);
-            confirmText.text = confirmtext;
+            backPanel.gameObject.SetActive(false);
         }
-        else
-            confirmButton.gameObject.SetActive(false);
 
-        cancel = cancelAction;
-        if (cancelAction != null)
+        /// <summary>
+        /// 打开一个模态窗口
+        /// </summary>
+        /// <param name="title">标题</param>
+        /// <param name="content">内容</param>
+        /// <param name="confirmAction">确认后的行动</param>
+        /// /// <param name="confirmtext">确认按钮的text</param>
+        /// <param name="cancelAction">取消后的行动</param>
+        /// <param name="canceltext">取消按钮的text</param>
+        public void Show(string title, string content, Action confirmAction = null, string confirmtext = "Confirm",
+            Action cancelAction = null, string canceltext = "Cancel", Action alternateAction = null,
+            string alternatetext = "Alternate")
         {
-            cancelButton.gameObject.SetActive(true);
-            cancelButton.onClick.AddListener(cancelClicked);
-            cancelText.text = canceltext;
-        }
-        else
-            cancelButton.gameObject.SetActive(false);
+            IsActive = true;
+            backPanel.gameObject.SetActive(true);
+            backPanel.color = new Color(0, 0, 0, 0);
+            modalWindow.rectTransform.anchoredPosition = new Vector2(0, -800f);
+            modalWindow.rectTransform.localScale = new Vector3(0, 0);
 
-        alternate = alternateAction;
-        if (alternateAction != null)
+            headerText.text = title;
+            bodyText.text = content;
+
+            confirm = confirmAction;
+            if (confirmAction != null)
+            {
+                confirmButton.gameObject.SetActive(true);
+                confirmButton.onClick.AddListener(confirmClicked);
+                confirmText.text = confirmtext;
+            }
+            else
+                confirmButton.gameObject.SetActive(false);
+
+            cancel = cancelAction;
+            if (cancelAction != null)
+            {
+                cancelButton.gameObject.SetActive(true);
+                cancelButton.onClick.AddListener(cancelClicked);
+                cancelText.text = canceltext;
+            }
+            else
+                cancelButton.gameObject.SetActive(false);
+
+            alternate = alternateAction;
+            if (alternateAction != null)
+            {
+                alternateButton.gameObject.SetActive(true);
+                alternateButton.onClick.AddListener(alternateClicked);
+                alternateText.text = alternatetext;
+            }
+            else
+                alternateButton.gameObject.SetActive(false);
+
+            modalWindow.rectTransform.DOAnchorPosY(0, .3f).SetEase(Ease.OutBack);
+            modalWindow.rectTransform.DOScale(new Vector3(1, 1), .3f).SetEase(Ease.OutBack);
+            backPanel.DOFade(.4f, .3f);
+        }
+
+        public void Hide()
         {
-            alternateButton.gameObject.SetActive(true);
-            alternateButton.onClick.AddListener(alternateClicked);
-            alternateText.text = alternatetext;
+            if (!IsActive) return;
+            confirmButton.onClick.RemoveAllListeners();
+            cancelButton.onClick.RemoveAllListeners();
+            alternateButton.onClick.RemoveAllListeners();
+            modalWindow.rectTransform.DOAnchorPosY(-800, .3f).SetEase(Ease.InBack);
+            backPanel.DOFade(0, .3f);
+            modalWindow.rectTransform.DOScale(new Vector3(0, 0), .3f).SetEase(Ease.InBack).onComplete +=
+                () => { backPanel.gameObject.SetActive(false); };
+            StartCoroutine(SetInactive());
         }
-        else
-            alternateButton.gameObject.SetActive(false);
 
-        modalWindow.rectTransform.DOAnchorPosY(0, .3f).SetEase(Ease.OutBack);
-        modalWindow.rectTransform.DOScale(new Vector3(1, 1), .3f).SetEase(Ease.OutBack);
-        backPanel.DOFade(.4f, .3f);
-    }
+        private IEnumerator SetInactive()
+        {
+            yield return new WaitForSecondsRealtime(.3f);
+            IsActive = false;
+            InGameUIManager.CheckWindowToShow();
+        }
 
-    public void Hide()
-    {
-        if (!IsActive) return;
-        confirmButton.onClick.RemoveAllListeners();
-        cancelButton.onClick.RemoveAllListeners();
-        alternateButton.onClick.RemoveAllListeners();
-        modalWindow.rectTransform.DOAnchorPosY(-800, .3f).SetEase(Ease.InBack);
-        backPanel.DOFade(0, .3f);
-        modalWindow.rectTransform.DOScale(new Vector3(0, 0), .3f).SetEase(Ease.InBack).onComplete +=
-            () => { backPanel.gameObject.SetActive(false); };
-        StartCoroutine(SetInactive());
-    }
+        public void HideForcely()
+        {
+            confirmButton.onClick.RemoveAllListeners();
+            cancelButton.onClick.RemoveAllListeners();
+            alternateButton.onClick.RemoveAllListeners();
+            modalWindow.rectTransform.anchoredPosition = new Vector2(modalWindow.rectTransform.anchoredPosition.x, -800);
+            backPanel.SetAlpha(0);
+            modalWindow.rectTransform.localScale = new Vector3(0, 0);
+            backPanel.gameObject.SetActive(false);
+            IsActive = false;
+            InGameUIManager.CheckWindowToShow();
+        }
 
-    private IEnumerator SetInactive()
-    {
-        yield return new WaitForSecondsRealtime(.3f);
-        IsActive = false;
-        InGameUIManager.CheckWindowToShow();
-    }
+        private void confirmClicked()
+        {
+            confirm.Invoke();
+        }
 
-    public void HideForcely()
-    {
-        confirmButton.onClick.RemoveAllListeners();
-        cancelButton.onClick.RemoveAllListeners();
-        alternateButton.onClick.RemoveAllListeners();
-        modalWindow.rectTransform.anchoredPosition = new Vector2(modalWindow.rectTransform.anchoredPosition.x, -800);
-        backPanel.SetAlpha(0);
-        modalWindow.rectTransform.localScale = new Vector3(0, 0);
-        backPanel.gameObject.SetActive(false);
-        IsActive = false;
-        InGameUIManager.CheckWindowToShow();
-    }
+        private void cancelClicked()
+        {
+            cancel.Invoke();
+        }
 
-    private void confirmClicked()
-    {
-        confirm.Invoke();
-    }
-
-    private void cancelClicked()
-    {
-        cancel.Invoke();
-    }
-
-    private void alternateClicked()
-    {
-        alternate.Invoke();
+        private void alternateClicked()
+        {
+            alternate.Invoke();
+        }
     }
 }
