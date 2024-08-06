@@ -169,13 +169,13 @@ namespace MainCore.PostProcessing
             {
                 shaderNames.Add(shaderName);
                 totalMaterials[id] = new Material(shader);
-                Debug.Log($"Shader {shaderName} loaded.");
+                Debug.Log($"[ExtraShaderProvider] Shader {shaderName} loaded.");
                 return;
             }
             
             notExistShader.Add(shaderName);
             totalMaterials[id] = null;
-            Debug.LogError($"Error loading shader : {shaderName}, maybe not builtin shaders.");
+            Debug.LogError($"[ExtraShaderProvider] Error loading shader : {shaderName}, maybe not builtin shaders.");
         }
 
         private Effect.ExtraPropertyType PreloadProperty(string shaderName, string propertyName, JToken property)
@@ -194,7 +194,7 @@ namespace MainCore.PostProcessing
                 }
                 catch
                 {
-                    Debug.LogError($"Property {propertyName} in {shaderName} of type {property.GetType()} is not supported");
+                    Debug.LogError($"[ExtraShaderProvider] Property {propertyName} in {shaderName} of type {property.GetType()} is not supported");
                     return Effect.ExtraPropertyType.Undefined;
                 }
             }

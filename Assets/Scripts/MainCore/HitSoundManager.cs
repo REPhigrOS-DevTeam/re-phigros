@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using Cysharp.Threading.Tasks;
 using MainCore.Settings;
+using MainCore.UI.Utils;
 using MaTech.Audio;
 
 namespace MainCore
@@ -26,6 +27,9 @@ namespace MainCore
 
         [SerializeField] private AudioClip[] hitSounds;
         [SerializeField] private int[] hitSoundsLength;
+        [SerializeField] private SkinInfo fallbackSkinInfo;
+        
+        private bool _initialized = false;
 
         protected override void OnAwake()
         {
@@ -56,24 +60,38 @@ namespace MainCore
             _audioIndexes = new Dictionary<int, int>();
 
             MaAudio.LoadForUnity();
-            await RefreshMaAudio();
+            _initialized = true;
+            //await RefreshMaAudio();
         }
 #endif
 
         public async void RefreshHitSounds()
         {
+            await UniTask.WaitUntil(() => SkinManager.Instance.Initialized && _initialized);
+            Debug.Log("[HitSoundManager] Refreshing hit sounds...");
             Resources.UnloadUnusedAssets();
             SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
             hitSounds[0] = null;
-            hitSounds[1] = skinInfo.clickAC;
-            hitSounds[2] = skinInfo.dragAC;
-            hitSounds[3] = skinInfo.clickAC;
-            hitSounds[4] = skinInfo.flickAC;
+            hitSounds[1] = skinInfo.clickAC ?? 
+                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath + $"/{GlobalSetting.CurrentSkinInfo.id}/click.ogg");
+            hitSounds[2] = skinInfo.dragAC ?? 
+                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath + $"/{GlobalSetting.CurrentSkinInfo.id}/drag.ogg");
+            hitSounds[3] = skinInfo.clickAC ?? hitSounds[1];
+            hitSounds[4] = skinInfo.flickAC ?? 
+                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath + $"/{GlobalSetting.CurrentSkinInfo.id}/flick.ogg");
+            
+            //WTF WHY CANNOT WE READ CACHED AUDIOCLIPS???
+            //skinInfo.clickAC = hitSounds[1];
+            //skinInfo.dragAC = hitSounds[2];
+            //skinInfo.flickAC = hitSounds[4];
+            
 #if USE_MA_AUDIO
+            await UniTask.WaitUntil(() => _initialized = true);
             await RefreshMaAudio();
 #else
             RefreshUnityAudio();
 #endif
+            Debug.Log("[HitSoundManager] Done.");
         }
 
 
@@ -111,9 +129,9 @@ namespace MainCore
 #if USE_MA_AUDIO
         private async UniTask RefreshMaAudio()
         {
+            reloadMaAudio:
             _maAudios.Clear();
             _audioIndexes.Clear();
-
             for (int i = 0; i < hitSounds.Length; i++)
             {
                 _maAudios.Add(i, new AudioSample[hitSoundsLength[i]]);
@@ -126,58 +144,30 @@ namespace MainCore
                     if (i == 0)
                     {
                         _maAudios[i][j] = null;
+                        continue;
                     }
-                    else
+                    _maAudios[i][j] = await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                    if (_maAudios[i][j] == null)
                     {
-                        _maAudios[i][j] = GlobalSetting.CurrentSkinInfo.isExternal
-                            ? await AudioSample.LoadFromExternalUrl(EscapeFilePath(SkinManager.Instance.skinPath + "/" +
-                                GlobalSetting.CurrentSkinInfo.id + "/" + i switch
-                                {
-                                    1 => "click.ogg",
-                                    2 => "drag.ogg",
-                                    3 => "click.ogg",
-                                    4 => "flick.ogg",
-                                    _ => throw new ArgumentOutOfRangeException(nameof(i), i, "Illegal HitSound Type Id")
-                                }))
-                            : await AudioSample.LoadFromAudioClip(hitSounds[i]);
+                        FallbackLoad();
+                        goto reloadMaAudio;
                     }
-
-                    if (_maAudios[i][j] == null) continue;
                     _maAudios[i][j].Volume = _hitSoundVolume;
                 }
             }
         }
 #endif
 
-        private string EscapeFilePath(string filePath)
+        private void FallbackLoad()
         {
-            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
-            string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
-            int system;
-            if (pathRoot.EndsWith(":/"))
-            {
-                system = 0; // Windows
-            }
-            else if (pathRoot == "/")
-            {
-                system = 1; // 其他系统
-            }
-            else
-            {
-                system = -1;
-            }
-            
-            if (system == -1) throw new ArgumentException("Invalid file path: " + filePath, nameof(filePath));
-
-            filePath = filePath.Substring(pathRoot.Length);
-
-            string pathSeparator = system switch
-            {
-                0 => "\\",
-                1 => "/",
-                _ => throw new ArgumentOutOfRangeException()
-            };
-            return $"file://{pathRoot}{string.Join(pathSeparator, filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";
+            Debug.Log($"[HitSoundManager] Fallback: {GlobalSetting.CurrentSkinInfo.isExternal} {GlobalSetting.CurrentSkinInfo.skinName}");
+            Debug.Log("[HitSoundManager] Can't load hit sounds! Fallback to default hit sound...");
+            InGameUIManager.ShowModalWindowWithClose("错误", "无法加载当前皮肤音效，将使用默认音效", () => {}, "确定");
+            hitSounds[0] = null;
+            hitSounds[1] = fallbackSkinInfo.clickAC;
+            hitSounds[2] = fallbackSkinInfo.dragAC;
+            hitSounds[3] = fallbackSkinInfo.clickAC;
+            hitSounds[4] = fallbackSkinInfo.flickAC;
         }
 
         public void Play(int soundIndex, float rewriteVolume = -1)

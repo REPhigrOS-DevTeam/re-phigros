@@ -61,7 +61,6 @@ namespace MainCore.Utilities
             await UniTask.SwitchToMainThread();
             return ReadFileAsTexture(data);
         }
-
         public static (Sprite, Exception) ReadFileAsSprite(byte[] data, float ppu = 100f)
         {
             try
@@ -80,16 +79,17 @@ namespace MainCore.Utilities
         {
             try
             {
-                await UniTask.SwitchToMainThread();
+                //await UniTask.SwitchToMainThread();
                 Texture2D texture = await ReadFileAsTextureAsync(data);
                 return (Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f), ppu, 1), null);
+                    new Vector2(0.5f, 0.5f), ppu, 1, SpriteMeshType.FullRect), null);
             }
             catch (Exception e)
             {
                 return (null, e);
             }
         }
+        
 
         // public static AudioClip ReadMusicAsAudioClip(string path, string clipName = "")
         // {
@@ -121,11 +121,11 @@ namespace MainCore.Utilities
             // return audioClip;
             
             AudioType? audioType = await GetAudioTypeFromFile(path);
-            await UniTask.SwitchToMainThread();
+            //await UniTask.SwitchToMainThread();
             Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
             UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, audioType??AudioType.UNKNOWN);
             await uwr.SendWebRequest();
-            if (uwr.error != null) throw new ArgumentException();
+            if (uwr.result != UnityWebRequest.Result.Success) throw new ArgumentException();
             AudioClip audioClip1 = DownloadHandlerAudioClip.GetContent(uwr);
             audioClip1.name = clipName;
             return audioClip1;
@@ -488,7 +488,7 @@ namespace MainCore.Utilities
 
         public static void DisplayNetworkException(string original)
         {
-            Debug.LogError(original);
+            Debug.LogError($"[NetworkException] {original}");
             int lastIndexOf = original.LastIndexOf('{');
             if (lastIndexOf != -1) original = original.Substring(0, lastIndexOf);
             InGameUIManager.ShowModalWindowWithClose("错误", original, () => { }, "确定");
@@ -571,6 +571,37 @@ namespace MainCore.Utilities
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+        
+        public static string FilePathToUri(string filePath)
+        {
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
+            string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
+            int system;
+            if (pathRoot.EndsWith(":/"))
+            {
+                system = 0; // Windows
+            }
+            else if (pathRoot == "/")
+            {
+                system = 1; // 其他系统
+            }
+            else
+            {
+                system = -1;
+            }
+            
+            if (system == -1) throw new ArgumentException("Invalid file path: " + filePath, nameof(filePath));
+
+            filePath = filePath.Substring(pathRoot.Length);
+
+            string pathSeparator = system switch
+            {
+                0 => "\\",
+                1 => "/",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return $"file://{pathRoot}{string.Join(pathSeparator, filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";
         }
 
 #if !RELEASE_VERSION

@@ -41,6 +41,7 @@ namespace MainCore
                 : Color.white;
             scale = GlobalSetting.GlobalNoteScale / 0.16f * skinInfo.hitFxScale;
             transform.localScale = new Vector3(scale, scale, scale);
+            gameObject.layer = 7; // ParticleLayer
             //sr.sortingLayerName = "AboveNotes";
             //sr.sortingOrder = 1;
             hitFx = skinInfo.hitFx;

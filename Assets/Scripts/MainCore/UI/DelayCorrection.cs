@@ -11,18 +11,23 @@ namespace MainCore.UI
 {
     public class DelayCorrection : MonoBehaviour
     {
-        [SerializeField] private Button playMusic;
+        [SerializeField] private LeanButton playMusic;
         [SerializeField] private LeanButton touch;
         [SerializeField] private Text msText;
         
         [SerializeField] private LeanButton saveExit;
+        [SerializeField] private LeanButton noSaveExit;
         [SerializeField] private AudioSource source;
+
+        public static Slider_Float_Setting DelaySlider;
 
         private bool _isStarted = false;
         private float _totalDelay = 0;
         private const float Duration = .96f * 2f;
         private int _count = 0;
         private readonly Stopwatch _stopwatch = new();
+        
+        private const string SceneName = "DelayCorrectionScene";
 
         private float Delay => _totalDelay / _count;
         
@@ -30,7 +35,7 @@ namespace MainCore.UI
         void Start()
         {
             
-            playMusic.onClick.AddListener(delegate
+            playMusic.OnClick.AddListener(delegate
             {
                 _stopwatch.Start();
                 playMusic.interactable = false;
@@ -39,22 +44,26 @@ namespace MainCore.UI
                 _isStarted = true;
                 _totalDelay = 0;
                 _count = 0;
-                WaitMusicTime();
+                _ = WaitMusicTime();
             });
             saveExit.OnClick.AddListener(delegate
             {
                 source.Stop();
-                PlayerPrefs.SetFloat("chart_offset", Convert.ToInt32(Delay * 1000));
-                PlayerPrefs.Save();
-                SceneTransit.Instance.Back();
+                DelaySlider.SetValue(Convert.ToInt32(Delay * 1000));
+                SceneTransit.Instance.LeaveAdditiveScene(SceneName);
+            });
+            noSaveExit.OnClick.AddListener(delegate
+            {
+                source.Stop();
+                SceneTransit.Instance.LeaveAdditiveScene(SceneName);
             });
             touch.OnDown.AddListener(delegate
             {
                 if (!_isStarted) return;
-                _count++;
-                var sec = _stopwatch.ElapsedMilliseconds / 1000f;
+                var sec = _stopwatch.ElapsedMilliseconds / 1000f + .96f;
+                _count = (int)Math.Round(sec / Duration);
                 Debug.Log(sec);
-                _totalDelay += sec - Duration * (_count - 1) - .96f/*？？？*/;
+                _totalDelay += sec - Duration * _count/*？？？*/;
                 msText.text = $"{(int)(Delay * 1000)}ms";
             });
         }

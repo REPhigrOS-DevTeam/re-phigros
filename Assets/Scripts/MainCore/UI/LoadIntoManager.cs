@@ -17,8 +17,8 @@ namespace MainCore.UI
         [SerializeField] private Text charter;
         [SerializeField] private Text illustrator;
         [SerializeField] private Text composer;
-        [SerializeField] private Image songCover;
-        [SerializeField] private Image backgroundImage;
+        [SerializeField] private RawImage songCover;
+        [SerializeField] private RawImage backgroundImage;
 
         void Start()
         {
@@ -36,8 +36,8 @@ namespace MainCore.UI
 
             chartName.text = GlobalSetting.CurrentBeatmapInfo.SongName;
 
-            songCover.sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
-            backgroundImage.sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            songCover.texture = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            backgroundImage.texture = GlobalSetting.CurrentBeatmapInfo.Illustration;
 
             level.text = GlobalSetting.CurrentBeatmapInfo.SongLevel;
 

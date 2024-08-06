@@ -53,11 +53,6 @@ namespace MainCore
             Yande
         }
 
-        //public static string ChartPath = "E:\\DESKTOP\\pumian\\Apollo\\cachedJson.json";
-        //public static string ChartFolderPath = "";
-        //public static string ChartName = "Apollo";
-        //public static string MusicPath = "E:\\DESKTOP\\pumian\\Apollo\\Apollos.wav";
-        //public static string IllustrationPath { get; set; } = "E:\\DESKTOP\\pumian\\Apollo\\Apollo.png";
         public static BeatmapInfo CurrentBeatmapInfo { get; set; } = new ();
         public static int FormatVersion = 3;
         public static Dictionary<float, int> HighLightedNotes = new Dictionary<float, int>();
@@ -67,28 +62,17 @@ namespace MainCore
         public static ScoreCounter ScoreCounter = new ScoreCounter();
         public static float NoteSpeedFactor = 1f;
         public static float UserOffset;
-        //public static string Difficulty = "Diff";
         public static JudgeLineStat LineStat = JudgeLineStat.AP;
         public static Dictionary<JudgeLineStat, Color> LineColors = new Dictionary<JudgeLineStat, Color>();
         public static float ScreenHeight;
         public static float ScreenWidth;
-        //public static string Chart = "";
-        //public static CSVReader LineImage;
         public static bool IsMirror;
-        public static bool Is3D;
         public static bool DisableBlur;
-        public static bool PostProcessing;
-        public static bool FxaaEnabled;
         public static float HitVolume = 1f;
         public static float MaskAlpha = .5f;
         public static int MaximumZOrder = 0;
-        // public static Sprite illustration;
         public static Resolution OriginResolution;
-        //public static string Charter;
-        //public static string Composer;
-        //public static string Illustrator;
         public static bool IsMultiplayer;
-        //public static InfoType InfoType = InfoType.Empty;
         public static string Username;
         public static string VerifyToken;
         public static bool IsOffline => string.IsNullOrEmpty(Username);
@@ -97,8 +81,6 @@ namespace MainCore
         public static PepoyoMode PepoyoDaisuki = PepoyoMode.Waraninja;
 
 
-        // public static bool oldTexture = false;
-        //public static Sprite BackgroundImage = null;
 
         public static readonly List<JudgeLineMovement> Lines = new List<JudgeLineMovement>();
 
@@ -121,6 +103,8 @@ namespace MainCore
         public static bool DisplayAcc = false;
 
         public static string[] PlayerList;
+        
+        public static int RestartCount = 0;
 
         public static void PlayNoteSound(int notetype)
         {
@@ -145,6 +129,7 @@ namespace MainCore
             HitEffectManager.GetInstance().Reset();
             NotePool.GetInstance().Reset();
             PlayerList = null;
+            RestartCount = 0;
         }
 
         public static void SetBeatmap(BeatmapInfo info)
@@ -163,10 +148,6 @@ namespace MainCore
             IsMirror = PlayerPrefsExtension.GetBoolean("mirror",
                 false); //GameObject.Find("MirrorToggle").GetComponent<Toggle>().isOn;
             DisableBlur = PlayerPrefsExtension.GetBoolean("blur", false);
-            Is3D = false; //PlayerPrefs.GetInt("3d", 0) == 1;//GameObject.Find("3DToggle").GetComponent<Toggle>().isOn;
-            PostProcessing =
-                PlayerPrefsExtension.GetBoolean("post_processing",
-                    false); //GameObject.Find("PostProcessingToggle").GetComponent<Toggle>().isOn;
             GlobalNoteScale = PlayerPrefs.GetFloat("note_size", 0.25f) * GameUtils.ScreenDelta;
             if (PlayerPrefs.HasKey("record_mode"))
             {
@@ -175,32 +156,6 @@ namespace MainCore
             }
             HitVolume = PlayerPrefs.GetFloat("hit_volume", 1f);
             MaskAlpha = PlayerPrefs.GetFloat("mask_alpha", .5f);
-            FxaaEnabled = PlayerPrefsExtension.GetBoolean("fxaa", false);
-            if (PlayerPrefs.HasKey("skin")) // 给前人擦屁股.jpg
-            {
-                int skin = PlayerPrefs.GetInt("skin", 0);
-                CurrentSkinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo((Skin)skin);
-                PlayerPrefs.DeleteKey("skin");
-                PlayerPrefs.SetString("selected_skin", $"i{skin}");
-                PlayerPrefs.Save();
-            }
-            else
-            {
-                string s = PlayerPrefs.GetString("selected_skin", "i0");
-                CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(s[0] switch // internal external
-                {
-                    'i' => false,
-                    'e' => true,
-                    _ => throw new ArgumentException()
-                }, s[1..]);
-                if (CurrentSkinInfo == null)
-                {
-                    if (s[0] != 'e') throw new ArgumentException();
-                    PlayerPrefs.SetString("selected_skin", "i0");
-                    CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(false, "0");
-                    PlayerPrefs.Save();
-                }
-            }
             HitSoundManager.Instance.RefreshHitSounds();
             HitSoundManager.UpdateVolume();
             if (PlayerPrefs.HasKey("use_course_mode")) // 给前人擦屁股.jpg

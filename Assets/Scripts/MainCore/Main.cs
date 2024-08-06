@@ -28,7 +28,7 @@ namespace MainCore
 
         public ProgressManager progressManager;
         public GameObject line;
-        public Image illustration;
+        public RawImage illustration;
         public Text comboText;
         public Text comboIndicator;
         public Text scoreText, accText;
@@ -39,7 +39,6 @@ namespace MainCore
         public LeanButton backButton, continueButton, retryButton, terminateButton;
         public Camera uiCamera;
         public Camera particleCamera;
-        public PostProcessVolume postProcessVolume;
         public SpriteRenderer maskSprite;
         public GameObject multiplayerRank;
         public TextMeshProUGUI first, second, third;
@@ -168,6 +167,7 @@ namespace MainCore
             GlobalSetting.MusicLength = GlobalSetting.CurrentBeatmapInfo.Music.length;
             GlobalSetting.FormatVersion = ChartLoader.Chart.formatVersion;
             GlobalSetting.ScoreCounter.NumOfNotes = ChartLoader.Chart.numOfNotes;
+            GlobalSetting.RestartCount++;
 
             //Init progress controller
             progressManager.Init(OnAudioResolutionError, OnAudioResolutionError);
@@ -262,7 +262,7 @@ namespace MainCore
             uiCanvasGroup.DOFade(1.0f, 1f);
             maskSprite.DOFade(GlobalSetting.MaskAlpha, 1f);
             
-            illustration.sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            illustration.texture = GlobalSetting.CurrentBeatmapInfo.Illustration;
             if (GlobalSetting.DisableBlur)
             {
                 GameObject.Find("BackgroundCamera").GetComponent<TranslucentImageSource>().enabled = false;
@@ -283,22 +283,6 @@ namespace MainCore
             GameObject.Find("DiffText").GetComponent<Text>().text = GlobalSetting.CurrentBeatmapInfo.SongLevel + "  ";
             
             Camera.main.orthographic = true;
-            Camera.main.GetComponent<PostProcessLayer>().antialiasingMode = GlobalSetting.FxaaEnabled
-                ? PostProcessLayer.Antialiasing.FastApproximateAntialiasing
-                : PostProcessLayer.Antialiasing.None;
-            Camera.main.GetComponent<PostProcessLayer>().fastApproximateAntialiasing = GlobalSetting.FxaaEnabled
-                ? new FastApproximateAntialiasing
-                {
-                    fastMode = true,
-                    keepAlpha = false
-                }
-                : null;
-            postProcessVolume.enabled = GlobalSetting.PostProcessing;
-
-            if (!GlobalSetting.PostProcessing && !GlobalSetting.FxaaEnabled)
-            {
-                Camera.main.GetComponent<PostProcessLayer>().enabled = false;
-            }
 
             accText.gameObject.SetActive(GlobalSetting.DisplayAcc);
             
@@ -379,6 +363,7 @@ namespace MainCore
             progressManager.AddStartDelay(_totalOffset);
             //totalOffset -= .05f; //fixed delay
             yield return new WaitForSeconds(1);
+            GlobalSetting.IsMirror = false;
             _audioSource.PlayScheduled(AudioSettings.dspTime);
             GlobalSetting.GameStarted = true;
             progressManager.StartTiming();

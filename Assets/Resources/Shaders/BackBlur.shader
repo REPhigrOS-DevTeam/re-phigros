@@ -22,7 +22,9 @@
   
             // Horizontal blur  
             GrabPass {                      
-                Tags { "LightMode" = "Always" }  
+                Tags { "LightMode" = "Always"
+                    "Queue" = "Background"  
+                }  
             }  
             Pass {
                 Tags { "LightMode" = "Always" }  
@@ -88,7 +90,9 @@
                     if (i.uvgrab.x == 0 && i.uvgrab.y == 0){
                         kernelx = 0;
                     }
-                    return tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x + _GrabTexture_TexelSize.x*kernelx*_Size, i.uvgrab.y, i.uvgrab.z, i.uvgrab.w))) * weight;
+                    float2 uv = i.uvgrab.xy / i.uvgrab.w + _GrabTexture_TexelSize.x * kernelx * _Size;
+                    return tex2D(_GrabTexture, uv) * weight;
+                    //return tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x + _GrabTexture_TexelSize.x*kernelx*_Size, i.uvgrab.y, i.uvgrab.z, i.uvgrab.w))) * weight;
                 }
                 half4 frag( v2f i ) : COLOR {  
                  	half4 sum = half4(0,0,0,0);
@@ -123,8 +127,9 @@
                     // sum += GrabPixel(i, 0.03, +7.0);
                     // sum += GrabPixel(i, 0.02, +8.0);
                     // sum += GrabPixel(i, 0.01, +9.0);
- 
-                    float4 col5 = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab));
+                    float2 uv = float2(i.uvgrab.x / i.uvgrab.w, i.uvgrab.y / i.uvgrab.w);
+                    float4 col5 = tex2D(_GrabTexture, uv);
+                    //float4 col5 = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab));
 					float decayFactor = 1.0f;
 					if (i.uvgrab.x == 0 && i.uvgrab.y == 0){
 						decayFactor = 0;
@@ -137,7 +142,9 @@
             }  
             // Vertical blur  
             GrabPass {                          
-                Tags { "LightMode" = "Always" }  
+                Tags { "LightMode" = "Always"
+                    "Queue" = "Background"  
+                }  
             }  
             Pass {  
                 Tags { "LightMode" = "Always" }
@@ -185,7 +192,9 @@
                     if (i.uvgrab.x == 0 && i.uvgrab.y == 0){
                         kernely = 0;
                     }
-                    return tex2Dproj( _GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x, i.uvgrab.y + _GrabTexture_TexelSize.y*kernely*_Size, i.uvgrab.z, i.uvgrab.w))) * weight;
+                    float2 uv = float2(i.uvgrab.x / i.uvgrab.w, (i.uvgrab.y + _GrabTexture_TexelSize.y * kernely * _Size) / i.uvgrab.w);
+                    return tex2D(_GrabTexture, uv) * weight;
+                    //return tex2Dproj( _GrabTexture, UNITY_PROJ_COORD(float4(i.uvgrab.x, i.uvgrab.y + _GrabTexture_TexelSize.y*kernely*_Size, i.uvgrab.z, i.uvgrab.w))) * weight;
                 }
   
                 half4 frag( v2f i ) : COLOR {
@@ -221,8 +230,10 @@
                     // sum += GrabPixel(i, 0.03, +7.0);
                     // sum += GrabPixel(i, 0.02, +8.0);
                     // sum += GrabPixel(i, 0.01, +9.0);
- 
-					float4 col5 = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab));
+
+                    float2 uv = float2(i.uvgrab.x / i.uvgrab.w, i.uvgrab.y / i.uvgrab.w);
+                    float4 col5 = tex2D(_GrabTexture, uv);
+					//float4 col5 = tex2Dproj(_GrabTexture, UNITY_PROJ_COORD(i.uvgrab));
 					float decayFactor = 1.0f;
 					if (i.uvgrab.x == 0 && i.uvgrab.y == 0){
 						decayFactor = 0;

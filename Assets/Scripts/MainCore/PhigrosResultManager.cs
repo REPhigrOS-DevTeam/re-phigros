@@ -16,10 +16,6 @@ namespace MainCore
         // Start is called before the first frame update
         void Start()
         {
-            if (GlobalSetting.DisableBlur)
-            {
-                GameObject.Find("UICamera").GetComponent<TranslucentImageSource>().enabled = false;
-            }
 
             var lastScore = 0;
             try
@@ -76,8 +72,8 @@ namespace MainCore
 
             GameObject.Find("MaxCombo").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Maxcombo.ToString();
             GameObject.Find("Difficulty").GetComponent<Text>().text = GlobalSetting.CurrentBeatmapInfo.SongLevel;
-            GameObject.Find("CoverImage").GetComponent<Image>().sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
-            GameObject.Find("Translucent Image").GetComponent<Image>().sprite = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            GameObject.Find("CoverImage").GetComponent<RawImage>().texture = GlobalSetting.CurrentBeatmapInfo.Illustration;
+            GameObject.Find("Translucent Image").GetComponent<RawImage>().texture = GlobalSetting.CurrentBeatmapInfo.Illustration;
             GameObject.Find("Early").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Early.ToString();
             GameObject.Find("Late").GetComponent<Text>().text = GlobalSetting.ScoreCounter.Late.ToString();
             if (!GlobalSetting.AutoPlay && !isSlower && !GlobalSetting.NewScoreCalcType)

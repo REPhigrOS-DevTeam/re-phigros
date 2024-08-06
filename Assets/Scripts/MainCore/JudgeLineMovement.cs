@@ -163,7 +163,7 @@ namespace MainCore
                 PositionX.Add(0f);
             ProcessingNotes = Line.notesBelow.Concat(Line.notesAbove).ToList();
             ArrangeFloorPosition();
-            if (GlobalSetting.IsMirror)
+            if (GlobalSetting.IsMirror && GlobalSetting.RestartCount == 1)
             {
                 for (var layer = 0; layer < Line.rpeLayers.Count; layer++)
                 {
@@ -196,7 +196,7 @@ namespace MainCore
         {
             ProcessingNotes.Remove(i);
             NoteMovement t;
-            if (GlobalSetting.IsMirror)
+            if (GlobalSetting.IsMirror && GlobalSetting.RestartCount == 1)
                 i.positionX = -i.positionX;
             switch (type)
             {
@@ -370,10 +370,6 @@ namespace MainCore
         {
             await new WaitForSeconds(0.2f);
             transform.localScale = TargetScale;
-            if (GlobalSetting.Is3D)
-            {
-                JudgeLineTopTransform.eulerAngles = new Vector3(30, 0, 0);
-            }
         }
 
         public float CalculateNoteHeight(float time)

@@ -5,6 +5,7 @@ using MainCore.Data;
 using MainCore.UI;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
+using MainCore.Utilities.ResourceManager;
 using Newtonsoft.Json;
 using Unity.Assertions;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace MainCore.Serialized
         public string Charter { get; set; } = "Unknown";
 
         [NonSerialized] public string BasePath = "";
-        [NonSerialized] public Sprite Illustration;
+        [NonSerialized] public Texture2D Illustration = null;
         [NonSerialized] public AudioClip Music;
         [NonSerialized] public string RawChart;
         [NonSerialized] public Extra ExtraEvents = new();
@@ -34,11 +35,11 @@ namespace MainCore.Serialized
 
         public async UniTask<BeatmapInfo> ReloadFromPathFallback(string path)
         {
-            Debug.Log($"[Fallback] Loading info for {path}");
+            Debug.Log($"[BeatmapInfoLoader] Reloading info for {path}");
             
             var (songInfo, infoType, pathInfo, ymlOffset) = await GameUtils.GetInfoForPlay(path);
 
-            Debug.Log($"Got info for {path}, was {infoType}");
+            Debug.Log($"[BeatmapInfoLoader] Got info for {path}, was {infoType}");
 
             if (infoType is InfoType.Empty)
             {
@@ -65,23 +66,13 @@ namespace MainCore.Serialized
 
         public async UniTask LoadIllustration(bool forceRefresh = false)
         {
-            if (!Illustration && !forceRefresh)
+            if (Illustration && !forceRefresh)
             {
                 return;
             }
-            var (sprite, exception) = IllustrationPath == ""
-                ? (Resources.Load<Sprite>("1920x1080_Black"), null)
-                : await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync(Path.Combine(BasePath, IllustrationPath)));
-            if (exception != null)
-            {
-                //Should never run to here...
-                Assert.IsTrue(false);
-                await UniTask.SwitchToMainThread();
-                Debug.LogException(exception);
-                InGameUIManager.ShowModalWindowWithClose("读取曲绘文件出错", $"读取{SongName}的曲绘失败：\n不对啊不应该执行到这里啊\n" + exception.Message,
-                    () => { }, "确认");
-                return;
-            }
+            var sprite = IllustrationPath == ""
+                ? Resources.Load<Texture2D>("1920x1080_Black")
+                : await TextureReader.ReadLocalTextureByPath(Path.Combine(BasePath, IllustrationPath));
             Illustration = sprite;
         }
         
@@ -151,7 +142,7 @@ namespace MainCore.Serialized
             if (!music)
             {
                 await UniTask.SwitchToMainThread();
-                Debug.Log("不支持的flac格式");
+                Debug.Log("[BeatmapInfoLoader] 不支持的flac格式");
                 InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
                     () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
                 return;

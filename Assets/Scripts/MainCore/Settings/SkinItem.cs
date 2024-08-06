@@ -1,36 +1,41 @@
-using MainCore.Settings;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SkinItem : MonoBehaviour
+namespace MainCore.Settings
 {
-    private bool isExternal;
-    private SettingManager settingManager;
-    private string id;
-    private Image image;
-    private TextMeshProUGUI text;
-
-    public void Init(SettingManager settingManager, bool isExternal, string id, string name)
+    /// <summary>
+    /// 负责设置界面的显示
+    /// </summary>
+    public class SkinItem : MonoBehaviour
     {
-        image = gameObject.GetComponent<Image>();
-        text = gameObject.GetComponentInChildren<TextMeshProUGUI>();
-        text.text = name;
-        gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
-        this.settingManager = settingManager;
-        this.isExternal = isExternal;
-        this.id = id;
-    }
+        private bool isExternal;
+        private SettingManager settingManager;
+        private string id;
+        private Image image;
+        private TextMeshProUGUI text;
 
-    private void OnClick()
-    {
-        settingManager.UpdateSelectedSkinItem(isExternal, id);
-    }
+        public void Init(SettingManager settingManager, bool isExternal, string id, string name)
+        {
+            image = gameObject.GetComponent<Image>();
+            text = gameObject.GetComponentInChildren<TextMeshProUGUI>();
+            text.text = name;
+            gameObject.GetComponent<Button>().onClick.AddListener(OnClick);
+            this.settingManager = settingManager;
+            this.isExternal = isExternal;
+            this.id = id;
+        }
 
-    public void SetSelected(bool isExternal, string id)
-    {
-        bool state = isExternal == this.isExternal && id == this.id;
-        text.color = state ? Color.white : Color.black;
-        image.color = state ? Color.black : Color.white;
+        private void OnClick()
+        {
+            settingManager.UpdateSelectedSkinItem(isExternal, id);
+        }
+
+        public void SetSelected(bool isExternalA, string idA)
+        {
+            bool state = isExternalA == isExternal && idA == id;
+            text.color = state ? Color.white : Color.black;
+            image.color = state ? Color.black : Color.white;
+        }
     }
 }

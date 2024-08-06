@@ -17,7 +17,7 @@ namespace MainCore.ECS
         public Mesh mesh;
         [SerializeField] private Material materialPrefab;
 
-        private Dictionary<Skin, Material> internalParticleCache = new();
+        private readonly Dictionary<Skin, Material> _internalParticleCache = new();
 
         // private Dictionary<string, Material> externalParticleCache = new();
         public Material Material { get; private set; }
@@ -56,15 +56,15 @@ namespace MainCore.ECS
                 Sprite hitParticle = HitEffectManager.GetInstance().GetInternalSkinInfo(skin).hitParticle;
                 Material material = Instantiate(materialPrefab);
                 material.SetTexture(MainTextureId, hitParticle.texture);
-                internalParticleCache.Add(skin, material);
+                _internalParticleCache.Add(skin, material);
             }
         }
 
         public void UpdateSkin()
         {
             Material = GlobalSetting.CurrentSkinInfo.isExternal
-                ? internalParticleCache[Skin.Phira]
-                : internalParticleCache[GlobalSetting.CurrentSkinInfo.skin];
+                ? _internalParticleCache[Skin.Phira]
+                : _internalParticleCache[GlobalSetting.CurrentSkinInfo.skin];
         }
 
         public void CreateParticle(int cnt, Color color, float3 centerPosition, float scale)
@@ -140,11 +140,11 @@ namespace MainCore.ECS
     public class MeshDrawer : ComponentSystem
     {
         private static readonly int Color1 = Shader.PropertyToID("_Color");
-        private MaterialPropertyBlock block = new MaterialPropertyBlock();
+        private MaterialPropertyBlock _block = new MaterialPropertyBlock();
 
-        List<Vector4> colors = new List<Vector4>();
-        private Camera drawCamera;
-        List<Matrix4x4> matrices = new List<Matrix4x4>();
+        private readonly List<Vector4> _colors = new List<Vector4>();
+        private Camera _drawCamera;
+        private readonly List<Matrix4x4> _matrices = new List<Matrix4x4>();
 
         protected override void OnCreate()
         {
@@ -152,29 +152,29 @@ namespace MainCore.ECS
 
         public void BindCamera()
         {
-            drawCamera = EffectSystemManager.Instance.drawCamera;
+            _drawCamera = EffectSystemManager.Instance.drawCamera;
         }
 
         protected override void OnUpdate()
         {
             //Let's collect matrices and colors data and then use DrawMeshInstanced for better performance.
-            block = new();
-            colors.Clear();
-            matrices.Clear();
+            _block = new();
+            _colors.Clear();
+            _matrices.Clear();
             var cnt = 0;
             Entities.ForEach((ref LocalToWorld matrix, ref HitEffectParticleData data) =>
             {
-                colors.Add(data.color);
-                matrices.Add(matrix.Value);
+                _colors.Add(data.color);
+                _matrices.Add(matrix.Value);
                 cnt = cnt + 1;
                 if (cnt >= 1023)
                 {
-                    block.SetVectorArray(Color1, colors);
+                    _block.SetVectorArray(Color1, _colors);
                     Graphics.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0,
-                        EffectSystemManager.Instance.Material, matrices, block, ShadowCastingMode.Off, false, 7,
-                        drawCamera);
-                    colors.Clear();
-                    matrices.Clear();
+                        EffectSystemManager.Instance.Material, _matrices, _block, ShadowCastingMode.Off, false, 7,
+                        _drawCamera);
+                    _colors.Clear();
+                    _matrices.Clear();
                     cnt = 0;
                 }
                 //block.SetColor(Color1, new Color(data.color.x, data.color.y, data.color.z, data.color.w));
@@ -182,9 +182,9 @@ namespace MainCore.ECS
                 //Graphics.DrawMesh(EffectSystemManager.Instance.mesh, matrix.Value, EffectSystemManager.Instance.material, 1, mainCamera, 0, block);
             });
             if (cnt <= 0) return;
-            block.SetVectorArray(Color1, colors);
+            _block.SetVectorArray(Color1, _colors);
             Graphics.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0, EffectSystemManager.Instance.Material,
-                matrices, block, ShadowCastingMode.Off, false, 7, drawCamera);
+                _matrices, _block, ShadowCastingMode.Off, false, 7, _drawCamera);
             //CommandBuffer.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0, EffectSystemManager.Instance.material, 0, matrices.ToArray(),cnt, block);
         }
     }

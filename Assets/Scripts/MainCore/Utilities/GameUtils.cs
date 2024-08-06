@@ -688,8 +688,8 @@ namespace MainCore.Utilities
             }
 
             // BUG: 无法正常播放打击音
-            await UniTask.SwitchToMainThread();
-            skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+            //await UniTask.SwitchToMainThread();
+            /*skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/click.ogg", "click")
                 : SkinManager.Instance.defaultClickAC;
             skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
@@ -697,7 +697,7 @@ namespace MainCore.Utilities
                 : SkinManager.Instance.defaultDragAC;
             skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/flick.ogg", "flick")
-                : SkinManager.Instance.defaultFlickAC;
+                : SkinManager.Instance.defaultFlickAC;*/
 
             return skinInfo;
         }

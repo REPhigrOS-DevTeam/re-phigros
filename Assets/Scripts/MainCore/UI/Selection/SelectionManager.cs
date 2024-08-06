@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Cysharp.Threading.Tasks;
 using MainCore.Common;
 using MainCore.Serialized;
 using MainCore.UI.Utils;
@@ -18,26 +17,27 @@ namespace MainCore.UI.Selection
         [SerializeField] private SelectionInfoBinder songCardPrototype;
         [SerializeField] private RectTransform contentTransform;
         [SerializeField] private Button back, start, setting, import;
-        [SerializeField] private Image backgroundImage;
-        [SerializeField] private Image fallbackBackgroundImage;
+        [SerializeField] private RawImage backgroundImage;
+        [SerializeField] private RawImage fallbackBackgroundImage;
         [SerializeField] private PullableScrollRect refreshScroll;
         
         private BeatmapCatalog _catalog;
-        private bool _loading = false;
+        private bool _loading;
         
         private void Start()
         {
             GlobalSetting.Reset();
             back.onClick.AddListener(() =>
             {
-                backgroundImage.sprite = fallbackBackgroundImage.sprite;
+                backgroundImage.texture = fallbackBackgroundImage.texture;
+                SelectionPreview.Reset();
                 SceneTransit.Instance.Back(useOldTransition: false);
             });
             start.onClick.AddListener(StartPlay);
             setting.onClick.AddListener(() =>
             {
-                backgroundImage.sprite = fallbackBackgroundImage.sprite;
-                SceneTransit.Instance.LoadScene("SettingsScene");
+                backgroundImage.texture = fallbackBackgroundImage.texture;
+                SceneTransit.Instance.LoadAdditiveScene("SettingsScene");
             });
             import.onClick.AddListener(TryUnzipPez);
             refreshScroll.PullDistanceRequiredRefresh = 150f;
@@ -55,14 +55,19 @@ namespace MainCore.UI.Selection
             _loading = true;
             GlobalSetting.SetBeatmap(SelectionPreview.SelectedInfo);
             await SelectionPreview.SelectedInfo.LoadBeatmap();
+            PopupMessageManager.Instance.ChangeContent("Done.");
+            await UniTask.Delay(1000);
+            PopupMessageManager.Instance.Clear();
+            SelectionPreview.Reset();
             SceneTransit.Instance.LoadScene("LoadingScene", 0);
         }
 
         public async void RefreshGameFolder()
         {
             //Clear previous cards
-            //0 is prototype! DO NOT CLEAR IT
-            for (var i = 1; i < contentTransform.childCount; i++)
+            //0-2 is Refresh Indicator! DO NOT CLEAR IT
+            //3 is prototype! DO NOT CLEAR IT
+            for (var i = 4; i < contentTransform.childCount; i++)
             {
                 Destroy(contentTransform.GetChild(i).gameObject);
             }
@@ -83,6 +88,7 @@ namespace MainCore.UI.Selection
                     }
                 }
                 info.BasePath = fullPath;
+                info.Illustration = null;
                 newDict.Add(folder, info);
             }
 
@@ -91,24 +97,21 @@ namespace MainCore.UI.Selection
             foreach (var p in _catalog.Infos)
             {
                 var binder = Instantiate(songCardPrototype, contentTransform);
-                binder.SetInfo(p.Value).NotifyUpdate();
+                binder.SetInfo(p.Value);
                 binder.gameObject.SetActive(true);
             }
-
+            
+            SelectionScrollPool.Instance.Warmup();
+            
             SaveCatalog();
         }
 
         private void ReadCatalog()
         {
             var catalogPath = Path.Combine(Application.persistentDataPath, "beatmap_catalog.json");
-            if (!File.Exists(catalogPath))
-            {
-                _catalog = new BeatmapCatalog();
-            }
-            else
-            {
-                _catalog = JsonConvert.DeserializeObject<BeatmapCatalog>(File.ReadAllText(catalogPath));
-            }
+            _catalog = !File.Exists(catalogPath)
+                ? new BeatmapCatalog() 
+                : JsonConvert.DeserializeObject<BeatmapCatalog>(File.ReadAllText(catalogPath));
         }
 
         private void SaveCatalog()

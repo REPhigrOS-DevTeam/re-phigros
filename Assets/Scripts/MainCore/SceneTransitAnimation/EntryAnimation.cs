@@ -26,8 +26,8 @@ namespace MainCore.SceneTransitAnimation
             text.DOFade(0, .3f).SetEase(Ease.OutSine);
             text.rectTransform.DOScale(5f, .3f).SetEase(Ease.InQuart);
             banner.GetComponent<PeriodicMover>().enabled = false;
-            banner.rectTransform.DOAnchorPos(new Vector2(-400, 360), time).SetEase(Ease.OutQuad);
-            banner.rectTransform.DOSizeDelta(new Vector2(736, 208), time).SetEase(Ease.OutQuad);
+            banner.rectTransform.DOAnchorPos(new Vector2(-400, 360), time).SetEase(Ease.OutCubic);
+            banner.rectTransform.DOSizeDelta(new Vector2(736, 208), time).SetEase(Ease.OutCubic);
             return (int) (time * 1000);
         }
     }

@@ -9,7 +9,7 @@ namespace MainCore.SceneTransitAnimation
     public class BeatmapSelectorAnimation : Common.SceneTransitAnimation
     {
         [SerializeField] private RectTransform leftTransform, rightTransform;
-        [SerializeField] private Image backgroundIllustration;
+        [SerializeField] private RawImage backgroundIllustration;
         [SerializeField] private List<Image> shadows;
 
         private Sequence _seq;

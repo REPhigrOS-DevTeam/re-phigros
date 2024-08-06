@@ -12,9 +12,9 @@ namespace MainCore.UI.Selection
 {
     public class SelectionPreview : MonoSingleton<SelectionPreview>
     {
-        [SerializeField] private Image illustration;
+        [SerializeField] private RawImage illustration;
         [SerializeField] private Text songName, composer, charter, illustrator, level;
-        [SerializeField] private Image backgroundImage;
+        [SerializeField] private RawImage backgroundImage;
         [SerializeField] private CanvasGroup mainCanvasGroup;
         [SerializeField] private TranslucentImageSource translucentSource;
         [SerializeField] private PullableScrollRect refreshControl;
@@ -41,8 +41,8 @@ namespace MainCore.UI.Selection
         public void UpdatePreview(BeatmapInfo info)
         {
             SelectedInfo = info;
-            illustration.sprite = info.Illustration;
-            backgroundImage.sprite = info.Illustration;
+            illustration.texture = info.Illustration;
+            backgroundImage.texture = info.Illustration;
             if (!_firstTime)
             {
                 illustration.DOFade(1f, 1f);
@@ -55,6 +55,8 @@ namespace MainCore.UI.Selection
             illustrator.text = info.Illustrator;
             level.text = info.SongLevel;
         }
+
+        public static void Reset() => SelectedInfo = null;
 
         private async void PreviewIllustration()
         {

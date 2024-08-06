@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using MainCore.Utilities;
@@ -86,6 +87,28 @@ namespace MainCore.Common
                     throw new ArgumentOutOfRangeException();
             }
             OnSceneClosing?.RemoveAllListeners();
+        }
+
+        public async void LoadAdditiveScene(string sceneName)
+        {
+            await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            var transitAnimation =
+                (from GameObject go
+                        in GameObject.FindGameObjectsWithTag("SceneTransitAnimation")
+                    where go.scene.name == sceneName
+                    select go).FirstOrDefault();
+            transitAnimation?.GetComponent<SceneTransitAnimation>().Enter();
+        }
+        
+        public async void LeaveAdditiveScene(string sceneName)
+        {
+            var transitAnimation =
+                (from GameObject go
+                        in GameObject.FindGameObjectsWithTag("SceneTransitAnimation")
+                    where go.scene.name == sceneName
+                    select go).FirstOrDefault();
+            await UniTask.Delay(transitAnimation!.GetComponent<SceneTransitAnimation>().Quit());
+            SceneManager.UnloadSceneAsync(sceneName);
         }
 
         public void Back(bool useOldTransition = true)

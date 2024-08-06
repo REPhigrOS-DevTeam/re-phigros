@@ -216,7 +216,7 @@ namespace Network.Multiplayer.Managers
                     TextAsset lineCsvObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/line");
                     GlobalSetting.CurrentBeatmapInfo.LineImage = lineCsvObject != null ? new CSVReader(lineCsvObject) : null;
                     await UniTask.SwitchToMainThread();
-                    GlobalSetting.CurrentBeatmapInfo.Illustration = Resources.Load<Sprite>(GlobalSetting.CurrentBeatmapInfo.IllustrationPath);
+                    GlobalSetting.CurrentBeatmapInfo.Illustration = Resources.Load<Texture2D>(GlobalSetting.CurrentBeatmapInfo.IllustrationPath);
                     GlobalSetting.IsMultiplayer = false;
                     GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;

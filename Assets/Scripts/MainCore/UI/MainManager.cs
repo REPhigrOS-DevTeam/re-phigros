@@ -31,7 +31,7 @@ namespace MainCore.UI
 
         private void Awake()
         {
-            settings.onClick.AddListener(() => SceneTransit.Instance.LoadScene("SettingsScene"));
+            settings.onClick.AddListener(() => SceneTransit.Instance.LoadAdditiveScene("SettingsScene"));
             singlePlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("BeatmapSelectScene", 0));
             multiPlay.onClick.AddListener(() => SceneTransit.Instance.LoadScene("NetworkTest"));
             login.onClick.AddListener(() => SceneTransit.Instance.LoadScene("LoginScene"));
@@ -75,12 +75,12 @@ namespace MainCore.UI
             var currentRes = GlobalSetting.OriginResolution;
             if (PlayerPrefsExtension.GetBoolean("half_res", false))
             {
-                Debug.Log("Half Resolution Mode Enabled");
+                Debug.Log("[SettingManager] Half Resolution Mode Enabled");
                 Screen.SetResolution(currentRes.width /= 2, currentRes.height /= 2, Screen.fullScreenMode);
             }
             else
             {
-                Debug.Log("Half Resolution Mode Disabled");
+                Debug.Log("[SettingManager] Half Resolution Mode Disabled");
                 Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
             }
 
@@ -123,7 +123,7 @@ namespace MainCore.UI
                 catch (Exception ex)
                 {
 #if UNITY_EDITOR
-                    Debug.LogError("无法读取自定义角色");
+                    Debug.LogError("[MainManager] 无法读取自定义角色");
                     Debug.LogException(ex);
 #endif
                     PlayerPrefs.DeleteKey("character");

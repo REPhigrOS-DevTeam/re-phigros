@@ -93,7 +93,7 @@ namespace MainCore.UI
 
         private async void LoadIn()
         {
-            await UniTask.WaitUntil(() => SkinManager.Instance.Inited);
+            await UniTask.WaitUntil(() => SkinManager.Instance.Initialized);
             Application.targetFrameRate = 120;
             GameUtils.ResetDSPBuffer(PlayerPrefs.GetInt("dsp_pow", 8));
             if (!File.Exists(Path.Combine(Application.persistentDataPath, "IOS PlaceHolder")))
@@ -111,8 +111,8 @@ namespace MainCore.UI
                 PlayerPrefs.SetInt("first_start", 1);
                 PlayerPrefs.Save();
                 SceneTransit.Instance.AppendScene("MainScene");
-                SceneTransit.Instance.AppendScene("SettingsScene");
-                SceneTransit.Instance.LoadScene("DSPScene", 0);
+                /*SceneTransit.Instance.AppendScene("SettingsScene");
+                SceneTransit.Instance.LoadScene("DSPScene", 0);*/
             }
             else
             {

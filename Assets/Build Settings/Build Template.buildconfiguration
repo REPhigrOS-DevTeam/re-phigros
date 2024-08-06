@@ -17,7 +17,7 @@
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "REPhityOS",
             "CompanyName": "totorowldox",
-            "Version": "1.32"
+            "Version": "1.50"
         },
         {
             "$type": "Unity.Build.Common.RunSettings, Unity.Build",
@@ -56,27 +56,11 @@
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-6e7d485c042492e4191f6d6ca0c528d7-102900000-0",
-                    "AutoLoad": false
-                },
-                {
                     "Scene": "GlobalObjectId_V1-1-9cd29a0c9e8c31142b916f79ad91d319-102900000-0",
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-bd44713326932b443935dbae5a16d819-102900000-0",
-                    "AutoLoad": false
-                },
-                {
                     "Scene": "GlobalObjectId_V1-1-3b29ec2a34427a441975579c31731f86-102900000-0",
-                    "AutoLoad": false
-                },
-                {
-                    "Scene": "GlobalObjectId_V1-1-c099d178b8c4df549b58eadda1e262ba-102900000-0",
-                    "AutoLoad": false
-                },
-                {
-                    "Scene": "GlobalObjectId_V1-1-cd01a74094628da45aff6b2bd0be8bb7-102900000-0",
                     "AutoLoad": false
                 },
                 {

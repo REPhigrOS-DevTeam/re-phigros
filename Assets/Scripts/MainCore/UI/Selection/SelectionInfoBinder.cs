@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Lean.Gui;
 using MainCore.Serialized;
 using TMPro;
 using UnityEngine;
@@ -8,18 +9,18 @@ namespace MainCore.UI.Selection
 {
     public class SelectionInfoBinder : MonoBehaviour
     {
-        [SerializeField] private Image illustration;
+        [SerializeField] private RawImage illustration;
+        [SerializeField] private Texture2D fallbackImage;
         [SerializeField] private TMP_Text songName;
-        [SerializeField] private Button button;
-        public BeatmapInfo Info { get; private set; }
+        [SerializeField] private LeanButton button;
+        private BeatmapInfo Info { get; set; }
 
-        private bool _updated = false;
+        private bool _updated;
 
-        public SelectionInfoBinder SetInfo(BeatmapInfo info)
+        public void SetInfo(BeatmapInfo info)
         {
             Info = info;
-            button.onClick.AddListener(UpdatePreview);
-            return this;
+            button.OnClick.AddListener(UpdatePreview);
         }
 
         private async void UpdatePreview()
@@ -28,13 +29,18 @@ namespace MainCore.UI.Selection
             SelectionPreview.Instance.UpdatePreview(Info);
         }
 
-        public async void NotifyUpdate()
+        public async void NotifyUpdate(bool forceRefresh = true)
         {
             _updated = false;
             songName.text= Info.SongName;
-            await Info.LoadIllustration(forceRefresh: true);
-            illustration.sprite = Info.Illustration;
+            await Info.LoadIllustration(forceRefresh);
+            illustration.texture = Info.Illustration;
             _updated = true;
+        }
+
+        public async void Unload()
+        {
+            illustration.texture = fallbackImage;
         }
     }
 }

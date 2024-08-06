@@ -128,20 +128,26 @@ namespace MainCore
         public SkinInfo GetInternalSkinInfo(Skin skin)
         {
             if (skinInfos == null) throw new ArgumentException();
-            if (skinInfos.ContainsKey(skin)) return skinInfos[skin];
-            SkinInfo loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
-            if (loadSkinInfo)
+            if (skinInfos.TryGetValue(skin, out var skinInfo))
             {
-                skinInfos.Add(skin, loadSkinInfo);
-                return loadSkinInfo;
+                return skinInfo;
             }
+            var loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
+            if (!loadSkinInfo)
+            {
+                throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
+            }
+            skinInfos.Add(skin, loadSkinInfo);
+            return loadSkinInfo;
 
-            throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
         }
 
         public SkinInfo GetSkinInfo(bool isExternal, string id)
         {
-            if (isExternal) Debug.Log(id);
+            if (isExternal)
+            {
+                Debug.Log($"[SkinManager] Current skin id: {id}");
+            }
             return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }
     }
