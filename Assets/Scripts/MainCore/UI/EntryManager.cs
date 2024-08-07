@@ -23,7 +23,7 @@ namespace MainCore.UI
         // [SerializeField] private Button touchToStart;
         // [SerializeField] private Text touchToStartText;
         [SerializeField] private GameObject debugText;
-        [SerializeField] private GameObject inGameDebugConsolePrefab;
+        [SerializeField, UsedImplicitly] private GameObject inGameDebugConsolePrefab;
         [SerializeField] private VideoPlayer splashPlayer;
         [SerializeField] private GameObject splashCanvas, splashBgCanvas;
 
@@ -40,10 +40,6 @@ namespace MainCore.UI
             Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
-#if UNITY_EDITOR
-            // 这个是用来消除Rider的代码提示的
-            if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
-#endif
 #endif
             GlobalSetting.ReadUserSettings();
             SceneTransit.OnSceneClosing.AddListener(HitEffectManager.GetInstance().Reset);
