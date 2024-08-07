@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using IngameDebugConsole;
+using JetBrains.Annotations;
 using MainCore.Common;
 using MainCore.Settings;
 using MainCore.UI.Utils;
@@ -37,7 +37,7 @@ namespace MainCore.UI
             GlobalSetting.UnityThreadId = Thread.CurrentThread.ManagedThreadId;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
-            Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
+            Instantiate(inGameDebugConsolePrefab).GetComponent<IngameDebugConsole.DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
 #endif
