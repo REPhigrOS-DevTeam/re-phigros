@@ -448,6 +448,12 @@ namespace MainCore.Utilities
             //                                        .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
             //                                            Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
             //
+
+            if (infoType == InfoType.Empty)
+            {
+                return (null, InfoType.Empty, null);
+            }
+            
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
@@ -483,7 +489,7 @@ namespace MainCore.Utilities
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
-
+        
         public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(
             string directory)
         {
