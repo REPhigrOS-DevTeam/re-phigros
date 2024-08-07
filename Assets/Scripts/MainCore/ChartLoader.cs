@@ -138,7 +138,7 @@ namespace MainCore
                 {
                     int lineId = int.Parse(GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 1));
                     var t1 = float.Parse(GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 3));
-                    WWW a = new WWW("file://" + Path.Combine(PlayerPrefs.GetString(GlobalSetting.CurrentBeatmapInfo.BasePath, ""),
+                    WWW a = new WWW("file://" + Path.Combine(GlobalSetting.CurrentBeatmapInfo.BasePath,
                         GlobalSetting.CurrentBeatmapInfo.LineImage.GetDataByRowAndCol(i + 1, 2)));
                     while (!a.isDone)
                     {

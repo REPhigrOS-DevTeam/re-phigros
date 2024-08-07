@@ -472,7 +472,7 @@ namespace MainCore.Utilities
             }
         }
 
-        public static string DataPath => PlayerPrefs.GetString("file_path", GetGameFilePath());
+        public static string DataPath => GetGameFilePath();
 
         public static bool Contains(this int[] arr, int i)
         {
@@ -556,21 +556,22 @@ namespace MainCore.Utilities
 
         private static string GetGameFilePath()
         {
-            switch (Application.platform)
+            return Application.platform switch
             {
-                case RuntimePlatform.OSXEditor:
-                case RuntimePlatform.OSXPlayer:
-                case RuntimePlatform.WindowsPlayer:
-                case RuntimePlatform.WindowsEditor:
-                case RuntimePlatform.IPhonePlayer:
-                case RuntimePlatform.LinuxPlayer:
-                case RuntimePlatform.LinuxEditor:
-                    return Application.persistentDataPath;
-                case RuntimePlatform.Android:
-                    return new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data").FullName;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                RuntimePlatform.OSXEditor or RuntimePlatform.OSXPlayer or RuntimePlatform.IPhonePlayer => 
+                    Application.persistentDataPath,
+                _ => PlayerPrefs.GetString("file_path", GetDefaultGameFilePath())
+            };
+        }
+
+        private static string GetDefaultGameFilePath()
+        {
+            return Application.platform switch
+            {
+                RuntimePlatform.Android => 
+                    new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data").FullName,
+                _ => Application.persistentDataPath
+            };
         }
         
         public static string FilePathToUri(string filePath)

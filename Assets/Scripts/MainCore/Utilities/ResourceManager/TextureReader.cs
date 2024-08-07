@@ -9,7 +9,7 @@ namespace MainCore.Utilities.ResourceManager
     public static class TextureReader
     {
         private const int MaximumLoadsInBatch = 3;
-        private const int DelayBetweenBatches = 100;
+        private const int DelayBetweenBatches = 50;
         private static readonly List<LoadHandler> LoadingHandlers = new();
         private static readonly Queue<LoadHandler> PendingHandlers = new();
 
