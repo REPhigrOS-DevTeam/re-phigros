@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using IngameDebugConsole;
+using JetBrains.Annotations;
 using MainCore.Common;
 using MainCore.Settings;
 using MainCore.UI.Utils;
@@ -23,7 +23,7 @@ namespace MainCore.UI
         // [SerializeField] private Button touchToStart;
         // [SerializeField] private Text touchToStartText;
         [SerializeField] private GameObject debugText;
-        [SerializeField] private GameObject inGameDebugConsolePrefab;
+        [SerializeField, UsedImplicitly] private GameObject inGameDebugConsolePrefab;
         [SerializeField] private VideoPlayer splashPlayer;
         [SerializeField] private GameObject splashCanvas, splashBgCanvas;
 
@@ -37,13 +37,9 @@ namespace MainCore.UI
             GlobalSetting.UnityThreadId = Thread.CurrentThread.ManagedThreadId;
 #if !RELEASE_VERSION && !UNITY_EDITOR
             debugText.SetActive(true);
-            Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>().enableCommand = false;
+            Instantiate(inGameDebugConsolePrefab).GetComponent<IngameDebugConsole.DebugLogManager>().enableCommand = false;
 #else
             debugText.SetActive(false);
-#if UNITY_EDITOR
-            // 这个是用来消除Rider的代码提示的
-            if (false) Instantiate(inGameDebugConsolePrefab).GetComponent<DebugLogManager>();
-#endif
 #endif
             GlobalSetting.ReadUserSettings();
             SceneTransit.OnSceneClosing.AddListener(HitEffectManager.GetInstance().Reset);
