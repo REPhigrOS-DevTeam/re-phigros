@@ -10,7 +10,7 @@ IMPL_APP_CONTROLLER_SUBCLASS(FileSharingAppController)
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *, id> *)options {
     if (url) {
-        NSLog(@"[File Sharing] detected file url: %@", [url absoluteString]]);
+        NSLog(@"[File Sharing] detected file url: %@", [url absoluteString]);
             UnitySendMessage("BridgeGameObject", "Callback_GetiOSSharedFile", [[@"true\n" stringByAppendingString:[url absoluteString]] UTF8String]);
     } else {
         NSLog(@"[File Sharing] Error: url is nil");
