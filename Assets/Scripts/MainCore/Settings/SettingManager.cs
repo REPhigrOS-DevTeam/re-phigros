@@ -311,9 +311,13 @@ namespace MainCore.Settings
                 externalSkinItem.SetSelected(isExternal, id);
             }
 
+            Debug.Log($"[SkinManager] Switching to skin: {newSkinInfo.skinName}");
+            
             GlobalSetting.CurrentSkinInfo = newSkinInfo;
             HitSoundManager.Instance.RefreshHitSounds();
             OnSkinChanged();
+            
+            Debug.Log($"[SkinManager] Done.");
         }
 
         private void OnSkinChanged()

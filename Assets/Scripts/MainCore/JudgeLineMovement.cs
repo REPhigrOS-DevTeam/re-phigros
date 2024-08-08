@@ -717,6 +717,11 @@ namespace MainCore
 
                     float startT = i.startTime;
                     float endT = i.endTime;
+                    if (startT >= PgrTime)
+                    {
+                        targetStr = "";
+                        return targetStr;
+                    }
                     string start = i.start;
                     string end = i.end;
                     var now = EaseUtils.GetEaseResult((EaseUtils.EaseType)i.easingType, PgrTime - startT,

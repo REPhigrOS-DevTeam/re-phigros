@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -16,7 +17,8 @@ namespace MainCore.Utilities.ResourceManager
         // ReSharper disable Unity.PerformanceAnalysis
         public static async UniTask<Texture2D> ReadTextureByUrl(string url)
         {
-            var handler = new LoadHandler {Url = url};
+            Uri.TryCreate(url, UriKind.Absolute, out var uri);
+            var handler = new LoadHandler {Uri = uri};
             PendingHandlers.Enqueue(handler);
             await ScheduleLoadTasks();
             await UniTask.WaitUntil(() => handler.Completed);
@@ -25,8 +27,8 @@ namespace MainCore.Utilities.ResourceManager
         
         public static async UniTask<Texture2D> ReadLocalTextureByPath(string path)
         {
-            var url = $"file://{path}";
-            var handler = new LoadHandler {Url = url};
+            var url = Util.FilePathToUri(path);//$"file://{path}";
+            var handler = new LoadHandler {Uri = url};
             PendingHandlers.Enqueue(handler);
             await ScheduleLoadTasks();
             await UniTask.WaitUntil(() => handler.Completed);
@@ -49,7 +51,7 @@ namespace MainCore.Utilities.ResourceManager
 
         private static async UniTask LoadTexture(LoadHandler handler)
         {
-            var url = handler.Url;
+            var url = handler.Uri;
             using var uwr = UnityWebRequestTexture.GetTexture(url);
             await uwr.SendWebRequest();
 
@@ -68,7 +70,7 @@ namespace MainCore.Utilities.ResourceManager
 
         private class LoadHandler
         {
-            public string Url;
+            public Uri Uri;
             public bool Completed;
             public Texture2D Texture;
         }

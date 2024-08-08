@@ -122,8 +122,8 @@ namespace MainCore.Utilities
             
             AudioType? audioType = await GetAudioTypeFromFile(path);
             //await UniTask.SwitchToMainThread();
-            Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
-            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(uri, audioType??AudioType.UNKNOWN);
+            //Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(FilePathToUri(path), audioType??AudioType.UNKNOWN);
             await uwr.SendWebRequest();
             if (uwr.result != UnityWebRequest.Result.Success) throw new ArgumentException();
             AudioClip audioClip1 = DownloadHandlerAudioClip.GetContent(uwr);
@@ -574,9 +574,12 @@ namespace MainCore.Utilities
             };
         }
         
-        public static string FilePathToUri(string filePath)
+        public static Uri FilePathToUri(string filePath)
         {
-            filePath = Path.GetFullPath(filePath).Replace("\\", "/");
+            Uri.TryCreate(filePath, UriKind.Absolute, out var uri);
+            return uri;
+            /*
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/").Replace(" ", "%20");
             string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
             int system;
             if (pathRoot.EndsWith(":/"))
@@ -596,13 +599,18 @@ namespace MainCore.Utilities
 
             filePath = filePath.Substring(pathRoot.Length);
 
-            string pathSeparator = system switch
+            /*string pathSeparator = system switch
             {
                 0 => "\\",
                 1 => "/",
                 _ => throw new ArgumentOutOfRangeException()
+            };#1#
+            string prefix = system switch
+            {
+                0 => "file:///",
+                _ =>"file://"
             };
-            return $"file://{pathRoot}{string.Join(pathSeparator, filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";
+            return $"{prefix}{pathRoot}{string.Join('/', filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";*/
         }
 
 #if !RELEASE_VERSION
