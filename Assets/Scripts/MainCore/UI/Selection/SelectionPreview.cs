@@ -13,7 +13,7 @@ namespace MainCore.UI.Selection
     public class SelectionPreview : MonoSingleton<SelectionPreview>
     {
         [SerializeField] private RawImage illustration;
-        [SerializeField] private Text songName, composer, charter, illustrator, level;
+        [SerializeField] private Text songName, composer, charter, illustrator, level, path;
         [SerializeField] private RawImage backgroundImage;
         [SerializeField] private CanvasGroup mainCanvasGroup;
         [SerializeField] private TranslucentImageSource translucentSource;
@@ -32,6 +32,7 @@ namespace MainCore.UI.Selection
             charter.text = "";
             illustrator.text = "";
             level.text = "";
+            path.text = "";
             refreshControl.OnRefresh.AddListener(PreviewIllustration);
             refreshControl.PullDistanceRequiredRefresh = 150f;
             backgroundImage.GetComponent<Button>().onClick.AddListener(StopPreviewIllustration);
@@ -54,6 +55,7 @@ namespace MainCore.UI.Selection
             charter.text = info.Charter;
             illustrator.text = info.Illustrator;
             level.text = info.SongLevel;
+            path.text = info.BasePath;
         }
 
         public static void Reset() => SelectedInfo = null;

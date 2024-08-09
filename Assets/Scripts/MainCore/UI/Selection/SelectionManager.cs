@@ -36,7 +36,6 @@ namespace MainCore.UI.Selection
             start.onClick.AddListener(StartPlay);
             setting.onClick.AddListener(() =>
             {
-                backgroundImage.texture = fallbackBackgroundImage.texture;
                 SceneTransit.Instance.LoadAdditiveScene("SettingsScene");
             });
             import.onClick.AddListener(TryUnzipPez);
@@ -54,7 +53,12 @@ namespace MainCore.UI.Selection
             }
             _loading = true;
             GlobalSetting.SetBeatmap(SelectionPreview.SelectedInfo);
-            await SelectionPreview.SelectedInfo.LoadBeatmap();
+            var success = await SelectionPreview.SelectedInfo.LoadBeatmap();
+            if (!success)
+            {
+                _loading = false;
+                return;
+            }
             PopupMessageManager.Instance.ChangeContent("Done.");
             await UniTask.Delay(1000);
             PopupMessageManager.Instance.Clear();

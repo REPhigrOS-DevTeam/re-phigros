@@ -76,7 +76,7 @@ namespace MainCore.Serialized
             Illustration = sprite;
         }
         
-        public async UniTask LoadBeatmap()
+        public async UniTask<bool> LoadBeatmap()
         {
             //Preparation
             GlobalSetting.IsMultiplayer = false;
@@ -135,22 +135,22 @@ namespace MainCore.Serialized
             {
                 await UniTask.SwitchToMainThread();
                 Debug.LogException(e);
-                InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message + "\n" + e.StackTrace, () => { },
+                InGameUIManager.ShowModalWindowWithClose("读取音频文件出错", e.Message, () => { },
                     "确认");
-                return;
+                return false;
             }
             if (!music)
             {
                 await UniTask.SwitchToMainThread();
-                Debug.Log("[BeatmapInfoLoader] 不支持的flac格式");
-                InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的flac格式",
+                Debug.Log("[BeatmapInfoLoader] 不支持的音频格式");
+                InGameUIManager.ShowModalWindowWithClose("错误", "检测到音频文件为不支持的格式",
                     () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
-                return;
+                return false;
             }
             Music = music;
 
             await UniTask.SwitchToMainThread();
-            PopupMessageManager.Instance.Clear();
+            return true;
         }
     }
 }
