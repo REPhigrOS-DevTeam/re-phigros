@@ -1,3 +1,4 @@
+using System.IO;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using LeTai.Asset.TranslucentImage;
@@ -18,6 +19,7 @@ namespace MainCore.UI.Selection
         [SerializeField] private CanvasGroup mainCanvasGroup;
         [SerializeField] private TranslucentImageSource translucentSource;
         [SerializeField] private PullableScrollRect refreshControl;
+        [SerializeField] private Button forceReload;
 
         private bool _firstTime = false;
         private bool _previewingIllustration = false;
@@ -26,17 +28,12 @@ namespace MainCore.UI.Selection
 
         void Start()
         {
-            illustration.SetAlpha(0.0f);
-            songName.text = "";
-            composer.text = "";
-            charter.text = "";
-            illustrator.text = "";
-            level.text = "";
-            path.text = "";
+            ResetPreview();
             refreshControl.OnRefresh.AddListener(PreviewIllustration);
             refreshControl.PullDistanceRequiredRefresh = 150f;
             backgroundImage.GetComponent<Button>().onClick.AddListener(StopPreviewIllustration);
             backgroundImage.GetComponent<Button>().interactable = false;
+            forceReload.onClick.AddListener(ForceReloadCurrentInfo);
         }
 
         public void UpdatePreview(BeatmapInfo info)
@@ -90,6 +87,25 @@ namespace MainCore.UI.Selection
             await UniTask.Delay(600);
             mainCanvasGroup.blocksRaycasts = true;
             _previewingIllustration = false;
+        }
+
+        private void ForceReloadCurrentInfo()
+        {
+            SelectionManager.Instance.Catalog.Infos.Remove(Path.GetFileName(SelectedInfo.BasePath)??"");
+            SelectionManager.Instance.RefreshGameFolder();
+            ResetPreview();
+        }
+
+        private void ResetPreview()
+        {
+            illustration.SetAlpha(0.0f);
+            _firstTime = false;
+            songName.text = "";
+            composer.text = "";
+            charter.text = "";
+            illustrator.text = "";
+            level.text = "";
+            path.text = "";
         }
 
         private bool HasSelected() => SelectedInfo != null;

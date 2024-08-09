@@ -28,7 +28,7 @@ namespace MainCore.UI.Selection
         public async void Warmup()
         {
             await UniTask.Delay(200);
-            var maxIndex = Math.Min(firstItemIndex + 6 * xCount, contentTransform.childCount);
+            var maxIndex = Math.Min(firstItemIndex + 7 * xCount, contentTransform.childCount);
             for (var i = firstItemIndex; i < maxIndex; i++)
             {
                 contentTransform.GetChild(i).GetComponent<CanvasGroup>().DOFade(1, animationDuration);
@@ -44,10 +44,10 @@ namespace MainCore.UI.Selection
             
             var prevStartLine = _currentStartLine;
             var prevStartIndex = firstItemIndex + prevStartLine * xCount;
-            var prevEndLine = Math.Clamp(prevStartLine + 5, 0, MaximumLineNo);
+            var prevEndLine = Math.Clamp(prevStartLine + 6, 0, MaximumLineNo);
             var prevEndIndex = Math.Min(firstItemIndex + prevEndLine * xCount + xCount, contentTransform.childCount);
             _currentStartLine = startLine;
-            var endLine = Math.Clamp(startLine + 5, 0, MaximumLineNo);
+            var endLine = Math.Clamp(startLine + 6, 0, MaximumLineNo);
             var endIndex = Math.Min(firstItemIndex + endLine * xCount + xCount, contentTransform.childCount);
 
             if (prevStartLine < startLine)

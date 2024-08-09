@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
@@ -54,6 +55,13 @@ namespace MainCore.Serialized
             IllustrationPath = pathInfo.Illustration;
             MusicPath = pathInfo.Music;
             ChartPath = pathInfo.Chart;
+            
+            //Sanity Check
+            var fileList = new List<string>(){IllustrationPath, MusicPath, ChartPath};
+            if (!fileList.TrueForAll(x => File.Exists(Path.Combine(path, x))))
+            {
+                return null;
+            }
 
             SongName = songInfo.SongName;
             SongLevel = songInfo.SongDifficulty;
@@ -106,6 +114,11 @@ namespace MainCore.Serialized
             }
             
             //Load chart
+            if (!File.Exists(Path.Combine(BasePath, ChartPath)))
+            {
+                return false;
+            }
+            
             RawChart = await ChartLoader.InitChartAuto(Path.Combine(BasePath, ChartPath), false)!.ConfigureAwait(false);
             ChartLoader.ApplyPhiraOffset(YmlOffset);
 
@@ -118,6 +131,7 @@ namespace MainCore.Serialized
 
             await UniTask.SwitchToMainThread();
             PopupMessageManager.Instance.ChangeContent("Loading...");
+            await UniTask.Delay(500);
             await UniTask.SwitchToThreadPool();
             
             //Load illustration

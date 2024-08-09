@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MainCore.Common;
 using MainCore.Serialized;
@@ -12,7 +13,7 @@ using UnityEngine.UI;
 
 namespace MainCore.UI.Selection
 {
-    public class SelectionManager : MonoBehaviour
+    public class SelectionManager : MonoSingleton<SelectionManager>
     {
         [SerializeField] private SelectionInfoBinder songCardPrototype;
         [SerializeField] private RectTransform contentTransform;
@@ -23,6 +24,8 @@ namespace MainCore.UI.Selection
         
         private BeatmapCatalog _catalog;
         private bool _loading;
+
+        public BeatmapCatalog Catalog => _catalog;
         
         private void Start()
         {
@@ -57,6 +60,7 @@ namespace MainCore.UI.Selection
             if (!success)
             {
                 _loading = false;
+                PopupMessageManager.Instance.ChangeContent("Failed, maybe essential files missing.");
                 return;
             }
             PopupMessageManager.Instance.ChangeContent("Done.");
@@ -78,6 +82,8 @@ namespace MainCore.UI.Selection
             
             var folders = GetFolders(Util.DataPath);
             var newDict = new Dictionary<string, BeatmapInfo>();
+            var failedFolders = new List<string>();
+            
             foreach (var folder in folders)
             {
                 var fullPath = Path.Combine(Util.DataPath, folder);
@@ -87,13 +93,24 @@ namespace MainCore.UI.Selection
 
                     if (info == null)
                     {
-                        InGameUIManager.ShowModalWindowWithClose("错误", $"未能成功读取谱面 {folder}\n请自行处理，仅支持info.txt, info.yml, RPE json", () => { }, "确定");
+                        failedFolders.Add(folder);
+                        //InGameUIManager.ShowModalWindowWithClose("错误", $"未能成功读取谱面 {folder}\n请自行处理，仅支持info.txt, info.yml, RPE json", () => { }, "确定");
                         continue;
                     }
                 }
                 info.BasePath = fullPath;
                 info.Illustration = null;
                 newDict.Add(folder, info);
+            }
+
+            if (failedFolders.Count != 0)
+            {
+                if (failedFolders.Count > 5)
+                {
+                    failedFolders = failedFolders.Take(5).ToList()
+                        .Append($"...以及其余{failedFolders.Count - 5}项").ToList();
+                }
+                InGameUIManager.ShowModalWindowWithClose("以下谱面未成功读取，请自行检查", string.Join('\n', failedFolders), () => { }, "确定");
             }
 
             _catalog.Infos = newDict;
