@@ -4,6 +4,7 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using Lean.Gui;
 using MainCore.Common;
+using MainCore.Data;
 using MainCore.ECS;
 using MainCore.UI;
 using MainCore.UI.Utils;
@@ -291,7 +292,7 @@ namespace MainCore.Settings
 
             if (_selectedIsExternal == isExternal && _selectedId == id) return;
             var newSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(isExternal, id);
-            if (!newSkinInfo)
+            if (newSkinInfo == null)
             {
                 if (!isExternal) throw new Exception("not should've been here...??");
                 SkinManager.Instance.DeleteSkinInfo(id);

@@ -267,7 +267,7 @@ namespace MainCore
         {
             GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
             badTapInstance.transform.localScale = cachedTransform.lossyScale;
-            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.click_bad);
+            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.clickBad);
         }
     }
 }

@@ -589,8 +589,8 @@ namespace MainCore.Utilities
                 return null;
             }
 
-            SkinInfo skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
-            skinInfo.name = skinInfo.skinName = phiraSkinInfoData.name;
+            SkinInfo skinInfo = new SkinInfo();
+            skinInfo.skinName = phiraSkinInfoData.name;
             skinInfo.author = phiraSkinInfoData.author;
             skinInfo.description = phiraSkinInfoData.description == "" ? "无" : phiraSkinInfoData.description;
             skinInfo.hitFxDuration = phiraSkinInfoData.hitFxDuration;
@@ -599,7 +599,7 @@ namespace MainCore.Utilities
             skinInfo.hitFxTinted = phiraSkinInfoData.hitFxTinted;
             skinInfo.hideParticles = phiraSkinInfoData.hideParticles;
             skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
-            // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
+            // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat; // TODO: holdRepeat
             skinInfo.holdRepeat = false;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
             if (phiraSkinInfoData.colorPerfect.ToLowerInvariant() == "0xe1ffec9f")
@@ -644,7 +644,7 @@ namespace MainCore.Utilities
 
             skinInfo.hitFx = hitFx.ToArray();
             // 读取note们
-            (skinInfo.click_bad, _) = (skinInfo.click, _) =
+            (skinInfo.clickBad, _) = (skinInfo.click, _) =
                 await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
             (skinInfo.clickMh, _) =
                 await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
@@ -672,7 +672,7 @@ namespace MainCore.Utilities
                 Texture2D holdTexture =
                     await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
                 Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
-                    phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width);
+                    phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHead = holdSprites[0];
                 skinInfo.holdBody = holdSprites[1];
                 skinInfo.holdEnd = holdSprites[2];
@@ -680,7 +680,7 @@ namespace MainCore.Utilities
                 Texture2D holdMhTexture =
                     await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
                 Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[0],
-                    phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width);
+                    phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHeadMh = holdMhSprites[0];
                 skinInfo.holdBodyMh = holdMhSprites[1];
                 skinInfo.holdEndMh = holdMhSprites[2];
@@ -692,25 +692,24 @@ namespace MainCore.Utilities
                 InGameUIManager.ShowModalWindowWithClose("错误", "Hold贴图高度不足", () => { }, "确定");
                 return null;
             }
-
-            // BUG: 无法正常播放打击音
-            //await UniTask.SwitchToMainThread();
-            /*skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+            
+            await UniTask.SwitchToMainThread();
+            skinInfo.clickAc = File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/click.ogg", "click")
                 : SkinManager.Instance.defaultClickAC;
-            skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
+            skinInfo.dragAc = File.Exists($"{dirPath}/drag.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/drag.ogg", "drag")
                 : SkinManager.Instance.defaultDragAC;
-            skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
+            skinInfo.flickAc = File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/flick.ogg", "flick")
-                : SkinManager.Instance.defaultFlickAC;*/
+                : SkinManager.Instance.defaultFlickAC;
 
             return skinInfo;
         }
 
         private static Sprite[] SplitTexture(string namePrefix, Texture2D texture, int startPixel, int endPixel,
             float clickPpu,
-            float clickWidth)
+            float clickWidth, bool holdCompact)
         {
             if (startPixel + endPixel > texture.height)
             {
@@ -718,7 +717,7 @@ namespace MainCore.Utilities
             }
 
             float ppu = clickPpu * texture.width / clickWidth;
-            Sprite head = Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), new Vector2(0.5f, 1f),
+            Sprite head = Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), holdCompact ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 1f),
                 ppu, 1);
             Sprite body = Sprite.Create(texture,
                 new Rect(0f, startPixel, texture.width, texture.height - startPixel - endPixel), new Vector2(0.5f, 1f),

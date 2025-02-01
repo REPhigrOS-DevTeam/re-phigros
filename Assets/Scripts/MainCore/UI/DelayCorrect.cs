@@ -1,10 +1,8 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
-using MainCore.Utilities;
+using MainCore.Data;
 using UnityEngine;
 using UnityEngine.UI;
 

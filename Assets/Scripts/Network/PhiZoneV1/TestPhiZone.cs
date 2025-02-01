@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using MainCore.UI;
-using Network.PhiZoneV1.Data;
 using Network.PhiZoneV1.Utils;
 using UnityEngine;
 using UnityEngine.UI;

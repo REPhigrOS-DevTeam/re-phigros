@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Security;
 using JetBrains.Annotations;
 using MainCore.Native;
-using MainCore.UI;
 using MainCore.UI.Selection;
 using MainCore.UI.Utils;
 using MainCore.Utilities;

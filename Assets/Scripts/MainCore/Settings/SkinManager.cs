@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Cysharp.Threading.Tasks;
 using MainCore.Common;
+using MainCore.Data;
 using MainCore.Utilities;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -128,7 +129,7 @@ namespace MainCore.Settings
                     'e' => true,
                     _ => throw new ArgumentException()
                 }, s[1..]);
-                if (GlobalSetting.CurrentSkinInfo)
+                if (GlobalSetting.CurrentSkinInfo != null)
                 {
                     return;
                 }

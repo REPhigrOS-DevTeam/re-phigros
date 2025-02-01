@@ -11,7 +11,6 @@ using MainCore.Data;
 using MainCore.UI;
 using MainCore.UI.Utils;
 using Newtonsoft.Json;
-using NLayer;
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR

@@ -8,7 +8,6 @@ using MainCore.UI.Utils;
 using MainCore.Utilities;
 using MainCore.Utilities.ResourceManager;
 using Newtonsoft.Json;
-using Unity.Assertions;
 using UnityEngine;
 
 namespace MainCore.Serialized

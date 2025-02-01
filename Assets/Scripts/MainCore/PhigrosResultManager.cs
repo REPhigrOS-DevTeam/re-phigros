@@ -1,5 +1,4 @@
 using System;
-using LeTai.Asset.TranslucentImage;
 using MainCore.Common;
 using MainCore.Utilities;
 using Network.Multiplayer.Managers;

@@ -1,5 +1,4 @@
 using DG.Tweening;
-using Unity.VectorGraphics;
 using UnityEngine;
 using UnityEngine.UI;
 

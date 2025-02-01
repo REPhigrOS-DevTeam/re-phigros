@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace MainCore.Data
 {
     public class PhiraChartInfoData

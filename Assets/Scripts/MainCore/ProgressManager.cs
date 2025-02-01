@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using DG.Tweening;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace MainCore
 {

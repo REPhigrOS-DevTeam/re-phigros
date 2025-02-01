@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using MainCore.Data;
+using MainCore.Data.Serialized;
 using MainCore.Settings;
-using MainCore.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -132,11 +133,13 @@ namespace MainCore
             {
                 return skinInfo;
             }
-            var loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
-            if (!loadSkinInfo)
+            var loadSkinInfoObject = Resources.Load<SkinInfoObject>($"Skin/{skin}");
+            if (!loadSkinInfoObject)
             {
                 throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
             }
+
+            var loadSkinInfo = loadSkinInfoObject.CurrentData;
             skinInfos.Add(skin, loadSkinInfo);
             return loadSkinInfo;
 

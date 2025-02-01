@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics;
+using MainCore.Data;
 using MainCore.ECS;
-using MainCore.Utilities;
 using UnityEngine;
 
 namespace MainCore

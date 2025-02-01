@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using JetBrains.Annotations;
-using MainCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;

@@ -1,7 +1,6 @@
 ﻿using Lean.Gui;
 using MainCore.Common;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MainCore.UI
 {
