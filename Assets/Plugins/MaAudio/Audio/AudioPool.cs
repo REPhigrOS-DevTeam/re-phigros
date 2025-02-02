@@ -65,11 +65,11 @@ namespace MaTech.Audio {
             if (url == null) return null;
             
             AudioType audioType = GetAudioTypeByPath(url);
-            // #if UNITY_STANDALONE
-            // if (audioType == AudioType.MPEG) {
-            //     throw new System.NotImplementedException("MP3 decoders not present in builds. Implement a MP3 decoder here and output the decoded data as an AudioClip.");
-            // }
-            // #endif
+            #if UNITY_STANDALONE
+            if (audioType == AudioType.MPEG) {
+                throw new System.NotImplementedException("MP3 decoders not present in builds. Implement a MP3 decoder here and output the decoded data as an AudioClip.");
+            }
+            #endif
 
             await UniTask.SwitchToMainThread();
             

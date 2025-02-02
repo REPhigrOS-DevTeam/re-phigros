@@ -17,13 +17,13 @@ namespace MaTech.Audio
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD || MAAUDIO_DEBUG_LOG
         [AOT.MonoPInvokeCallback(typeof(Logger))]
-        private static void Log(string s) => Debug.Log("[MaAudio Native] " + s);
+        private static void Log(string s) => Debug.LogWarning("[MaAudio Native] " + s);
 
         static MaAudio()
         {
-            Debug.Log("MaAudio native debug logging enabled.");
-            DebugLogFunction = Log;
-            IsDebugLogEnabled = true;
+            // Debug.LogWarning("MaAudio native debug logging enabled.");
+            // DebugLogFunction = Log;
+            IsDebugLogEnabled = false;
         }
 #endif
 
@@ -39,16 +39,17 @@ namespace MaTech.Audio
 
 #if UNITY_EDITOR
             EditorApplication.pauseStateChanged += onEditorPause;
+            onEditorPause(EditorApplication.isPaused ? PauseState.Paused : PauseState.Unpaused);
 #endif
 
             Application.quitting += UnloadForUnity;
 #if !UNITY_EDITOR && !UNITY_STANDALONE
             Application.focusChanged += OnFocusChanged;
+
+            OnFocusChanged(Application.isFocused);
 #endif
 
-            isFocusLost = !Application.isFocused;
-
-            Debug.Log("MaAudio created.");
+            Debug.LogWarning("MaAudio created.");
             IsLoadedForUnity = true;
             return true;
         }
@@ -78,14 +79,24 @@ namespace MaTech.Audio
             return LoadForUnity();
         }
 
+
+#if !UNITY_EDITOR && !UNITY_STANDALONE
         private static bool isFocusLost = false;
+#endif
         private static bool isEditorPaused = false;
+
+        private static bool _pausedInternal = false;
+        private static bool PausedInternal
+        {
+            get => _pausedInternal;
+            set => Paused = _pausedInternal = value;
+        }
 
 #if !UNITY_EDITOR && !UNITY_STANDALONE
         private static void OnFocusChanged(bool focused)
         {
             isFocusLost = !focused;
-            Paused = isFocusLost || isEditorPaused;
+            PausedInternal = isFocusLost || isEditorPaused;
         }
 #endif
 
@@ -98,7 +109,7 @@ namespace MaTech.Audio
         private static readonly Action<PauseState> onEditorPause = (state) =>
         {
             isEditorPaused = (state == PauseState.Paused);
-            Paused = isFocusLost || isEditorPaused;
+            PausedInternal = isEditorPaused;
         };
 #endif
     }

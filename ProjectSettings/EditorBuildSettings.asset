@@ -24,7 +24,7 @@ EditorBuildSettings:
     path: Assets/Scenes/SettingsScene.unity
     guid: 5cac6fb6eece08a4189baf127e41d4cc
   - enabled: 1
-    path: Assets/Scenes/TEST/NetworkTest.unity
+    path: Assets/Scenes/NetworkTest.unity
     guid: bd44713326932b443935dbae5a16d819
   - enabled: 1
     path: Assets/Scenes/WahtThe.unity

@@ -1,13 +1,10 @@
 {
-    "name": "MaCommon",
-    "rootNamespace": "MaTech.Common",
-    "references": [
-        "UniTask",
-        "AsyncAwaitUtil"
-    ],
+    "name": "UnityAsyncAwaitUtil",
+    "rootNamespace": "",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

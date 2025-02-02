@@ -13,22 +13,17 @@ MonoBehaviour:
   m_Name: SceneList
   m_EditorClassIdentifier: 
   rootScenes:
-  - {fileID: 102900000, guid: b19a8822370a6ac458833a697108c75f, type: 3}
-  - {fileID: 102900000, guid: f2c79930ecb085b449545d63f760450b, type: 3}
-  - {fileID: 102900000, guid: 3f0fdff8f85a1b94a8a76ca7b86db18d, type: 3}
-  - {fileID: 102900000, guid: b004a393523c28b45821837648f20572, type: 3}
-  - {fileID: 102900000, guid: d93cefa1783c5cd4390fa6c08cb2a24c, type: 3}
-  - {fileID: 102900000, guid: ac0d6908a7ffab94a9425e8c35019137, type: 3}
-  - {fileID: 102900000, guid: 59422867585e9db4881ea6bc039559b7, type: 3}
-  - {fileID: 102900000, guid: a6394be8eb9063d429e1fcb7a329fd43, type: 3}
-  nodes:
-  - folderName: Debug
-    pathFolder: New Scene
-    scenes:
-    - {fileID: 102900000, guid: 2873b344dfc4cac4a9c438a18828884e, type: 3}
-    - {fileID: 102900000, guid: 0f0393c097d508d46845d62532c4059a, type: 3}
-    - {fileID: 102900000, guid: 5180cc85db7f490409f2e364d9706da1, type: 3}
-    - {fileID: 102900000, guid: 0aee78066b5150e47b014d14ee12cbdb, type: 3}
-    - {fileID: 102900000, guid: e73621e54e24b93498717dad859d3ca0, type: 3}
-    - {fileID: 102900000, guid: 5180d9cd044166449b3511aeee0ae12c, type: 3}
-    nodes: []
+  - {fileID: 102900000, guid: 14fb2726c792eb84abb8a85cc6d26fad, type: 3}
+  - {fileID: 102900000, guid: 9cd29a0c9e8c31142b916f79ad91d319, type: 3}
+  - {fileID: 102900000, guid: 3b29ec2a34427a441975579c31731f86, type: 3}
+  - {fileID: 102900000, guid: 7e0aad95016560b43bbc7884ac9ece06, type: 3}
+  - {fileID: 102900000, guid: 6c6423278cf77aa4b999c364fa56e635, type: 3}
+  - {fileID: 102900000, guid: fc332418bf4b58647858fca9d08c429b, type: 3}
+  - {fileID: 102900000, guid: f2afd469b7632f54d9048a331d312670, type: 3}
+  - {fileID: 102900000, guid: 5cac6fb6eece08a4189baf127e41d4cc, type: 3}
+  - {fileID: 102900000, guid: ffbb6edaa01f39c428740cfee4a72a68, type: 3}
+  - {fileID: 102900000, guid: 6e7d485c042492e4191f6d6ca0c528d7, type: 3}
+  - {fileID: 102900000, guid: bd44713326932b443935dbae5a16d819, type: 3}
+  - {fileID: 102900000, guid: c099d178b8c4df549b58eadda1e262ba, type: 3}
+  - {fileID: 102900000, guid: cd01a74094628da45aff6b2bd0be8bb7, type: 3}
+  nodes: []

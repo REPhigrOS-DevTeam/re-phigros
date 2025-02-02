@@ -20,6 +20,7 @@ namespace MainCore
 
         [SerializeField] private AudioClip[] hitSounds;
         [SerializeField] private int[] hitSoundsLength;
+        [SerializeField] private SkinInfo debugInfo;
 
         private bool _initialized = false;
 
@@ -57,18 +58,14 @@ namespace MainCore
             await UniTask.WaitUntil(() => SkinManager.Instance.Initialized && _initialized);
             Debug.Log("[HitSoundManager] Refreshing hit sounds...");
             Resources.UnloadUnusedAssets();
+            hasFallback = false;
             SkinInfo skinInfo = GlobalSetting.CurrentSkinInfo;
+            debugInfo = skinInfo;
             hitSounds[0] = null;
-            hitSounds[1] = skinInfo.clickAc ??
-                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath +
-                                                                $"/{GlobalSetting.CurrentSkinInfo.id}/click.ogg");
-            hitSounds[2] = skinInfo.dragAc ??
-                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath +
-                                                                $"/{GlobalSetting.CurrentSkinInfo.id}/drag.ogg");
-            hitSounds[3] = skinInfo.clickAc ?? hitSounds[1];
-            hitSounds[4] = skinInfo.flickAc ??
-                           await Util.ReadMusicAsAudioClipAsync(SkinManager.Instance.SkinPath +
-                                                                $"/{GlobalSetting.CurrentSkinInfo.id}/flick.ogg");
+            hitSounds[1] = skinInfo.clickAc;
+            hitSounds[2] = skinInfo.dragAc;
+            hitSounds[3] = hitSounds[1];
+            hitSounds[4] = skinInfo.flickAc;
 
             await UniTask.WaitUntil(() => _refreshHitSoundSequencer != null);
             await RefreshMaAudio();
@@ -104,6 +101,7 @@ namespace MainCore
                     _maAudios[i][j] = await AudioSample.LoadFromAudioClip(hitSounds[i]);
                     if (_maAudios[i][j] == null)
                     {
+                        if (hasFallback) throw new System.Exception("Can't load hit sounds!");
                         FallbackLoad();
                         await RefreshMaAudio();
                         return;
@@ -114,8 +112,10 @@ namespace MainCore
             }
         }
 
+        private bool hasFallback = false;
         private void FallbackLoad()
         {
+            hasFallback = true;
             Debug.Log(
                 $"[HitSoundManager] Fallback: {GlobalSetting.CurrentSkinInfo.isExternal} {GlobalSetting.CurrentSkinInfo.skinName}");
             Debug.Log("[HitSoundManager] Can't load hit sounds! Fallback to default hit sound...");

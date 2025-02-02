@@ -95,6 +95,14 @@ namespace MaTech.Audio {
             }
             
             await UniTask.SwitchToMainThread();
+            if (clip.loadState == AudioDataLoadState.Unloaded)
+            {
+                if (!clip.LoadAudioData())
+                {
+                    Debug.LogError($"[Sample] Failed to load AudioClip [{clip.name}] data.");
+                    return false;
+                }
+            }
             length = clip.length;
             audio = await MaAudio.CreateAudioFromClipAsync(clip);
 

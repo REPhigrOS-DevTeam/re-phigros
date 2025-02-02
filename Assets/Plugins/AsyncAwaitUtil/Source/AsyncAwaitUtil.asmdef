@@ -1,7 +1,9 @@
 {
     "name": "AsyncAwaitUtil",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:e78fb9598b33a9e4ebd7b0860ad1a496"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

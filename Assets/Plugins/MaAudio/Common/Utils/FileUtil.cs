@@ -101,7 +101,7 @@ namespace MaTech.Common.Utils {
         public static async UniTask<string> ReadFileAsString(string path) {
             const int sizeBuffer = 4096;
 
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, sizeBuffer, true);
+            await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, sizeBuffer, true);
             
             var buffer = new byte[sizeBuffer];  
             var result = new StringBuilder();
@@ -119,7 +119,7 @@ namespace MaTech.Common.Utils {
         public static async UniTask<byte[]> ReadFileAsBytes(string path) {
             await UniTask.SwitchToThreadPool();
 
-            using var sourceStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, false);
+            await using var sourceStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, false);
             
             var buffer = new byte[sourceStream.Length];
             sourceStream.Read(buffer, 0, buffer.Length);
