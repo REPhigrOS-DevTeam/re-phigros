@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
+using MainCore.Settings;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,7 +40,7 @@ namespace MainCore.UI
             // 预加载
             foreach (Skin skin in Enum.GetValues(typeof(Skin)))
             {
-                SkinInfo skinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo(skin);
+                SkinInfo skinInfo = SkinManager.Instance.GetInternalSkinInfo(skin);
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0f, 0f, 1f);
                 effectManager.PlayEffect();

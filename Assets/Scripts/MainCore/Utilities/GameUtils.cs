@@ -671,16 +671,16 @@ namespace MainCore.Utilities
                 // hold
                 Texture2D holdTexture =
                     await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
-                Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
-                    phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width, skinInfo.holdCompact);
+                Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[1],
+                    phiraSkinInfoData.holdAtlas[0], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHead = holdSprites[0];
                 skinInfo.holdBody = holdSprites[1];
                 skinInfo.holdEnd = holdSprites[2];
                 skinInfo.holdLengthFactor = skinInfo.holdBody.rect.height / skinInfo.holdBody.pixelsPerUnit;
                 Texture2D holdMhTexture =
                     await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
-                Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[0],
-                    phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width, skinInfo.holdCompact);
+                Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[1],
+                    phiraSkinInfoData.holdAtlasMH[0], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHeadMh = holdMhSprites[0];
                 skinInfo.holdBodyMh = holdMhSprites[1];
                 skinInfo.holdEndMh = holdMhSprites[2];
@@ -697,12 +697,15 @@ namespace MainCore.Utilities
             skinInfo.clickAc = File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/click.ogg", "click")
                 : SkinManager.Instance.defaultClickAC;
+            skinInfo.clickAcPath = $"{dirPath}/click.ogg";
             skinInfo.dragAc = File.Exists($"{dirPath}/drag.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/drag.ogg", "drag")
                 : SkinManager.Instance.defaultDragAC;
+            skinInfo.dragAcPath = $"{dirPath}/drag.ogg";
             skinInfo.flickAc = File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/flick.ogg", "flick")
                 : SkinManager.Instance.defaultFlickAC;
+            skinInfo.flickAcPath = $"{dirPath}/flick.ogg";
 
             return skinInfo;
         }
@@ -717,13 +720,13 @@ namespace MainCore.Utilities
             }
 
             float ppu = clickPpu * texture.width / clickWidth;
-            Sprite head = Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), holdCompact ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 1f),
-                ppu, 1);
+            Sprite head = startPixel > 0 ? Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), holdCompact ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 1f),
+                ppu, 1) : Sprite.Create(new Texture2D(0, 0), Rect.zero, Vector2.zero, ppu, 1);
             Sprite body = Sprite.Create(texture,
                 new Rect(0f, startPixel, texture.width, texture.height - startPixel - endPixel), new Vector2(0.5f, 1f),
                 ppu, 1);
-            Sprite end = Sprite.Create(texture, new Rect(0f, texture.height - endPixel, texture.width, endPixel),
-                new Vector2(0.5f, 0f), ppu, 1);
+            Sprite end = endPixel > 0 ? Sprite.Create(texture, new Rect(0f, texture.height - endPixel, texture.width, endPixel),
+                new Vector2(0.5f, 0f), ppu, 1) : Sprite.Create(new Texture2D(0, 0), Rect.zero, Vector2.zero, ppu, 1);
             head.name = $"{namePrefix}_head";
             body.name = $"{namePrefix}_body";
             end.name = $"{namePrefix}_end";

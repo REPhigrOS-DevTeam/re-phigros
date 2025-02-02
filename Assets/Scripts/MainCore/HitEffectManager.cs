@@ -19,8 +19,6 @@ namespace MainCore
 
         private Dictionary<string, EffectManager> prefabs = new();
 
-        private Dictionary<Skin, SkinInfo> skinInfos = new Dictionary<Skin, SkinInfo>();
-
         public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
 
         private HitEffectManager()
@@ -124,34 +122,6 @@ namespace MainCore
             pool.Clear();
             objectsInUse.Clear();
             prefabs.Clear();
-        }
-
-        public SkinInfo GetInternalSkinInfo(Skin skin)
-        {
-            if (skinInfos == null) throw new ArgumentException();
-            if (skinInfos.TryGetValue(skin, out var skinInfo))
-            {
-                return skinInfo;
-            }
-            var loadSkinInfoObject = Resources.Load<SkinInfoObject>($"Skin/{skin}");
-            if (!loadSkinInfoObject)
-            {
-                throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
-            }
-
-            var loadSkinInfo = loadSkinInfoObject.CurrentData;
-            skinInfos.Add(skin, loadSkinInfo);
-            return loadSkinInfo;
-
-        }
-
-        public SkinInfo GetSkinInfo(bool isExternal, string id)
-        {
-            if (isExternal)
-            {
-                Debug.Log($"[SkinManager] Current skin id: {id}");
-            }
-            return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }
     }
 

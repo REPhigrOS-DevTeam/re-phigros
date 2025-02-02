@@ -6,6 +6,7 @@ using System.Text;
 using Cysharp.Threading.Tasks;
 using MainCore.Common;
 using MainCore.Data;
+using MainCore.Data.Serialized;
 using MainCore.Utilities;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace MainCore.Settings
     {
         public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
         public Sprite defaultParticle;
+        private Dictionary<Skin, SkinInfo> internalSkinInfos = new Dictionary<Skin, SkinInfo>();
         private Dictionary<string, SkinInfo> externalSkinInfos = new Dictionary<string, SkinInfo>();
         public string SkinPath => GetBasePath() + "/Skins";
 
@@ -51,7 +53,8 @@ namespace MainCore.Settings
             Directory.CreateDirectory(SkinPath);
             if (!File.Exists(SkinPath + "/info.json"))
             {
-                await File.WriteAllBytesAsync(SkinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins(), Formatting.None)));
+                await File.WriteAllBytesAsync(SkinPath + "/info.json",
+                    new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(new Skins(), Formatting.None)));
             }
             else
             {
@@ -81,14 +84,16 @@ namespace MainCore.Settings
             var skins = JsonConvert.DeserializeObject<Skins>(File.ReadAllText(SkinPath + "/info.json"));
             var skinSummaries = skins.SkinSummaries.ToList();
             var guid = Guid.NewGuid().ToString();
-            while (skinSummaries.Select(skinSummary => skinSummary.ID).ToList().Contains(guid)) guid = Guid.NewGuid().ToString();
+            while (skinSummaries.Select(skinSummary => skinSummary.ID).ToList().Contains(guid))
+                guid = Guid.NewGuid().ToString();
             skinSummaries.Add(new SkinSummary
             {
                 ID = guid,
                 Name = skinInfo.skinName
             });
             skins.SkinSummaries = skinSummaries.ToArray();
-            File.WriteAllBytes(SkinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
+            File.WriteAllBytes(SkinPath + "/info.json",
+                new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
             Directory.CreateDirectory($"{SkinPath}/{guid}");
             Util.CopyAll(new DirectoryInfo(tempPath), new DirectoryInfo($"{SkinPath}/{guid}"));
             skinInfo.id = guid;
@@ -102,11 +107,13 @@ namespace MainCore.Settings
             var skinSummaries = skins.SkinSummaries.ToList();
             skinSummaries.Remove(skinSummaries.Find(skinSummary => skinSummary.ID == id));
             skins.SkinSummaries = skinSummaries.ToArray();
-            File.WriteAllBytes(SkinPath + "/info.json", new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
+            File.WriteAllBytes(SkinPath + "/info.json",
+                new UTF8Encoding(false).GetBytes(JsonConvert.SerializeObject(skins, Formatting.None)));
             if (Directory.Exists($"{SkinPath}/{id}"))
             {
                 Directory.Delete($"{SkinPath}/{id}", true);
             }
+
             externalSkinInfos.Remove(id);
         }
 
@@ -115,7 +122,7 @@ namespace MainCore.Settings
             if (PlayerPrefs.HasKey("skin")) // 给前人擦屁股.jpg
             {
                 var skin = PlayerPrefs.GetInt("skin", 0);
-                GlobalSetting.CurrentSkinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo((Skin)skin);
+                GlobalSetting.CurrentSkinInfo = GetInternalSkinInfo((Skin)skin);
                 PlayerPrefs.DeleteKey("skin");
                 PlayerPrefs.SetString("selected_skin", $"i{skin}");
                 PlayerPrefs.Save();
@@ -123,21 +130,24 @@ namespace MainCore.Settings
             else
             {
                 var s = PlayerPrefs.GetString("selected_skin", "i0");
-                GlobalSetting.CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(s[0] switch // internal external
-                {
-                    'i' => false,
-                    'e' => true,
-                    _ => throw new ArgumentException()
-                }, s[1..]);
+                GlobalSetting.CurrentSkinInfo = GetSkinInfo(
+                    s[0] switch // internal external
+                    {
+                        'i' => false,
+                        'e' => true,
+                        _ => throw new ArgumentException()
+                    }, s[1..]);
                 if (GlobalSetting.CurrentSkinInfo != null)
                 {
                     return;
                 }
+
                 if (s[0] != 'e') throw new ArgumentException();
                 PlayerPrefs.SetString("selected_skin", "i0");
-                GlobalSetting.CurrentSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(false, "0");
+                GlobalSetting.CurrentSkinInfo = GetSkinInfo(false, "0");
                 PlayerPrefs.Save();
             }
+
             HitSoundManager.Instance.RefreshHitSounds();
         }
 
@@ -149,22 +159,49 @@ namespace MainCore.Settings
                     : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
         }
 
+        public SkinInfo GetInternalSkinInfo(Skin skin)
+        {
+            if (internalSkinInfos == null) throw new ArgumentException();
+            if (internalSkinInfos.TryGetValue(skin, out var skinInfo))
+            {
+                return skinInfo;
+            }
+
+            var loadSkinInfoObject = Resources.Load<SkinInfoObject>($"Skin/{skin}");
+            if (!loadSkinInfoObject)
+            {
+                throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
+            }
+
+            var loadSkinInfo = loadSkinInfoObject.CurrentData;
+            internalSkinInfos.Add(skin, loadSkinInfo);
+            return loadSkinInfo;
+        }
+
+        public SkinInfo GetSkinInfo(bool isExternal, string id)
+        {
+            if (isExternal)
+            {
+                Debug.Log($"[SkinManager] Current skin id: {id}");
+            }
+
+            return isExternal ? GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
+        }
+
         public SkinInfo GetExternalSkinInfo(string id) => externalSkinInfos.GetValueOrDefault(id);
 
-        public SkinSummary[] GetSkinSummaries() => JsonConvert.DeserializeObject<Skins>(File.ReadAllText(SkinPath + "/info.json")).SkinSummaries;
+        public SkinSummary[] GetSkinSummaries() =>
+            JsonConvert.DeserializeObject<Skins>(File.ReadAllText(SkinPath + "/info.json")).SkinSummaries;
     }
 
     public class Skins
     {
-        [JsonProperty("skins")]
-        public SkinSummary[] SkinSummaries= Array.Empty<SkinSummary>();
+        [JsonProperty("skins")] public SkinSummary[] SkinSummaries = Array.Empty<SkinSummary>();
     }
 
     public class SkinSummary
     {
-        [JsonProperty("id")]
-        public string ID = "";
-        [JsonProperty("name")]
-        public string Name = "";
+        [JsonProperty("id")] public string ID = "";
+        [JsonProperty("name")] public string Name = "";
     }
 }

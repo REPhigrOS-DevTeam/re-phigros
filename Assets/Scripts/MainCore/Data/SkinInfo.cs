@@ -33,6 +33,9 @@ namespace MainCore.Data
         public AudioClip clickAc;
         public AudioClip dragAc;
         public AudioClip flickAc;
+        [HideInInspector] public string clickAcPath;
+        [HideInInspector] public string dragAcPath;
+        [HideInInspector] public string flickAcPath;
         public bool paintBadColor = true; // 6C4343
         public Color perfectColor, goodColor;
         public float hitFxDuration;

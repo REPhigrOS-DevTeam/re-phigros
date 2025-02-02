@@ -430,7 +430,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -545,7 +545,7 @@ RectTransform:
   m_Children:
   - {fileID: 2028621896}
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1726,7 +1726,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &870875569
 MonoBehaviour:
@@ -2178,15 +2178,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4db8b5d5aa649a5b86dca16f8cdd729, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hitSounds:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   hitSoundsLength: 0000000005000000050000000500000005000000
-  fallbackSkinInfoObject: {fileID: 11400000, guid: c01cf522b786d8646916f95887880e6f,
-    type: 2}
+  debugInfo:
+    isExternal: 1
+    skin: 0
+    id: 
+    skinName: 
+    author: 
+    description: 
+    click: {fileID: 0}
+    clickMh: {fileID: 0}
+    drag: {fileID: 0}
+    dragMh: {fileID: 0}
+    flick: {fileID: 0}
+    flickMh: {fileID: 0}
+    holdHead: {fileID: 0}
+    holdHeadMh: {fileID: 0}
+    holdBody: {fileID: 0}
+    holdBodyMh: {fileID: 0}
+    holdEnd: {fileID: 0}
+    holdEndMh: {fileID: 0}
+    clickBad: {fileID: 0}
+    hitFx: []
+    hitParticle: {fileID: 0}
+    clickAc: {fileID: 0}
+    dragAc: {fileID: 0}
+    flickAc: {fileID: 0}
+    clickAcPath: 
+    dragAcPath: 
+    flickAcPath: 
+    paintBadColor: 1
+    perfectColor: {r: 0, g: 0, b: 0, a: 0}
+    goodColor: {r: 0, g: 0, b: 0, a: 0}
+    hitFxDuration: 0
+    hitFxScale: 0
+    hitFxRotate: 0
+    hitFxTinted: 0
+    hideParticles: 0
+    holdKeepHead: 0
+    holdRepeat: 0
+    holdCompact: 0
+    holdLengthFactor: 0
+    holdMhLengthFactor: 0
 --- !u!4 &1185285580
 Transform:
   m_ObjectHideFlags: 0
@@ -2624,7 +2657,7 @@ RectTransform:
   - {fileID: 1333507190}
   - {fileID: 2003997167}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}

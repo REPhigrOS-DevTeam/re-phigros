@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using MainCore.Common;
+using MainCore.Settings;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -53,7 +54,7 @@ namespace MainCore.ECS
         {
             foreach (Skin skin in Enum.GetValues(typeof(Skin)))
             {
-                Sprite hitParticle = HitEffectManager.GetInstance().GetInternalSkinInfo(skin).hitParticle;
+                Sprite hitParticle = SkinManager.Instance.GetInternalSkinInfo(skin).hitParticle;
                 Material material = Instantiate(materialPrefab);
                 material.SetTexture(MainTextureId, hitParticle.texture);
                 _internalParticleCache.Add(skin, material);

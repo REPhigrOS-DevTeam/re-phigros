@@ -291,7 +291,7 @@ namespace MainCore.Settings
             }
 
             if (_selectedIsExternal == isExternal && _selectedId == id) return;
-            var newSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(isExternal, id);
+            var newSkinInfo = SkinManager.Instance.GetSkinInfo(isExternal, id);
             if (newSkinInfo == null)
             {
                 if (!isExternal) throw new Exception("not should've been here...??");
