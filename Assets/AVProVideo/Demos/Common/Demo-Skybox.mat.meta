@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 276368b4e7f7f044e8288312f105954e
+timeCreated: 1601367715
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/Demo-Skybox.mat
+  uploadId: 730303

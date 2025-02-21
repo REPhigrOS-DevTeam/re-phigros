@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b5e7d0eecf59540cca67bfad3855cef1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Editor/Scripts/PostProcessBuild_macOS.cs
+  uploadId: 730303

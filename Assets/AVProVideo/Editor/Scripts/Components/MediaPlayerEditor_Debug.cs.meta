@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 8c5649aed6704fa4199ad212f4562fdb
+timeCreated: 1594038897
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Editor/Scripts/Components/MediaPlayerEditor_Debug.cs
+  uploadId: 730303

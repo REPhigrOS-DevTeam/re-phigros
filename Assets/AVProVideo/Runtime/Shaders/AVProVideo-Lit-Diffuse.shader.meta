@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 06b0cff0150d7eb41b3d269f7e11daa3
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-Lit-Diffuse.shader
+  uploadId: 730303

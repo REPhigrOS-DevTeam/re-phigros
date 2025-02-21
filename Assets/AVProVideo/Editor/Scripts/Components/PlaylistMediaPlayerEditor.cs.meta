@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c9328411ef862884f97a993c4daa9b68
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Editor/Scripts/Components/PlaylistMediaPlayerEditor.cs
+  uploadId: 730303

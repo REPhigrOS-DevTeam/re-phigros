@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 5bcf2893fead7a14a8c737d1bb6cdd09
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo.cginc
+  uploadId: 730303

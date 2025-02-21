@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 532847372d6add8498ce0da18f7a619e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Editor/Scripts/PostProcessBuild_Android.cs
+  uploadId: 730303

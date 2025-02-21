@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -13,9 +14,10 @@ namespace MainCore
     public static class ChartLoader
     {
         public static Chart Chart { get; private set; } = new ();
+        public static float[] CalculatedTimes { get; private set; } = Array.Empty<float>();
 
         [CanBeNull]
-        public static async Task<string> InitChartAuto(string path, bool isInternal, bool showMessage = true)
+        public static async Task<string> InitChartAuto(string path, bool isInternal, bool showMessage, List<int[]> times)
         {
             var cts = new CancellationTokenSource();
             if (showMessage)
@@ -45,15 +47,18 @@ namespace MainCore
             rawChart = rawChart.Replace("\r\n", "\n");
             if (!rawChart.Contains("}") && rawChart.Contains("bp"))
             {
+                CalculatedTimes = Array.Empty<float>();
                 await InitPecChart(rawChart);
             }
             else if (rawChart.Contains("}") && rawChart.Contains("formatVersion"))
             {
+                CalculatedTimes = Array.Empty<float>();
                 await InitPgrChart(rawChart);
             }
             else if (rawChart.Contains("}") && rawChart.Contains("numOfNotes"))
             {
-                await InitRpeChart(rawChart, showMessage);
+                CalculatedTimes = times is { Count: > 0 } ? new float[times.Count] : Array.Empty<float>();
+                await InitRpeChart(rawChart, showMessage, times);
             }
             return rawChart;
         }
@@ -72,9 +77,9 @@ namespace MainCore
             ConvertEventsToLayer();
         }
 
-        private static async Task InitRpeChart(string ch, bool showMessage)
+        private static async Task InitRpeChart(string ch, bool showMessage, List<int[]> list)
         {
-            Chart = await Rpe2Json.Chart123(ch, showMessage).ConfigureAwait(false);
+            (Chart, CalculatedTimes) = await Rpe2Json.Chart123(ch, showMessage, list).ConfigureAwait(false);
         }
 
         private static void PreparePgrChart()

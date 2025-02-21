@@ -195,7 +195,7 @@ namespace Network.Multiplayer.Managers
                     GlobalSetting.CurrentBeatmapInfo.MusicPath = $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Music)}";
                     GlobalSetting.CurrentBeatmapInfo.IllustrationPath =
                         $"Charts/{chart.SongInfo.FolderName}/{Path.GetFileNameWithoutExtension(chart.SongPathInfo.Illustration)}";
-                    await ChartLoader.InitChartAuto(GlobalSetting.CurrentBeatmapInfo.ChartPath, true).ConfigureAwait(false);
+                    await ChartLoader.InitChartAuto(GlobalSetting.CurrentBeatmapInfo.ChartPath, true, true, null).ConfigureAwait(false);
                     TextAsset extraJsonObject = Resources.Load<TextAsset>($"Charts/{chart.SongInfo.FolderName}/extra");
                     if (extraJsonObject != null)
                     {

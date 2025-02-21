@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 0ed1fb9218ad96f49acfdb428d5b5aab
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-Unlit-Transparent.shader
+  uploadId: 730303

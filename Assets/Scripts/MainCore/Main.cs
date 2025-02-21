@@ -43,6 +43,7 @@ namespace MainCore
         public TextMeshProUGUI first, second, third;
         [SerializeField] private Text disconnectWarn;
         [SerializeField] private CanvasGroup uiCanvasGroup;
+        [SerializeField] private VideoManager videoManager;
         
         private const float Standard916Aspect = 16f / 9f;
         private float _totalOffset;
@@ -433,6 +434,16 @@ namespace MainCore
                     uiCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = true;
                     particleCamera.gameObject.AddComponent<ExtraShaderProvider>().IsGlobal = false;
                 }
+
+                if (GlobalSetting.CurrentBeatmapInfo.ExtraEvents.Videos != null)
+                {
+                    videoManager.gameObject.SetActive(true);
+                    videoManager.Init();
+                }
+                else
+                {
+                    videoManager.gameObject.SetActive(false);
+                }
             }
 
             GlobalSetting.HighLightedNotes.Clear();
@@ -457,6 +468,7 @@ namespace MainCore
             progressManager.StopTiming();
             _audioSource.Pause();
             _audioSource.volume = 0;
+            videoManager.Pause();
             float delta = Mathf.Min(3f, _audioSource.time);
             _audioSource.time = Mathf.Max(_audioSource.time - 3f, 0f);
             progressManager.TimeGoBack(delta, () => pauseWindow.TurnOn());
@@ -471,6 +483,7 @@ namespace MainCore
                 // audio.time = Stopwatch.ElapsedMilliseconds * .001f;
                 progressManager.ContinueTiming();
                 _audioSource.UnPause();
+                videoManager.Resume();
                 DOTween.To(() => _audioSource.volume, (x) => _audioSource.volume = x, 1f, 2f);
                 await Task.Delay(3000);
                 GlobalSetting.Paused = false;

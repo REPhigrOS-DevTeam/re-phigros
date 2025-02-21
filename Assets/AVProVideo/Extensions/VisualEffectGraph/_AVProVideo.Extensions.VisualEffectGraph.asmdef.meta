@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 00c900f8a139a2540ab354c9ce09ac0e
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/VisualEffectGraph/_AVProVideo.Extensions.VisualEffectGraph.asmdef
+  uploadId: 730303

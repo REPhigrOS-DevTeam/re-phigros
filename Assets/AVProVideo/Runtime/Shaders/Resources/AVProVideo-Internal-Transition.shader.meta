@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 73f378cafe7b4a745907b70e76bb3259
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/Resources/AVProVideo-Internal-Transition.shader
+  uploadId: 730303

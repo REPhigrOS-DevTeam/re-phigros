@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3bd657f68851a7f448c82186c6797ee0
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/UnityUI/_AVProVideo.Extensions.UnityUI.asmdef
+  uploadId: 730303

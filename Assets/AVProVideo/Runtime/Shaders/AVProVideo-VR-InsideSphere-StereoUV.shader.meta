@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 08ccc6021f136814494572dcad0c489d
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-VR-InsideSphere-StereoUV.shader
+  uploadId: 730303

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: d7a0d37aa7b09cb418a93251d226558a
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/VideoPlayer/Shaders/AVProVideo-ApplyToFarPlane.shader
+  uploadId: 730303

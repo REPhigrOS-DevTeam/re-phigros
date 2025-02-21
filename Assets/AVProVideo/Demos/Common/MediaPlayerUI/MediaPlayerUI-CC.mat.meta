@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 8e67518da82e8334685a53cd09579095
+timeCreated: 1546682531
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/MediaPlayerUI-CC.mat
+  uploadId: 730303

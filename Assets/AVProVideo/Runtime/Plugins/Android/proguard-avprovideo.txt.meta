@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 16a48ac54b9c03841ba400af5bbafc6c
+timeCreated: 1639133084
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Plugins/Android/proguard-avprovideo.txt
+  uploadId: 730303

@@ -50,7 +50,7 @@ namespace MainCore.Data
         public float endTime { get; set; }
         public string shader { get; set; }
         public bool global { get; set; }
-        public Dictionary<string, JToken> vars { get; set; }
+        public JObject vars { get; set; }
         public ExtraPropertyType[] varTypes { get; set; }
 
         public enum ExtraPropertyType

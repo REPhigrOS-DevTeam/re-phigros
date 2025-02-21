@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c9340fc8d5cba57498f7960bc0f094ab
+timeCreated: 1592334546
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/SampleMedia/Sample-Local-MP4-Cones-360Mono.asset
+  uploadId: 730303

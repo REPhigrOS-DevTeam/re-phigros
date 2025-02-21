@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 9c4b497c86e965b4e8a37e8aa70b2fe0
+timeCreated: 1592334546
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/SampleMedia/Sample-Local-MP4-Cones.asset
+  uploadId: 730303

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: cc82d5ef8f3834ab78b36ba88e35ae65
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/Resources/AVProVideo-Internal-Blit.shader
+  uploadId: 730303

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cdef6ca7b14eb064b90edf1d7dbba6d1
+timeCreated: 1607543899
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Licenses/HapInAvFoundation-License.txt
+  uploadId: 730303

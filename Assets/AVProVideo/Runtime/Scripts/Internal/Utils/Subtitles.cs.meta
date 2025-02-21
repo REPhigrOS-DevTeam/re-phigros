@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: c21f230642ee9284eb9726613241c7bd
+timeCreated: 1548861442
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Internal/Utils/Subtitles.cs
+  uploadId: 730303

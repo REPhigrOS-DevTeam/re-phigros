@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ca8fdd4aa85509743878be7fbacf5a4f
+timeCreated: 1601367920
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Scenes/Demo_360Stereo.unity
+  uploadId: 730303

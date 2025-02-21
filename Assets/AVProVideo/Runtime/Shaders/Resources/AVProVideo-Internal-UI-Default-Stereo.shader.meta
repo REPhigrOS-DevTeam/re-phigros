@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 018fe741dec71f14bb43801a31a07303
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/Resources/AVProVideo-Internal-UI-Default-Stereo.shader
+  uploadId: 730303

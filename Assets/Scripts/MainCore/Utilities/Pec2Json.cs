@@ -372,7 +372,7 @@ namespace MainCore.Utilities
 
     public static class Rpe2Json
     {
-        public static async Task<Chart> Chart123(string chart, bool showMessage)
+        public static async Task<(Chart, float[])> Chart123(string chart, bool showMessage, List<int[]> list)
         {
             RpeChartData rpeChartData = JsonUtility.FromJson<RpeChartData>(chart);
             Chart retChart = new Chart();
@@ -857,7 +857,21 @@ namespace MainCore.Utilities
 
             retChart.maxZOrder = maximumZOrder;
 
-            return retChart;
+            float[] qwq;
+            if (list is { Count: > 0 })
+            {
+                qwq = new float[list.Count];
+                for (var i = 0; i < list.Count; i++)
+                {
+                    qwq[i] = RecalcTime(bpms, list[i].Frac());
+                }
+            }
+            else
+            {
+                qwq = Array.Empty<float>();
+            }
+
+            return (retChart, qwq);
         }
 
         private static float RecalcTime(List<BpmEvent> bpms, float time)

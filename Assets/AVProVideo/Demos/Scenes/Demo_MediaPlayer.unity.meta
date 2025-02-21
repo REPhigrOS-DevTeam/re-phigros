@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 839cc75f049d0ea44a78c639e529d44a
+timeCreated: 1546679505
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Scenes/Demo_MediaPlayer.unity
+  uploadId: 730303

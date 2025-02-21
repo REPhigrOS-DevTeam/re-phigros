@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 580615174d55e5a4585702950fe00bdf
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/VideoTrackLine.prefab
+  uploadId: 730303

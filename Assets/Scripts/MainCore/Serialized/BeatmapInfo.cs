@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
@@ -36,7 +37,7 @@ namespace MainCore.Serialized
         public async UniTask<BeatmapInfo> ReloadFromPathFallback(string path)
         {
             Debug.Log($"[BeatmapInfoLoader] Reloading info for {path}");
-            
+
             var (songInfo, infoType, pathInfo, ymlOffset) = await GameUtils.GetInfoForPlay(path);
 
             Debug.Log($"[BeatmapInfoLoader] Got info for {path}, was {infoType}");
@@ -45,18 +46,19 @@ namespace MainCore.Serialized
             {
                 return null;
             }
+
             InfoType = infoType;
             if (InfoType is InfoType.InfoYml)
             {
-                YmlOffset = (float) ymlOffset;
+                YmlOffset = (float)ymlOffset;
             }
 
             IllustrationPath = pathInfo.Illustration;
             MusicPath = pathInfo.Music;
             ChartPath = pathInfo.Chart;
-            
+
             //Sanity Check
-            var fileList = new List<string>(){IllustrationPath, MusicPath, ChartPath};
+            var fileList = new List<string>() { IllustrationPath, MusicPath, ChartPath };
             if (!fileList.TrueForAll(x => File.Exists(Path.Combine(path, x))))
             {
                 return null;
@@ -77,12 +79,13 @@ namespace MainCore.Serialized
             {
                 return;
             }
+
             var sprite = IllustrationPath == ""
                 ? Resources.Load<Texture2D>("1920x1080_Black")
                 : await TextureReader.ReadLocalTextureByPath(Path.Combine(BasePath, IllustrationPath));
             Illustration = sprite;
         }
-        
+
         public async UniTask<bool> LoadBeatmap()
         {
             //Preparation
@@ -111,14 +114,23 @@ namespace MainCore.Serialized
             {
                 ExtraEvents = null;
             }
-            
+
             //Load chart
             if (!File.Exists(Path.Combine(BasePath, ChartPath)))
             {
                 return false;
             }
-            
-            RawChart = await ChartLoader.InitChartAuto(Path.Combine(BasePath, ChartPath), false)!.ConfigureAwait(false);
+
+            bool hasVideo = ExtraEvents is { Videos: not null };
+            RawChart = await ChartLoader.InitChartAuto(Path.Combine(BasePath, ChartPath), false, true, hasVideo ? ExtraEvents.Videos.Select(v => v.time).ToList() : null)!.ConfigureAwait(false);
+            if (hasVideo)
+            {
+                for (var i = 0; i < ExtraEvents.Videos.Count; i++)
+                {
+                    ExtraEvents.Videos[i].realTime = ChartLoader.CalculatedTimes[i];
+                }
+            }
+
             ChartLoader.ApplyPhiraOffset(YmlOffset);
 
             if (GlobalSetting.PepoyoDaisuki == GlobalSetting.PepoyoMode.Poyoroid_utsu &&
@@ -132,12 +144,12 @@ namespace MainCore.Serialized
             PopupMessageManager.Instance.ChangeContent("Loading...");
             await UniTask.Delay(500);
             await UniTask.SwitchToThreadPool();
-            
+
             //Load illustration
             await LoadIllustration();
-            
+
             await UniTask.SwitchToMainThread();
-            
+
             //Load music
             AudioClip music;
             try
@@ -152,6 +164,7 @@ namespace MainCore.Serialized
                     "确认");
                 return false;
             }
+
             if (!music)
             {
                 await UniTask.SwitchToMainThread();
@@ -160,6 +173,7 @@ namespace MainCore.Serialized
                     () => { PopupMessageManager.Instance.ChangeContent(""); }, "确认");
                 return false;
             }
+
             Music = music;
 
             await UniTask.SwitchToMainThread();

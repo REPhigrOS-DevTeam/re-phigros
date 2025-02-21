@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 4f344d823db9c4148af4dec2235f690d
+timeCreated: 1634119397
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Internal/PlaybackQualityStats.cs
+  uploadId: 730303
