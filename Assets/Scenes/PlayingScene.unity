@@ -994,7 +994,7 @@ MonoBehaviour:
   third: {fileID: 1033397653}
   disconnectWarn: {fileID: 840001218}
   uiCanvasGroup: {fileID: 822492291}
-  videoManager: {fileID: 0}
+  videoManager: {fileID: 1059136949}
 --- !u!4 &614252166
 Transform:
   m_ObjectHideFlags: 0
