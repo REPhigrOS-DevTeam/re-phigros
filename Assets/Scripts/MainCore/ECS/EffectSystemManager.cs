@@ -20,7 +20,6 @@ namespace MainCore.ECS
 
         private readonly Dictionary<Skin, Material> _internalParticleCache = new();
 
-        // private Dictionary<string, Material> externalParticleCache = new();
         public Material Material { get; private set; }
 
         [SerializeField] private int particleCount;
@@ -29,8 +28,6 @@ namespace MainCore.ECS
         public Camera drawCamera;
 
         private EntityArchetype archetype;
-
-        //private GameObjectConversionSettings settings;
         private EntityManager manager;
         private static readonly int MainTextureId = Shader.PropertyToID("_MainTex");
 
@@ -38,16 +35,15 @@ namespace MainCore.ECS
         {
             LoadAllInternalParticle();
             UpdateSkin();
-            //settings = GameObjectConversionSettings.FromWorld(World.DefaultGameObjectInjectionWorld, null);
             manager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            //button.onClick.AddListener(() => CreateParticle(particleCount, colorToDraw, 0, 1));
 
-            archetype = manager.CreateArchetype(typeof(HitEffectParticleData),
+            archetype = manager.CreateArchetype(
+                typeof(HitEffectParticleData),
                 typeof(LocalToWorld),
-                typeof(Scale),
-                typeof(Translation));
+                typeof(LocalTransform) // 使用 LocalTransform 替代 Scale 和 Translation
+            );
 
-            World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<MeshDrawer>().BindCamera();
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<MeshDrawer>().BindCamera();
         }
 
         private void LoadAllInternalParticle()
@@ -70,8 +66,6 @@ namespace MainCore.ECS
 
         public void CreateParticle(int cnt, Color color, float3 centerPosition, float scale)
         {
-            /*var array = new NativeArray<Entity>(cnt, Allocator.Temp);
-            manager.CreateEntity(archetype, array);*/
             for (int i = 0; i < cnt; i++)
             {
                 var entity = manager.CreateEntity(archetype);
@@ -84,6 +78,9 @@ namespace MainCore.ECS
                     spd = Random.Range(0f, 1f) * 80f + 185f,
                     rad = Random.Range(0f, 360f) * Mathf.Deg2Rad,
                 });
+
+                // 设置 LocalTransform
+                manager.SetComponentData(entity, LocalTransform.FromPositionRotationScale(centerPosition, Quaternion.identity, scale));
             }
         }
     }
@@ -101,19 +98,19 @@ namespace MainCore.ECS
     [BurstCompile]
     public partial class ParticleSystem : SystemBase
     {
-        EntityCommandBufferSystem mBarrier;
+        private EntityCommandBufferSystem mBarrier;
 
         protected override void OnCreate()
         {
-            mBarrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+            mBarrier = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
         }
 
         protected override void OnUpdate()
         {
             var commandBuffer = mBarrier.CreateCommandBuffer().AsParallelWriter();
 
-            var deltaTime = Time.DeltaTime;
-            Entities.ForEach((Entity entity, ref Translation translation, ref Scale scaler,
+            float deltaTime = World.Time.DeltaTime;
+            Entities.ForEach((Entity entity, ref LocalTransform transform,
                 ref HitEffectParticleData data) =>
             {
                 if (data.time > 1f)
@@ -122,14 +119,17 @@ namespace MainCore.ECS
                     return;
                 }
 
-                var a = (6.234f * math.pow(data.time, 3) - 49.572f * data.time * data.time + 49.197f * data.time +
-                         14.964f);
-                a *= .01f;
-                var b = ((data.spd) * 9 * data.time / (8 * data.time + 1)) * 0.011f;
-                translation.Value.x = data.centerPosition.x + b * math.cos(data.rad) * data.scale;
-                translation.Value.y = data.centerPosition.y + b * math.sin(data.rad) * data.scale;
-                translation.Value.z = data.centerPosition.z;
-                scaler.Value = a * data.scale * 1.5f;
+                float a = (6.234f * math.pow(data.time, 3) - 49.572f * data.time * data.time + 49.197f * data.time + 14.964f) * 0.01f;
+                float b = ((data.spd) * 9 * data.time / (8 * data.time + 1)) * 0.011f;
+
+                // 更新 LocalTransform 的位置和缩放
+                transform.Position = new float3(
+                    data.centerPosition.x + b * math.cos(data.rad) * data.scale,
+                    data.centerPosition.y + b * math.sin(data.rad) * data.scale,
+                    data.centerPosition.z
+                );
+                transform.Scale = a * data.scale * 1.5f;
+
                 data.color.w = 1 - data.time;
                 data.time += deltaTime * 2;
             }).ScheduleParallel();
@@ -138,7 +138,7 @@ namespace MainCore.ECS
         }
     }
 
-    public class MeshDrawer : ComponentSystem
+    public partial class MeshDrawer : SystemBase
     {
         private static readonly int Color1 = Shader.PropertyToID("_Color");
         private MaterialPropertyBlock _block = new MaterialPropertyBlock();
@@ -158,16 +158,17 @@ namespace MainCore.ECS
 
         protected override void OnUpdate()
         {
-            //Let's collect matrices and colors data and then use DrawMeshInstanced for better performance.
-            _block = new();
+            _block = new MaterialPropertyBlock();
             _colors.Clear();
             _matrices.Clear();
-            var cnt = 0;
-            Entities.ForEach((ref LocalToWorld matrix, ref HitEffectParticleData data) =>
+            int cnt = 0;
+
+            Entities.ForEach((in LocalToWorld matrix, in HitEffectParticleData data) =>
             {
                 _colors.Add(data.color);
                 _matrices.Add(matrix.Value);
-                cnt = cnt + 1;
+                cnt++;
+
                 if (cnt >= 1023)
                 {
                     _block.SetVectorArray(Color1, _colors);
@@ -178,15 +179,14 @@ namespace MainCore.ECS
                     _matrices.Clear();
                     cnt = 0;
                 }
-                //block.SetColor(Color1, new Color(data.color.x, data.color.y, data.color.z, data.color.w));
-                //Graphics.DrawMesh(EffectManager.Instance.mesh, matrix.Value, EffectManager.Instance.material, 0);
-                //Graphics.DrawMesh(EffectSystemManager.Instance.mesh, matrix.Value, EffectSystemManager.Instance.material, 1, mainCamera, 0, block);
-            });
-            if (cnt <= 0) return;
-            _block.SetVectorArray(Color1, _colors);
-            Graphics.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0, EffectSystemManager.Instance.Material,
-                _matrices, _block, ShadowCastingMode.Off, false, 7, _drawCamera);
-            //CommandBuffer.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0, EffectSystemManager.Instance.material, 0, matrices.ToArray(),cnt, block);
+            }).WithoutBurst().Run(); // 使用 Run() 确保在主线程执行
+
+            if (cnt > 0)
+            {
+                _block.SetVectorArray(Color1, _colors);
+                Graphics.DrawMeshInstanced(EffectSystemManager.Instance.mesh, 0, EffectSystemManager.Instance.Material,
+                    _matrices, _block, ShadowCastingMode.Off, false, 7, _drawCamera);
+            }
         }
     }
 }
