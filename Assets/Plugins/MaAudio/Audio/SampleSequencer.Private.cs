@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -87,7 +87,7 @@ namespace MaTech.Audio {
             }
             
             // buffer all audio samples before (dspTime + bufferOffset)
-            double bufferTime = playTime + this.bufferTime;
+            double bufferTime = playTime + bufferOffset;
             while (queueSample.HasNext) {
                 var nextSample = queueSample.Peek();
                 if (nextSample.Offset > bufferTime) break;

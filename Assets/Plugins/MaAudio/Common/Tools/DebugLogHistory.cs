@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,8 +12,11 @@ using UnityEngine;
 
 namespace MaTech.Common.Tools {
     public class DebugLogHistory : MonoBehaviour {
-        #if UNITY_EDITOR
-        private static readonly Dictionary<string, List<string>> history = new Dictionary<string, List<string>>();
+        private static readonly Dictionary<string, List<string>> history = new();
+        private static readonly List<DebugLogHistory> instances = new();
+
+        public static bool HasInstances => instances.Count > 0;
+        public static bool IsActive => instances.Exists(o => o.isActiveAndEnabled);
 
         public static void PushHistory(string key, string text) {
             lock (history) {
@@ -40,8 +43,16 @@ namespace MaTech.Common.Tools {
         private int nextLogIndex = 0;
         private float nextLogTime = 0;
 
-        void Start() {
+        void OnEnable() {
             nextLogTime = Time.unscaledTime;
+        }
+
+        void Awake() {
+            instances.Add(this);
+        }
+
+        void OnDestroy() {
+            instances.Remove(this);
         }
 
         void Update() {
@@ -72,13 +83,5 @@ namespace MaTech.Common.Tools {
                     nextLogTime = targetTime;
             }
         }
-        
-        #else
-        [System.Diagnostics.Conditional("CALL_ALWAYS_IGNORED")]
-        public static void PushHistory(string key, string text) {}
-        [System.Diagnostics.Conditional("CALL_ALWAYS_IGNORED")]
-        public static void ClearHistory(string key) {}
-        #endif
-
     }
 }

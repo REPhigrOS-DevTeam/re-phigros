@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -82,6 +82,8 @@ namespace MaTech.Common.Data {
         public static implicit operator FractionSimple(Fraction fraction) => new FractionSimple(fraction._num + fraction._int * fraction._den, fraction._den);
         public static implicit operator Fraction(FractionSimple fraction) => new Fraction(0, fraction.Numerator, fraction.Denominator).Normalized;
 
+        public static implicit operator Fraction(int integer) => new Fraction(integer);
+        
         public Fraction Normalized {
             get {
                 if (_den == 0) {

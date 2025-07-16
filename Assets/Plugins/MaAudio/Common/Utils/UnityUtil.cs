@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,9 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
+using MaTech.Common.Algorithm;
 using MaTech.Common.Unity;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +26,10 @@ namespace MaTech.Common.Utils {
         [Serializable] public class UnityEventFloat : UnityEvent<float> { }
         [Serializable] public class UnityEventDouble : UnityEvent<double> { }
         [Serializable] public class UnityEventString : UnityEvent<string> { }
+        [Serializable] public class UnityEventColor : UnityEvent<Color> { }
+        [Serializable] public class UnityEventVector2 : UnityEvent<Vector2> { }
+        [Serializable] public class UnityEventVector3 : UnityEvent<Vector3> { }
+        [Serializable] public class UnityEventVector4 : UnityEvent<Vector4> { }
         [Serializable] public class UnityEventException : UnityEvent<Exception> { }
         [Serializable] public class UnityEventGameObject : UnityEvent<GameObject> { }
 
@@ -146,6 +151,18 @@ namespace MaTech.Common.Utils {
             return rectTransform.localToWorldMatrix.MultiplyPoint(rectTransform.GetAnchoredLocalPosition(ratio));
         }
 
+        public static Rect Flip(this Rect rect) => new Rect(rect.y, rect.x, rect.height, rect.width);
+
+        public static float MapXY(this Rect rect, float value) => MathUtil.LinearMap(rect.xMin, rect.xMax, rect.yMin, rect.yMax, value);
+        public static float MapYX(this Rect rect, float value) => MathUtil.LinearMap(rect.yMin, rect.yMax, rect.xMin, rect.xMax, value);
+        public static float MapXY(this Rect rect, float value, IInterpolator interpolator) => MathUtil.CurveMap(interpolator ?? Interpolators.linear, rect.xMin, rect.xMax, rect.yMin, rect.yMax, value);
+        public static float MapYX(this Rect rect, float value, IInterpolator interpolator) => MathUtil.CurveMap(interpolator ?? Interpolators.linear, rect.yMin, rect.yMax, rect.xMin, rect.xMax, value);
+        
+        public static float SubXY(this Rect rect, float value, IInterpolator interpolator) {
+            return MathUtil.InverseLerpUnclamped(rect.yMin, rect.yMax, (float)(interpolator ?? Interpolators.linear).Map(MathUtil.LerpUnclamped(rect.xMin, rect.xMax, value)));
+        }
+        public static float SubYX(this Rect rect, float value, IInterpolator interpolator) => rect.Flip().SubXY(value, interpolator);
+
         public static Vector4 ToVector(this Rect rect) {
             return new Vector4(rect.xMin, rect.yMin, rect.xMax, rect.yMax);
         }
@@ -156,9 +173,12 @@ namespace MaTech.Common.Utils {
         }
 
         /// <summary> Checks if the object is literally null. Missing references are treated as assigned. </summary>
-        public static bool IsUnassigned(Object obj) => ReferenceEquals(obj, null) || obj.GetHashCode() == 0;
+        public static bool IsUnassigned([NotNullWhen(false)] Object obj) => ReferenceEquals(obj, null) || obj.GetHashCode() == 0;
         /// <summary> Checks if the object is literally not null. Missing references are treated as assigned. </summary>
-        public static bool IsAssigned(Object obj) => !ReferenceEquals(obj, null) && obj.GetHashCode() != 0;
+        public static bool IsAssigned([NotNullWhen(true)] Object obj) => !ReferenceEquals(obj, null) && obj.GetHashCode() != 0;
+
+        public static T NullifyInvalid<T>(T obj) where T : Object => obj == null ? null : obj;
+        public static T NullifyUnassigned<T>(T obj) where T : Object => obj == null ? null : obj; 
 
         private static readonly List<GameObject> reusedGameObjectList = new List<GameObject>(); // 仅在主线程使用
         private static readonly List<Component> reusedComponentList = new List<Component>(); // 仅在主线程使用
@@ -200,8 +220,8 @@ namespace MaTech.Common.Utils {
             return default;
         }
 
-        public static void GetComponentsInScene<T>(this MonoBehaviour mono, [NotNull] List<T> result, bool clearResult = true) => GetComponentsInScene<T>(mono.gameObject.scene, result, clearResult);
-        public static void GetComponentsInScene<T>(this GameObject obj, [NotNull] List<T> result, bool clearResult = true) => GetComponentsInScene<T>(obj.scene, result, clearResult);
+        public static void GetComponentsInScene<T>(this MonoBehaviour mono, [NotNull] List<T> result, bool clearResult = true) => GetComponentsInScene(mono.gameObject.scene, result, clearResult);
+        public static void GetComponentsInScene<T>(this GameObject obj, [NotNull] List<T> result, bool clearResult = true) => GetComponentsInScene(obj.scene, result, clearResult);
         public static void GetComponentsInScene<T>(this UnityScene scene, [NotNull] List<T> result, bool clearResult = true) {
             Assert.IsNotNull(result);
             if (clearResult) result.Clear();
@@ -270,10 +290,16 @@ namespace MaTech.Common.Utils {
             return new Vector2(self.x * other.x - self.y * other.y, self.x * other.y + self.y * other.x);
         }
 
-        public static Vector2 LerpUnclamped(this Vector2 self, Vector2 a, Vector2 b) {
-            return new Vector2(Mathf.LerpUnclamped(a.x, b.x, self.x), Mathf.LerpUnclamped(a.y, b.y, self.y));
+        public static Vector2 Lerp(this Vector2 self, Vector2 a, Vector2 b) {
+            return new Vector2(MathUtil.Lerp(a.x, b.x, self.x), MathUtil.Lerp(a.y, b.y, self.y));
         }
-
+        public static Vector2 InverseLerp(this Vector2 self, Vector2 a, Vector2 b) {
+            return new Vector2(MathUtil.InverseLerp(a.x, b.x, self.x), MathUtil.InverseLerp(a.y, b.y, self.y));
+        }
+        
+        public static Vector2 LerpUnclamped(this Vector2 self, Vector2 a, Vector2 b) {
+            return new Vector2(MathUtil.LerpUnclamped(a.x, b.x, self.x), MathUtil.LerpUnclamped(a.y, b.y, self.y));
+        }
         public static Vector2 InverseLerpUnclamped(this Vector2 self, Vector2 a, Vector2 b) {
             return new Vector2(MathUtil.InverseLerpUnclamped(a.x, b.x, self.x), MathUtil.InverseLerpUnclamped(a.y, b.y, self.y));
         }
@@ -303,20 +329,29 @@ namespace MaTech.Common.Utils {
             return new Vector2Int(MathUtil.RoundToInt(value.x, mode), MathUtil.RoundToInt(value.y, mode));
         }
 
-        public static Vector2 PointToNormalizedUnclamped(in this Rect rect, Vector2 point) {
-            return point.InverseLerpUnclamped(rect.min, rect.max);
-        }
-        public static Vector2 NormalizedToPointUnclamped(in this Rect rect, Vector2 point) {
-            return point.LerpUnclamped(rect.min, rect.max);
-        }
-        
-        public static Rect ScaleBy(in this Rect rect, Vector2 scale) {
-            return new Rect(rect.position * scale, rect.size * scale);
-        }
-        public static Rect NormalizeTo(in this Rect rect, Vector2 size) {
-            return new Rect(rect.position / size, rect.size / size);
-        }
+        public static Rect MinMaxRect(in Vector2 min, in Vector2 max) => Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 
+        public static Rect ScaleUpBy(in this Rect rect, in Vector2 scale) => new(rect.position * scale, rect.size * scale);
+        public static Rect ScaleDownBy(in this Rect rect, in Vector2 scale) => new(rect.position / scale, rect.size / scale);
+
+        public static Rect ShrinkBorder(in this Rect rect, in Vector4 offsetLBRT) => rect.ShrinkBorder(new(offsetLBRT.x, offsetLBRT.w), new(offsetLBRT.z, offsetLBRT.y));
+        public static Rect ShrinkBorder(in this Rect rect, in Vector2 offsetMin, in Vector2 offsetMax) => MinMaxRect(rect.min + offsetMin, rect.max - offsetMax);
+
+        public static Vector2 InterpolateIn(in this Vector2 point, Rect range) => point.LerpUnclamped(range.min, range.max);
+        public static Vector2 NormalizeBy(in this Vector2 point, Rect range) => point.InverseLerpUnclamped(range.min, range.max);
+        public static Vector2 ClampTo(in this Vector2 point, Rect range) => Vector2.Max(Vector2.Min(point, range.max), range.min);
+        public static Vector2 Clamp01(in this Vector2 point) => Vector2.Max(Vector2.Min(point, Vector2.one), Vector2.zero);
+
+        public static Rect InterpolateIn(in this Rect rect, Rect range) => new(rect.position.LerpUnclamped(range.min, range.max), rect.size * range.size);
+        public static Rect NormalizeBy(in this Rect rect, Rect range) => new(rect.position.InverseLerpUnclamped(range.min, range.max), rect.size / range.size);
+        public static Rect ClampTo(in this Rect rect, Rect range) => MinMaxRect(rect.min.ClampTo(range), rect.max.ClampTo(range));
+        public static Rect Clamp01(in this Rect rect) => MinMaxRect(rect.min.Clamp01(), rect.max.Clamp01());
+
+        public static Vector2 PointToNormalizedUnclamped(in this Rect range, in Vector2 point) => point.NormalizeBy(range);
+        public static Vector2 NormalizedToPointUnclamped(in this Rect range, in Vector2 point) => point.InterpolateIn(range);
+
+        public static Vector2 PixelSize(this Texture2D texture) => new(texture.width, texture.height);
+        
         public static float GetBeginTime(this AnimationCurve curve) => curve.keys.FirstOrDefault().time;
         public static float GetEndTime(this AnimationCurve curve) => curve.keys.LastOrDefault().time;
 

@@ -1,9 +1,10 @@
 {
     "name": "MaCommon",
-    "rootNamespace": "MaTech.Common",
+    "rootNamespace": "",
     "references": [
         "UniTask",
-        "AsyncAwaitUtil"
+        "Optional",
+        "xxHash"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
