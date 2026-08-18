@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: d76b1588cab8f6f4282ca316e24ea365
 timeCreated: 1605888480
-licenseType: Pro
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []
@@ -10,3 +10,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/Timeline/MediaPlayerControlBehaviour.cs
+  uploadId: 730303

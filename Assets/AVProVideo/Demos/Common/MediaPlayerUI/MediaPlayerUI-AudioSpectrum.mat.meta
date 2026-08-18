@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: af11c0475fc59fd46ae3d7101e9cb7ad
 timeCreated: 1600732643
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/MediaPlayerUI-AudioSpectrum.mat
+  uploadId: 730303

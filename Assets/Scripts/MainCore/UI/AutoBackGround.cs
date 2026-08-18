@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MainCore.UI
 {
@@ -10,18 +9,16 @@ namespace MainCore.UI
         private const float fixedNum = 1.05f;
         public float delta = 1f;
         public bool noFix;
-        private Image _image;
         private RectTransform _rect;
 
         private void Awake()
         {
             _rect = GetComponent<RectTransform>();
-            _image = GetComponent<Image>();
         }
 
         private void Start()
         {
-            var size = _image.sprite.bounds.size * 100f;
+            //var size = _image.texture.size * 100f;
             //delta = size.x > 0 && size.y > 0 ? (size.x / size.y) / (16f / 9f) : 1f;
 
             CatchScreenSize();

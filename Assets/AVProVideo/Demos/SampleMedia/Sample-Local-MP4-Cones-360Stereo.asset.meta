@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 0d696b76d81c0e640a7dbcc2d148b9ec
 timeCreated: 1592334546
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: 11400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/SampleMedia/Sample-Local-MP4-Cones-360Stereo.asset
+  uploadId: 730303

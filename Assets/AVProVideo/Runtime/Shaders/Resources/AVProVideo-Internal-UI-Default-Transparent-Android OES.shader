@@ -2,8 +2,8 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 {
 	Properties
 	{
-		[PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
-		[PerRendererData] _ChromaTex ("Sprite Texture", 2D) = "white" {}
+		[PerRendererData] _MainTex ("Sprite Texture", 2D) = "black" { }
+		[PerRendererData] _ChromaTex ("Sprite Texture", 2D) = "gray" { }
 		_Color ("Tint", Color) = (1,1,1,1)
 		
 		_StencilComp ("Stencil Comparison", Float) = 8
@@ -55,7 +55,7 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 		Pass
 		{
 			GLSLPROGRAM
-			#pragma only_renderers gles gles3
+			#pragma only_renderers gles3
 
 			// TODO: replace use multi_compile_local instead (Unity 2019.1 feature)
 			#pragma multi_compile ALPHAPACK_NONE ALPHAPACK_TOP_BOTTOM ALPHAPACK_LEFT_RIGHT
@@ -70,24 +70,22 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 			#extension GL_OES_EGL_image_external : require
 			#extension GL_OES_EGL_image_external_essl3 : enable
 
-#if defined(APPLY_GAMMA)
-			//#pragma target 3.0
-#endif
-
-#ifdef VERTEX
-
 			#include "UnityCG.glslinc"
-		#if defined(STEREO_MULTIVIEW_ON)
-			UNITY_SETUP_STEREO_RENDERING
-		#endif
-			// TODO: once we drop support for Unity 4.x then we can include this
-			//#include "UnityUI.cginc"    
+			#if defined(STEREO_MULTIVIEW_ON)
+				UNITY_SETUP_STEREO_RENDERING
+			#endif
 			#define SHADERLAB_GLSL
 			#include "../AVProVideo.cginc"
-			
+
+			#ifdef VERTEX
+
 			INLINE bool Android_IsStereoEyeLeft()
 			{
-				#if defined(STEREO_MULTIVIEW_ON)
+				#if defined(FORCEEYE_LEFT)
+					return true;
+				#elif defined(FORCEEYE_RIGHT)
+					return false;
+				#elif defined(STEREO_MULTIVIEW_ON)
 					int eyeIndex = SetupStereoEyeIndex();
 					return (eyeIndex == 0);
 				#else
@@ -95,25 +93,19 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 				#endif
 			}		
 			
-		#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-			varying vec4 texVal;
-		#else
-			varying vec2 texVal;
-		#endif
-		#if defined(STEREO_DEBUG)
-			varying vec4 tint;
-		#endif
+			#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+				out vec4 texVal;
+			#else
+				out vec2 texVal;
+			#endif
+			
+			#if defined(STEREO_DEBUG)
+				out vec4 tint;
+			#endif
 
 			uniform vec4 _MainTex_ST;
 			uniform vec4 _MainTex_TexelSize;
-			uniform mat4 _TextureMatrix;
-
-			/// @fix: explicit TRANSFORM_TEX(); Unity's preprocessor chokes when attempting to use the TRANSFORM_TEX() macro in UnityCG.glslinc
-/// 		(as of Unity 4.5.0f6; issue dates back to 2011 or earlier: http://forum.unity3d.com/threads/glsl-transform_tex-and-tiling.93756/)
-			vec2 transformTex(vec4 texCoord, vec4 texST)
-			{
-				return (texCoord.xy * texST.xy + texST.zw);
-			}
+			uniform mat4 _MainTex_Xfrm;
 
 			void main()
 			{
@@ -125,10 +117,9 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 					gl_Position = XFormObjectToClip(gl_Vertex);
 				#endif
 
-				texVal.xy = transformTex(gl_MultiTexCoord0, _MainTex_ST);
-
 				// Apply texture transformation matrix - adjusts for offset/cropping (when the decoder decodes in blocks that overrun the video frame size, it pads)
-				texVal.xy = (_TextureMatrix * vec4(texVal.x, texVal.y, 0.0, 1.0)).xy;
+				texVal.xy = (_MainTex_Xfrm * vec4(gl_MultiTexCoord0.x, gl_MultiTexCoord0.y, 0.0, 1.0)).xy;
+				texVal.xy = TRANSFORM_TEX_ST(texVal, _MainTex_ST);
 
 				#if defined(STEREO_TOP_BOTTOM) || defined(STEREO_LEFT_RIGHT)
 					vec4 scaleOffset = GetStereoScaleOffset( Android_IsStereoEyeLeft(), _MainTex_ST.y < 0.0 );
@@ -147,69 +138,47 @@ Shader "AVProVideo/Internal/UI/Transparent Packed (stereo) - AndroidOES"
 					tint = GetStereoDebugTint( Android_IsStereoEyeLeft() );
 				#endif
 			}
-#endif
+		
+			#endif	// VERTEX
 
-#ifdef FRAGMENT
-		#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-			varying vec4 texVal;
-		#else
-			varying vec2 texVal;
-		#endif
+			#ifdef FRAGMENT
+		
+			#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+				in vec4 texVal;
+			#else
+				in vec2 texVal;
+			#endif
+			
+			#if defined(STEREO_DEBUG)
+				in vec4 tint;
+			#endif
 
-		#if defined(USING_DEFAULT_TEXTURE)
-			uniform sampler2D _MainTex;
-		#else
-			uniform samplerExternalOES _MainTex;
-		#endif
-
-#if defined(STEREO_DEBUG)
-			varying vec4 tint;
-#endif
-
-		#if defined(APPLY_GAMMA)
-			vec3 GammaToLinear(vec3 col)
-			{
-				return pow(col, vec3(2.2, 2.2, 2.2));
-			}
-		#endif
+			#if defined(USING_DEFAULT_TEXTURE)
+				uniform sampler2D _MainTex;
+			#else
+				uniform samplerExternalOES _MainTex;
+			#endif
 
 			void main()
 			{
-				#if defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-					#if __VERSION__ < 300
-						vec4 col = texture2D(_MainTex, texVal.xy);
-					#else
-						vec4 col = texture(_MainTex, texVal.xy);
-					#endif
-				#else
-					vec4 col = vec4(1.0, 1.0, 0.0, 1.0);
-				#endif
+				vec4 col = texture(_MainTex, texVal.xy);
 
 				#if defined(APPLY_GAMMA)
 					col.rgb = GammaToLinear(col.rgb);
 				#endif
 
 				#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-					#if defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-						#if __VERSION__ < 300
-							vec3 rgb = texture2D(_MainTex, texVal.zw).rgb;
-						#else
-							vec3 rgb = texture(_MainTex, texVal.zw).rgb;
-						#endif
-
-						col.a = (rgb.r + rgb.g + rgb.b) / 3.0;
-					#else
-						col.a = 1.0;
-					#endif
+					vec3 rgb = texture(_MainTex, texVal.zw).rgb;
+					col.a = (rgb.r + rgb.g + rgb.b) / 3.0;
 				#endif
 
-#if defined(STEREO_DEBUG)
-				col *= tint;
-#endif
+				#if defined(STEREO_DEBUG)
+					col *= tint;
+				#endif
 
 				gl_FragColor = col;
 			}
-#endif
+			#endif	// FRAGMENT
 
 			ENDGLSL
 		}

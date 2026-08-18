@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 329f34b49d9d2e941951589b296d042a
 timeCreated: 1634745134
-licenseType: Pro
+licenseType: Store
 ShaderImporter:
   defaultTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-Unlit-Transparent-AndroidOES.shader
+  uploadId: 730303

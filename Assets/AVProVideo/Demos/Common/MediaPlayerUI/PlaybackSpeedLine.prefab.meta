@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 742de18273031124d8e5f6ff34a009fd
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/PlaybackSpeedLine.prefab
+  uploadId: 730303

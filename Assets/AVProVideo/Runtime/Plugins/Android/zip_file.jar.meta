@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 782210c1836944347b3b8315658ef048
 timeCreated: 1468244265
-licenseType: Free
+licenseType: Store
 PluginImporter:
   serializedVersion: 1
   iconMap: {}
@@ -21,3 +21,10 @@ PluginImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Plugins/Android/zip_file.jar
+  uploadId: 730303

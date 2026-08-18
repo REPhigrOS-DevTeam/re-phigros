@@ -291,7 +291,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &39988683
 Canvas:
   m_ObjectHideFlags: 0
@@ -301,7 +301,7 @@ Canvas:
   m_GameObject: {fileID: 39988680}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 2
   m_Camera: {fileID: 1198689651}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -320,9 +320,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 39988680}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 5}
+  m_LocalScale: {x: 0.017605634, y: 0.017605634, z: 0.017605634}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 992230560}
@@ -332,8 +332,8 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_SizeDelta: {x: 1136, y: 568}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &58132302
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,7 +555,7 @@ Camera:
   m_Depth: 1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 951
+    m_Bits: 695
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -583,7 +583,7 @@ MonoBehaviour:
   preview: 0
   blurAlgorithmSelection: 0
   blurConfig: {fileID: 11400000, guid: c8193099f26031442a5a6f30796c7efb, type: 2}
-  downsample: 3
+  downsample: 2
   blurRegion:
     serializedVersion: 2
     x: 0
@@ -727,7 +727,7 @@ Camera:
   m_Depth: 2
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 951
+    m_Bits: 695
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -2472,7 +2472,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -2539,6 +2539,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba0e11cc23fd85428e33fb779fe0eb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  invert: 0
+  result: 1
 --- !u!1 &907082702
 GameObject:
   m_ObjectHideFlags: 0
@@ -2589,7 +2591,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483647
+    m_Bits: 759
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -2943,16 +2945,16 @@ RectTransform:
   m_GameObject: {fileID: 992230559}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.15625, y: 1.15625, z: 0}
+  m_LocalScale: {x: 1.2557948, y: 1.2557948, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 39988684}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2560, y: 1778}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &992230561
 MonoBehaviour:
@@ -3001,9 +3003,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 992230559}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bd37f945679b0a4ca88623b4bfbab9e, type: 3}
+  m_Script: {fileID: 11500000, guid: 32a493a35c9fe2b409935a7d163d9e70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  delta: 1
+  noFix: 0
 --- !u!1 &1001600890
 GameObject:
   m_ObjectHideFlags: 0
@@ -3263,6 +3267,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   amplitude: 0.1
   period: 5
+  canvasSizeFitter: {fileID: 0}
 --- !u!1 &1152902552
 GameObject:
   m_ObjectHideFlags: 0
@@ -3295,6 +3300,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ba0e11cc23fd85428e33fb779fe0eb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  invert: 0
+  result: 1
 --- !u!114 &1152902555
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3329,7 +3336,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -3454,8 +3461,8 @@ MonoBehaviour:
   maxUpdateRate: Infinity
   preview: 1
   blurAlgorithmSelection: 0
-  blurConfig: {fileID: 11400000, guid: 97a5a4d08639e04448d818a986306f49, type: 2}
-  downsample: 2
+  blurConfig: {fileID: 11400000, guid: 51a75d4684eb1b74a8555016d9ae373f, type: 2}
+  downsample: 3
   blurRegion:
     serializedVersion: 2
     x: 0
@@ -3489,7 +3496,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a6548e86c40a5e4ba0dc9842d199a6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  strength: 4
+  strength: 8
 --- !u!1 &1202258421
 GameObject:
   m_ObjectHideFlags: 0

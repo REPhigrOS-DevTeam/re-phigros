@@ -3,3 +3,10 @@ guid: 8ebaafdbf44b0b9489f20bc27374d187
 ShaderImporter:
   defaultTextures: []
   userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/Resources/AVProVideo-Internal-BlendFrames.shader
+  uploadId: 730303

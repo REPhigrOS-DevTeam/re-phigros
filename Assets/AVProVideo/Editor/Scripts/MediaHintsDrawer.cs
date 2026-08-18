@@ -15,6 +15,7 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			new GUIContent("Top Bottom"),
 			new GUIContent("Left Right"),
 			new GUIContent("Custom UV"),
+			new GUIContent("Two Textures"),
 		};
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) { return 0f; }

@@ -99,7 +99,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			_sectionDevModeTexture.Save();
 			_sectionDevModePlaybackQuality.Save();
 			_sectionDevModeHapNotchLCDecoder.Save();
-			_sectionDevModeBufferedFrames.Save();
 
 			EditorPrefs.SetInt(SettingsPrefix + "PlatformIndex", _platformIndex);
 			EditorPrefs.SetBool(SettingsPrefix + "ShowAlphaChannel", _showAlpha);
@@ -134,10 +133,11 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName("Global"));
 
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.Windows).text));
-			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.MacOSX).text));
+			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.macOS).text));
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.Android).text));
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.iOS).text));
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.tvOS).text));
+			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.visionOS).text));
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.WindowsUWP).text));
 			EditorPrefs.DeleteKey(AnimCollapseSection.GetPrefName(GetPlatformButtonContent(Platform.WebGL).text));
 		}
@@ -172,10 +172,11 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
 			_platformSections.Clear();
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.Windows), true, false, OnInspectorGUI_Override_Windows, this, platformColor, _platformSections));
-			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.MacOSX), true, false, OnInspectorGUI_Override_MacOSX, this, platformColor, _platformSections));
+			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.macOS), true, false, OnInspectorGUI_Override_MacOSX, this, platformColor, _platformSections));
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.Android), true, false, OnInspectorGUI_Override_Android, this, platformColor, _platformSections));
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.iOS), true, false, OnInspectorGUI_Override_iOS, this, platformColor, _platformSections));
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.tvOS), true, false, OnInspectorGUI_Override_tvOS, this, platformColor, _platformSections));
+			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.visionOS), true, false, OnInspectorGUI_Override_visionOS, this, platformColor, _platformSections));
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.WindowsUWP), true, false, OnInspectorGUI_Override_WindowsUWP, this, platformColor, _platformSections));
 			_platformSections.Add(new AnimCollapseSection(GetPlatformButtonContent(Platform.WebGL), true, false, OnInspectorGUI_Override_WebGL, this, platformColor, _platformSections));
 
@@ -183,7 +184,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			_sectionDevModeTexture = new AnimCollapseSection("Texture", false, false, OnInspectorGUI_DevMode_Texture, this, Color.white);
 			_sectionDevModePlaybackQuality = new AnimCollapseSection("Presentation Quality", false, false, OnInspectorGUI_DevMode_PresentationQuality, this, Color.white);
 			_sectionDevModeHapNotchLCDecoder = new AnimCollapseSection("Hap/NotchLC Decoder", false, false, OnInspectorGUI_DevMode_HapNotchLCDecoder, this, Color.white);
-			_sectionDevModeBufferedFrames = new AnimCollapseSection("Buffers", false, false, OnInspectorGUI_DevMode_BufferedFrames, this, Color.white);
 		}
 
 		private void ResolveProperties()
@@ -232,7 +232,7 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			switch (platform)
 			{
 				case Platform.Windows:
-				case Platform.MacOSX:
+				case Platform.macOS:
 					iconName = "BuildSettings.Standalone.Small";
 					break;
 				case Platform.Android:
@@ -243,6 +243,9 @@ namespace RenderHeads.Media.AVProVideo.Editor
 					break;
 				case Platform.tvOS:
 					iconName = "BuildSettings.tvOS.Small";
+					break;
+				case Platform.visionOS:
+					iconName = "BuildSettings.visionOS.Small";
 					break;
 				case Platform.WindowsUWP:
 					iconName = "BuildSettings.Metro.Small";
@@ -299,9 +302,10 @@ namespace RenderHeads.Media.AVProVideo.Editor
 				_platformNames = new GUIContent[]
 				{
 					GetPlatformButtonContent(Platform.Windows),
-					GetPlatformButtonContent(Platform.MacOSX),
+					GetPlatformButtonContent(Platform.macOS),
 					GetPlatformButtonContent(Platform.iOS),
 					GetPlatformButtonContent(Platform.tvOS),
+					GetPlatformButtonContent(Platform.visionOS),
 					GetPlatformButtonContent(Platform.Android),
 					GetPlatformButtonContent(Platform.WindowsUWP),
 					GetPlatformButtonContent(Platform.WebGL)
@@ -497,31 +501,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Direct3D12)
 			{
 				EditorHelper.IMGUI.WarningTextBox("Compatibility Warning", "Direct3D 12 is not supported until Unity 2019.3", Color.yellow, Color.yellow, Color.white);
-			}
-#endif
-			// Warn about using Vulkan graphics API
-#if UNITY_2018_1_OR_NEWER
-			{
-				if (EditorUserBuildSettings.selectedBuildTargetGroup == BuildTargetGroup.Android)
-				{
-					bool showWarningVulkan = false;
-					if (!UnityEditor.PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android))
-					{
-						UnityEngine.Rendering.GraphicsDeviceType[] devices = UnityEditor.PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
-						foreach (UnityEngine.Rendering.GraphicsDeviceType device in devices)
-						{
-							if (device == UnityEngine.Rendering.GraphicsDeviceType.Vulkan)
-							{
-								showWarningVulkan = true;
-								break;
-							}
-						}
-					}
-					if (showWarningVulkan)
-					{
-						EditorHelper.IMGUI.WarningTextBox("Compatibility Warning", "Vulkan graphics API is not supported.  Please go to Player Settings > Android > Auto Graphics API and remove Vulkan from the list.  Only OpenGL 2.0 and 3.0 are supported on Android.", Color.yellow, Color.yellow, Color.white);
-					}
-				}
 			}
 #endif
 		}

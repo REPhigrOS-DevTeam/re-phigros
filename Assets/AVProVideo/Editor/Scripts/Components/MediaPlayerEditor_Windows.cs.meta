@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: f96124fabf3e8cb46a512e3ecdbd6a3c
 timeCreated: 1448902492
-licenseType: Free
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []
@@ -10,3 +10,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Editor/Scripts/Components/MediaPlayerEditor_Windows.cs
+  uploadId: 730303

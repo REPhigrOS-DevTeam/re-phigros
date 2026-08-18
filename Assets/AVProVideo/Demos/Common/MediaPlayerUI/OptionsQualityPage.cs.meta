@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 28c89ed8f05b65044b06552408e7ab79
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/OptionsQualityPage.cs
+  uploadId: 730303

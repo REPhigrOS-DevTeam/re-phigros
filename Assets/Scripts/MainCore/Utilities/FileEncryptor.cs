@@ -1,8 +1,6 @@
 using System;
 using System.Security.Cryptography;
-using System.Text;
 using MainCore.Utilities.RSA;
-using UnityEngine;
 
 namespace MainCore.Utilities
 {

@@ -62,7 +62,7 @@ Shader "Phira/glitch"
                 float enable_shift = float(random(my_trunc(_Time.y * _speed)) < _rate);
 
                 float2 fixed_uv = i.uv;
-                fixed_uv.x += (random((my_trunc(i.uv.y * _blockCount) / _blockCount) + _Time.y) - 0.5) * _power * 0.8 * enable_shift;
+                fixed_uv.x += (random((my_trunc(i.uv.y * _blockCount) / _blockCount) + _Time.y) - 0.5) * _power * 0.5 * enable_shift;
 
                 fixed4 pixel_color = tex2D(_MainTex, fixed_uv);
                 pixel_color.r = lerp(

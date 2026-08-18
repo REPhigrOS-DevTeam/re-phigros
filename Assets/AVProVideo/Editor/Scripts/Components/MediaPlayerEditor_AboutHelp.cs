@@ -153,6 +153,9 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			GUILayout.Space(8f);
 			EditorHelper.IMGUI.CentreLabel("Jeff Rusch");
 			EditorHelper.IMGUI.CentreLabel("Luke Godward");
+			EditorHelper.IMGUI.CentreLabel( "QA/Support", EditorStyles.boldLabel );
+			GUILayout.Space( 8f );
+			EditorHelper.IMGUI.CentreLabel( "Chris Clarkson" );
 
 			GUILayout.Space(32f);
 		}

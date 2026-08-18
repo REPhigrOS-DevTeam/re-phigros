@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -24,8 +25,14 @@ namespace RenderHeads.Media.AVProVideo
 
 		public Texture2D DefaultTexture
 		{
-			get { return _defaultTexture; }
-			set { ChangeDefaultTexture(value); }
+			get
+			{
+				return _defaultTexture;
+			}
+			set
+			{
+				ChangeDefaultTexture(value);
+			}
 		}
 
 		[Space(8f)]
@@ -35,16 +42,29 @@ namespace RenderHeads.Media.AVProVideo
 
 		public Renderer MeshRenderer
 		{
-			get { return _renderer; }
-			set { ChangeRenderer(value); }
+			get
+			{
+				return _renderer;
+			}
+			set
+			{
+				ChangeRenderer(value);
+			}
 		}
 
-		[SerializeField] int _materialIndex = -1;
+		[SerializeField]
+		int _materialIndex = -1;
 
 		public int MaterialIndex
 		{
-			get { return _materialIndex; }
-			set { _materialIndex = value; }
+			get
+			{
+				return _materialIndex;
+			}
+			set
+			{
+				_materialIndex = value;
+			}
 		}
 
 		private void ChangeDefaultTexture(Texture2D texture)
@@ -55,6 +75,7 @@ namespace RenderHeads.Media.AVProVideo
 				ForceUpdate();
 			}
 		}
+		
 		private void ChangeRenderer(Renderer renderer)
 		{
 			if (_renderer != renderer)
@@ -71,41 +92,68 @@ namespace RenderHeads.Media.AVProVideo
 			}
 		}
 
-		[SerializeField] string _texturePropertyName = Helper.UnityBaseTextureName;
+		[SerializeField]
+		string _texturePropertyName = Helper.UnityBaseTextureName;
 
 		public string TexturePropertyName
 		{
-			get { return _texturePropertyName; }
+			get
+			{
+				return _texturePropertyName;
+			}
 			set
 			{
 				if (_texturePropertyName != value)
 				{
 					_texturePropertyName = value;
-					// TODO: if the property changes, remove it from the perioud SetTexture()
 					_propTexture = new LazyShaderProperty(_texturePropertyName);
+					_propTexture_R = new LazyShaderProperty(_texturePropertyName + "_R");
 					_isDirty = true;
 				}
 			}
 		}
 
-		[SerializeField] Vector2 _offset = Vector2.zero;
+		[SerializeField]
+		Vector2 _offset = Vector2.zero;
 
 		public Vector2 Offset
 		{
-			get { return _offset; }
-			set { if (_offset != value) { _offset = value; _isDirty = true; } }
+			get
+			{
+				return _offset;
+			}
+			set
+			{
+				if (_offset != value)
+				{
+					_offset = value;
+					_isDirty = true;
+				}
+			}
 		}
 
-		[SerializeField] Vector2 _scale = Vector2.one;
+		[SerializeField]
+		Vector2 _scale = Vector2.one;
 
 		public Vector2 Scale
 		{
-			get { return _scale; }
-			set { if (_scale != value) { _scale = value; _isDirty = true; } }
+			get
+			{
+				return _scale;
+			}
+			set
+			{
+				if (_scale != value)
+				{
+					_scale = value;
+					_isDirty = true;
+				}
+			}
 		}
 
 		private Texture _lastTextureApplied;
 		private LazyShaderProperty _propTexture;
+		private LazyShaderProperty _propTexture_R;	// Default property for the right-eye texture
 
 		// We do a LateUpdate() to allow for any changes in the texture that may have happened in Update()
 		private void LateUpdate()
@@ -132,14 +180,41 @@ namespace RenderHeads.Media.AVProVideo
 
 					if (_isDirty)
 					{
-						int planeCount = _media.UseResampler ? 1 : _media.TextureProducer.GetTextureCount();
+						bool requiresVerticalFlip = _media.TextureProducer.RequiresVerticalFlip();
+						StereoPacking stereoPacking = _media.TextureProducer.GetTextureStereoPacking();
+
+						int planeCount = 1;
+						if (!_media.UseResampler)
+						{
+							// We're not using the resampler so the number of planes will be the texture count
+							planeCount = _media.TextureProducer.GetTextureCount();
+							if (stereoPacking == StereoPacking.TwoTextures)
+							{
+								// Unless we're using two texture stereo in which case it'll be half the texture count
+								planeCount /= 2;
+							}
+						}
+
 						for (int plane = 0; plane < planeCount; plane++)
 						{
 							Texture resamplerTexPlane = _media.FrameResampler == null || _media.FrameResampler.OutputTexture == null ? null : _media.FrameResampler.OutputTexture[plane];
 							texture = _media.UseResampler ? resamplerTexPlane : _media.TextureProducer.GetTexture(plane);
 							if (texture != null)
 							{
-								ApplyMapping(texture, _media.TextureProducer.RequiresVerticalFlip(), plane, _materialIndex);
+								ApplyMapping(texture, _media.TextureProducer.RequiresVerticalFlip(), plane, materialIndex: _materialIndex);
+							}
+						}
+
+						// Handle the right eye if we're using two texture stereo packing
+						if (stereoPacking == StereoPacking.TwoTextures)
+						{
+							for (int plane = 0; plane < planeCount; ++plane)
+							{
+								texture = _media.TextureProducer.GetTexture(planeCount + plane);
+								if (texture != null)
+								{
+									ApplyMapping(texture, requiresVerticalFlip, plane, Eye.Right);
+								}
 							}
 						}
 					}
@@ -156,19 +231,29 @@ namespace RenderHeads.Media.AVProVideo
 				}
 				if (_isDirty)
 				{
-					ApplyMapping(_defaultTexture, false, 0, _materialIndex);
+					ApplyMapping(_defaultTexture, false, 0, materialIndex: _materialIndex);
 				}
 			}
 		}
 
-		private void ApplyMapping(Texture texture, bool requiresYFlip, int plane, int materialIndex = -1)
+		enum Eye
+		{
+			Left,
+			Right
+		}
+
+		private void ApplyMapping(Texture texture, bool requiresYFlip, int plane, Eye eye = Eye.Left, int materialIndex = -1)
 		{
 			if (_renderer != null)
 			{
 				_isDirty = false;
-
+#if UNITY_EDITOR
+                Material[] meshMaterials = _renderer.sharedMaterials;
+#else
 				Material[] meshMaterials = _renderer.materials;
-				if (meshMaterials != null)
+#endif
+
+                if (meshMaterials != null)
 				{
 					for (int i = 0; i < meshMaterials.Length; i++)
 					{
@@ -177,16 +262,40 @@ namespace RenderHeads.Media.AVProVideo
 							Material mat = meshMaterials[i];
 							if (mat != null)
 							{
+								if (StereoRedGreenTint)
+								{
+									mat.EnableKeyword("STEREO_DEBUG");
+								}
+								else
+								{
+									mat.DisableKeyword("STEREO_DEBUG");
+								}
+								
 								if (plane == 0)
 								{
-									VideoRender.SetupMaterialForMedia(mat, _media, _propTexture.Id, texture, texture == _defaultTexture);
-									_lastTextureApplied = texture;
+									int propTextureId = _propTexture.Id;
+									if (eye == Eye.Left)
+									{
+										VideoRender.SetupMaterialForMedia(mat, _media, _propTexture.Id, texture, texture == _defaultTexture);
+										_lastTextureApplied = texture;
 
-									#if (!UNITY_EDITOR && UNITY_ANDROID)
-									if(texture == _defaultTexture)	{ mat.EnableKeyword("USING_DEFAULT_TEXTURE"); }
-									else							{ mat.DisableKeyword("USING_DEFAULT_TEXTURE"); }
-									#endif
-
+#if !UNITY_EDITOR && UNITY_ANDROID
+											if (texture == _defaultTexture)
+											{
+												mat.EnableKeyword("USING_DEFAULT_TEXTURE");
+											}
+											else
+											{
+												mat.DisableKeyword("USING_DEFAULT_TEXTURE");
+											}
+#endif
+									}
+									else
+									{
+										propTextureId = _propTexture_R.Id;
+										mat.SetTexture(propTextureId, texture);
+									}
+									
 									if (texture != null)
 									{
 										if (requiresYFlip)
@@ -242,7 +351,13 @@ namespace RenderHeads.Media.AVProVideo
 
 		protected override void OnDisable()
 		{
-			ApplyMapping(_defaultTexture, false, 0, _materialIndex);
+			ApplyMapping(_defaultTexture, false, 0, materialIndex: _materialIndex);
+		}
+
+		protected override void SaveProperties()
+		{
+			_propTexture = new LazyShaderProperty(_texturePropertyName);
+			_propTexture_R = new LazyShaderProperty(_texturePropertyName + "_R");
 		}
 	}
 }

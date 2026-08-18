@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 6270438318e8c9f4da5ff28f426d52ed
 timeCreated: 1592334546
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: 11400000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/SampleMedia/Sample-Https-HLS-AppleBipBop.asset
+  uploadId: 730303

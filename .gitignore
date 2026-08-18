@@ -38,10 +38,8 @@ Thumbs.db
 # Build logs #
 # ========= #
 BuildLog.htm
-*.txt
 !ProjectSettings/ProjectVersion.txt
 !license.txt
-*.xml
 *.log
 *.xsl
 *.cache
@@ -56,3 +54,5 @@ test-results/
 
 UserSettings/Layouts/default-2021.dwlt
 UserSettings/Layouts/CurrentMaximizeLayout.dwlt
+/.idea
+/Assets/Plugins/iOS/.idea

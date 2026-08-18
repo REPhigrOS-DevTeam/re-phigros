@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 478671181ab1c9b42be924da77d7fcbe
 timeCreated: 1438703159
-licenseType: Pro
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []
@@ -10,3 +10,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Internal/Players/NullMediaPlayer.cs
+  uploadId: 730303

@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: ab8d7f7be7dbf3b48b2871700a8025fc
 timeCreated: 1607543899
-licenseType: Pro
+licenseType: Store
 TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Licenses/FacebookAudio360-License.txt
+  uploadId: 730303

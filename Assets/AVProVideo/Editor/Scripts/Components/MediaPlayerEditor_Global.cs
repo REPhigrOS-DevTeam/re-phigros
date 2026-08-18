@@ -51,25 +51,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
 			_allowDeveloperMode = EditorGUILayout.Toggle(new GUIContent("Developer Mode", "Enables some additional information useful for debugging"), _allowDeveloperMode);
 
-			if (_allowDeveloperMode)
-			{
-				EditorGUI.indentLevel++;
-				EditorGUILayout.BeginVertical(GUI.skin.box);
-				GUILayout.Label("BETA / Experimental", EditorStyles.boldLabel);
-
-				// Disable Debug GUI
-				{
-					const string SupportBufferedDisplayDefine = "AVPROVIDEO_SUPPORT_BUFFERED_DISPLAY";
-					if (!EditorHelper.IMGUI.ToggleScriptDefine("Support Buffered Display", SupportBufferedDisplayDefine))
-					{
-						EditorHelper.IMGUI.NoticeBox(MessageType.Info, "The Debug GUI can be disabled globally for builds to help reduce garbage generation each frame.");
-					}
-				}
-
-				EditorGUILayout.EndVertical();
-				EditorGUI.indentLevel--;
-			}
-
 			EditorGUILayout.EndVertical();
 
 			EditorGUI.EndDisabledGroup();

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: e9ea31f33222f4b418e4e051a8a5ed24
 timeCreated: 1588679963
-licenseType: Pro
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences:
@@ -15,3 +15,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Components/PlaylistMediaPlayer.cs
+  uploadId: 730303

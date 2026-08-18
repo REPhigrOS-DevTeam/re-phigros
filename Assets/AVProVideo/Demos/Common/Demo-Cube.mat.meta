@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 3c2c8026b487d4d4a84e01da83637ceb
 timeCreated: 1609505219
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/Demo-Cube.mat
+  uploadId: 730303

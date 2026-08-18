@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: be9775e9ca2e05246805ef637f2620a6
 timeCreated: 1607543899
-licenseType: Pro
+licenseType: Store
 TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Licenses/ExoPlayer-License.txt
+  uploadId: 730303

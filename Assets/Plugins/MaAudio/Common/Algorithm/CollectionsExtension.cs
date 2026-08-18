@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -91,8 +91,10 @@ namespace MaTech.Common.Algorithm {
             }
             return -1;
         }
-        
-        /// <summary> 使用非列表元素的值 <b>二分搜索</b> 有序列表，在无序列表上不保证返回结果。 </summary>
+
+        /// <summary> 使用非列表元素的值 <b>二分搜索</b> 有序列表，在无序列表上不保证结果正确。 </summary>
+        /// <param name="list"></param>
+        /// <param name="value"></param>
         /// <param name="matchOrAfterValue"> 对搜索目标以及所有排列在后面的元素返回true </param>
         /// <returns> 第一个匹配元素的下标，若无则返回-1 </returns>
         public static int IndexOfFirstMatchedValueBinarySearch<T, TValue>(this List<T> list, TValue value, Func<T, TValue, bool> matchOrAfterValue) {
@@ -111,8 +113,10 @@ namespace MaTech.Common.Algorithm {
                 
             return (int)upper;
         }
-        
-        /// <summary> 使用非列表元素的值 <b>二分搜索</b> 有序列表，在无序列表上不保证返回结果。 </summary>
+
+        /// <summary> 使用非列表元素的值 <b>二分搜索</b> 有序列表，在无序列表上不保证结果正确。 </summary>
+        /// <param name="list"></param>
+        /// <param name="value"></param>
         /// <param name="matchOrBeforeValue"> 对搜索目标以及所有排列在前面的元素返回true </param>
         /// <returns> 最后一个匹配元素的下标，若无则返回-1 </returns>
         public static int IndexOfLastMatchedValueBinarySearch<T, TValue>(this List<T> list, TValue value, Func<T, TValue, bool> matchOrBeforeValue) {
@@ -140,16 +144,23 @@ namespace MaTech.Common.Algorithm {
             }
         }
 
-        public static void RemoveAndFillWithLast<T>(this List<T> list, int index) {
+        public static bool RemoveCyclic<T>(this List<T> list, in T value) {
+            int index = list.IndexOf(value);
+            if (index == -1) return false;
+            list.RemoveCyclicAt(index);
+            return true;
+        }
+
+        public static void RemoveCyclicAt<T>(this List<T> list, int index) {
             int indexLast = list.Count - 1;
             list[index] = list[indexLast];
             list.RemoveAt(indexLast);
         }
 
-        public static void RemoveAllAndFillWithLast<T>(this List<T> list, Func<T, bool> conditionRemove) {
+        public static void RemoveCyclicWhere<T>(this List<T> list, Func<T, bool> conditionRemove) {
             for (int i = 0, n = list.Count; i < n;) {
                 if (conditionRemove(list[i])) {
-                    list.RemoveAndFillWithLast(i);
+                    list.RemoveCyclicAt(i);
                     --n;
                 } else {
                     ++i;
@@ -181,10 +192,16 @@ namespace MaTech.Common.Algorithm {
                 dict.Add(key, value = create());
             return value;
         }
-
-        public static TValue GetOrNew<TKey, TValue, TNew>(this Dictionary<TKey, TValue> dict, TKey key) where TNew : TValue, new() {
+        
+        public static TValue GetOrNew<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) where TValue : new() {
             if (!dict.TryGetValue(key, out var value))
-                dict.Add(key, value = new TNew());
+                dict.Add(key, value = new TValue());
+            return value;
+        }
+
+        public static TValue GetOrNewDerived<TKey, TValue, TDerived>(this Dictionary<TKey, TValue> dict, TKey key) where TDerived : TValue, new() {
+            if (!dict.TryGetValue(key, out var value))
+                dict.Add(key, value = new TDerived());
             return value;
         }
 

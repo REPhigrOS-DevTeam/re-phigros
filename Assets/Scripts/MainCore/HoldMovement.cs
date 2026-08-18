@@ -1,5 +1,4 @@
 ﻿using System;
-using MainCore.Utilities;
 using UnityEngine;
 
 namespace MainCore
@@ -25,9 +24,6 @@ namespace MainCore
         private float holdBodyUnit;
 
         private int spriteId = 0;
-
-        private float holdCompactFactor = 0f;
-        private float holdEndHalf = 0f;
 
         public override void OnStart()
         {
@@ -62,21 +58,13 @@ namespace MainCore
             holdOriginLength = (parentLine.CalculateNoteHeight(Note.time + Note.holdTime) -
                                 parentLine.CalculateNoteHeight(Note.time));
             holdBodyUnit = holdRenders[1].sprite.rect.width / holdRenders[1].sprite.pixelsPerUnit;
-                
-            if (GlobalSetting.CurrentSkinInfo.holdCompact)
-            {
-                holdEndHalf = GlobalSetting.CurrentSkinInfo.holdEnd.rect.height /
-                              GlobalSetting.CurrentSkinInfo.holdEnd.pixelsPerUnit;
-                holdCompactFactor = GlobalSetting.CurrentSkinInfo.holdHead.rect.height /
-                               GlobalSetting.CurrentSkinInfo.holdHead.pixelsPerUnit + holdEndHalf;
-            }
             
             if (GlobalSetting.CurrentSkinInfo.holdRepeat)
             {
                 holdRenders[1].drawMode = SpriteDrawMode.Tiled;
                 holdRenders[1].tileMode = SpriteTileMode.Continuous;
                 float originalLength = (float)(Note.speed * holdOriginLength * parentLine.SpeedFactor);
-                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.GlobalNoteScale);
+                holdRenders[1].size = new Vector2(holdBodyUnit, (originalLength <= 0 ? holdLengthFactor : originalLength) / GlobalSetting.GlobalNoteScale);
                 // holdRenders[3].sprite = Instantiate(holdRenders[1].sprite);
                 // holdRenders[3].drawMode = SpriteDrawMode.Tiled;
                 // holdRenders[3].tileMode = SpriteTileMode.Continuous;
@@ -300,15 +288,15 @@ namespace MainCore
             holdRealLength = Note.time <= parentLine.PgrTime ? nowLength : originalLength;
             if (GlobalSetting.CurrentSkinInfo.holdRepeat)
             {
-                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdCompactFactor + holdRealLength <= 0 ? 0f : GlobalSetting.GlobalNoteScale, 1.0f);
+                holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdRealLength <= 0 ? 0f : GlobalSetting.GlobalNoteScale, 1.0f);
             }
             else
             {
-                holdRenders[1].size = new Vector2(holdBodyUnit, holdCompactFactor + holdLengthFactor);
+                holdRenders[1].size = new Vector2(holdBodyUnit, holdLengthFactor);
                 holdParts[1].localScale = new Vector3(GlobalSetting.GlobalNoteScale, holdRealLength / holdLengthFactor, 1.0f);
             }
 
-            holdParts[1].localPosition = new Vector3(0, holdRealLength + holdEndHalf, 0);
+            holdParts[1].localPosition = new Vector3(0, holdRealLength, 0);
             holdParts[2].localPosition = new Vector3(0, holdRealLength, 0);
         }
 

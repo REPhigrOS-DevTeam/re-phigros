@@ -1,16 +1,16 @@
-#if UNITY_EDITOR || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_IOS || UNITY_TVOS || UNITY_ANDROID || (UNITY_WEBGL && UNITY_2017_2_OR_NEWER)
+//-----------------------------------------------------------------------------
+// Copyright 2015-2024 RenderHeads Ltd.  All rights reserved.
+//-----------------------------------------------------------------------------
+
+#if UNITY_EDITOR || UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_WSA_10_0 || UNITY_IOS || UNITY_TVOS || UNITY_ANDROID || (UNITY_WEBGL && UNITY_2017_2_OR_NEWER)
 	#define UNITY_PLATFORM_SUPPORTS_LINEAR
 #endif
-#if (UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN))
+#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
 	#define UNITY_PLATFORM_SUPPORTS_VIDEOASPECTRATIO
 #endif
 
 using UnityEngine;
 using UnityEngine.Serialization;
-
-//-----------------------------------------------------------------------------
-// Copyright 2015-2022 RenderHeads Ltd.  All rights reserved.
-//-----------------------------------------------------------------------------
 
 namespace RenderHeads.Media.AVProVideo
 {
@@ -22,61 +22,186 @@ namespace RenderHeads.Media.AVProVideo
 	[ExecuteInEditMode]
 	public class DisplayIMGUI : MonoBehaviour
 	{
-		[SerializeField] MediaPlayer _mediaPlayer = null;
+		[SerializeField]
+		MediaPlayer _mediaPlayer = null;
 		public MediaPlayer Player
 		{
-			get { return _mediaPlayer; }
-			set { _mediaPlayer = value; Update(); }
+			get
+			{
+				return _mediaPlayer;
+			}
+			set
+			{
+				_mediaPlayer = value;
+				Update();
+			}
 		}
 
-		[SerializeField] ScaleMode	_scaleMode	= ScaleMode.ScaleToFit;
-		public ScaleMode ScaleMode { get { return _scaleMode; } set { _scaleMode = value; } }
+		[SerializeField]
+		ScaleMode	_scaleMode	= ScaleMode.ScaleToFit;
+		public ScaleMode ScaleMode
+		{
+			get
+			{
+				return _scaleMode;
+			}
+			set
+			{
+				_scaleMode = value;
+			}
+		}
 
-		[SerializeField] Color _color = UnityEngine.Color.white;
-		public Color Color { get { return _color; } set { _color = value; } }
+		[SerializeField]
+		Color _color = UnityEngine.Color.white;
+		public Color Color
+		{
+			get
+			{
+				return _color;
+			}
+			set
+			{
+				_color = value;
+			}
+		}
 
 		[FormerlySerializedAs("_alphaBlend")]
 		[SerializeField] bool _allowTransparency = false;
-		public bool AllowTransparency { get { return _allowTransparency; } set { _allowTransparency = value; } }
+		public bool AllowTransparency
+		{
+			get
+			{
+				return _allowTransparency;
+			}
+			set
+			{
+				_allowTransparency = value;
+			}
+		}
 
-		[SerializeField] bool _useDepth = false;
-		public bool UseDepth { get { return _useDepth; } set { _useDepth = value; } }
+		[SerializeField]
+		bool _useDepth = false;
+		public bool UseDepth
+		{
+			get
+			{
+				return _useDepth;
+			}
+			set
+			{
+				_useDepth = value;
+			}
+		}
 
-		[SerializeField] int _depth = 0;
-		public int Depth { get { return _depth; } set { _depth = value; } }
+		[SerializeField]
+		int _depth = 0;
+		public int Depth
+		{
+			get
+			{
+				return _depth;
+			}
+			set
+			{
+				_depth = value;
+			}
+		}
 
 		[Header("Area")]
 
 		[FormerlySerializedAs("_fullScreen")]
-		[SerializeField] bool _isAreaFullScreen = true;
-		public bool IsAreaFullScreen { get { return _isAreaFullScreen; } set { _isAreaFullScreen = value; } }
+		[SerializeField]
+		bool _isAreaFullScreen = true;
+		public bool IsAreaFullScreen
+		{
+			get
+			{
+				return _isAreaFullScreen;
+			} 
+			set
+			{
+				_isAreaFullScreen = value;
+			}
+		}
 
 		[FormerlySerializedAs("_x")]
 		[Range(0f, 1f)]
-		[SerializeField] float _areaX = 0f;
-		public float AreaX { get { return _areaX; } set { _areaX = value; } }
+		[SerializeField]
+		float _areaX = 0f;
+		public float AreaX
+		{
+			get
+			{
+				return _areaX;
+			}
+			set
+			{
+				_areaX = value;
+			}
+		}
 
 		[FormerlySerializedAs("_y")]
 		[Range(0f, 1f)]
-		[SerializeField] float _areaY = 0f;
-		public float AreaY { get { return _areaY; } set { _areaY = value; } }
+		[SerializeField]
+		float _areaY = 0f;
+		public float AreaY
+		{
+			get
+			{
+				return _areaY;
+			}
+			set
+			{
+				_areaY = value;
+			}
+		}
 
 		[FormerlySerializedAs("_width")]
 		[Range(0f, 1f)]
 		[SerializeField] float _areaWidth = 1f;
-		public float AreaWidth { get { return _areaWidth; } set { _areaWidth = value; } }
+		public float AreaWidth
+		{
+			get
+			{
+				return _areaWidth;
+			}
+			set
+			{
+				_areaWidth = value;
+			}
+		}
 
 		[FormerlySerializedAs("_height")]
 		[Range(0f, 1f)]
 		[SerializeField] float _areaHeight = 1f;
-		public float AreaHeight { get { return _areaHeight; } set { _areaHeight = value; } }
+		public float AreaHeight
+		{
+			get
+			{
+				return _areaHeight;
+			}
+			set
+			{
+				_areaHeight = value;
+			}
+		}
 
 		[FormerlySerializedAs("_displayInEditor")]
 		[SerializeField] bool _showAreaInEditor = false;
-		public bool ShowAreaInEditor { get { return _showAreaInEditor; } set { _showAreaInEditor = value; } }
+		public bool ShowAreaInEditor
+		{
+			get
+			{
+				return _showAreaInEditor;
+			}
+			set
+			{
+				_showAreaInEditor = value;
+			}
+		}
 
-		private static Shader	_shaderAlphaPacking;
-		private Material		_material;
+		private static Shader _shaderAlphaPacking;
+		private Material _material;
 
 		void Start()
 		{
@@ -91,7 +216,7 @@ namespace RenderHeads.Media.AVProVideo
 				_shaderAlphaPacking = Shader.Find("AVProVideo/Internal/IMGUI/Texture Transparent");
 				if (!_shaderAlphaPacking)
 				{
-					Debug.LogWarning("[AVProVideo] Missing shader 'AVProVideo/Internal/IMGUI/Texture Transparent'");
+					Debug.LogError("[AVProVideo] Missing shader 'AVProVideo/Internal/IMGUI/Texture Transparent'");
 				}
 			}
 		}
@@ -120,8 +245,10 @@ namespace RenderHeads.Media.AVProVideo
 
 		private Shader GetRequiredShader()
 		{
-			Shader result = null;
-
+			// [MOZ] Always default to the alpha packed shader for now to force using the material rendering path
+			// in OnGUI. This fixed issues with incorrect colourisation and orientation/cropping for certain videos.
+			Shader result = _shaderAlphaPacking;
+#if false
 			if (result == null && _mediaPlayer.TextureProducer != null)
 			{
 				switch (_mediaPlayer.TextureProducer.GetTextureAlphaPacking())
@@ -152,6 +279,7 @@ namespace RenderHeads.Media.AVProVideo
 					result = _shaderAlphaPacking;
 				}
 			}
+#endif
 			return result;
 		}
 

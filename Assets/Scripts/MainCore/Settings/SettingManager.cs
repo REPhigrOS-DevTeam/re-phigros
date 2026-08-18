@@ -4,7 +4,8 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using Lean.Gui;
 using MainCore.Common;
-using MainCore.ECS_ver;
+using MainCore.Data;
+using MainCore.ECS;
 using MainCore.UI;
 using MainCore.UI.Utils;
 using MainCore.Utilities;
@@ -16,29 +17,32 @@ namespace MainCore.Settings
 {
     public class SettingManager : MonoBehaviour
     {
-        [SerializeField] private LeanButton saveNExit;
+        [SerializeField] private Button saveNExit;
+        [SerializeField] private LeanButton delayCorrectionEnter;
         [SerializeField] private LeanButton dspEnter;
         [SerializeField] private LeanButton logOut;
         [SerializeField] private InputField_File_Selector dataPath;
         [SerializeField] private Transform broadCastTarget;
         [SerializeField] private LeanToggle[] toggles;
-        [SerializeField] private DelayCorrect delayCorrect;
         [SerializeField] private RectTransform internalSkinParent, externalSkinParent;
         [SerializeField] private GameObject skinItemPrefab;
-        [SerializeField] private Button openSkinSelector, closeSkinSelector;
+        [SerializeField] private LeanButton openSkinSelector, closeSkinSelector;
         [SerializeField] private GameObject skinSelectorCanvas, skinPreview;
         [SerializeField] private SkinPreview skinPreviewer;
         [SerializeField] private Button displaySkinInfo, deleteSkin;
         [SerializeField] private Transform hitEffectPos;
-        [SerializeField] private Button openAbout, closeAbout;
+        [SerializeField] private LeanButton openAbout, closeAbout;
         [SerializeField] private GameObject aboutCanvas;
         [SerializeField] private Text aboutText;
-        private Dictionary<Skin, SkinItem> internalSkinItems = new();
-        private Dictionary<string, SkinItem> externalSkinItems = new();
-        private bool selectedIsExternal = false;
-        private string selectedId = "-1";
+        [SerializeField] private Slider_Float_Setting delaySlider;
+        private readonly Dictionary<Skin, SkinItem> _internalSkinItems = new();
+        private readonly Dictionary<string, SkinItem> _externalSkinItems = new();
+        private bool _selectedIsExternal;
+        private string _selectedId = "-1";
 
-        void Start()
+        private const string SceneName = "SettingsScene";
+
+        private void Start()
         {
             // 按钮注册
             displaySkinInfo.onClick.AddListener(() =>
@@ -65,26 +69,27 @@ namespace MainCore.Settings
                     InGameUIManager.ShowModalWindowWithClose("错误", "不可删除内置皮肤", () => { }, "好");
                 }
             });
-            openSkinSelector.onClick.AddListener(() =>
+            openSkinSelector.OnClick.AddListener(() =>
             {
                 skinSelectorCanvas.SetActive(true);
                 skinPreview.SetActive(true);
-                delayCorrect.SetRunning(false);
             });
-            closeSkinSelector.onClick.AddListener(() =>
+            closeSkinSelector.OnClick.AddListener(() =>
             {
                 skinSelectorCanvas.SetActive(false);
                 skinPreview.SetActive(false);
-                delayCorrect.SetRunning(true);
             });
-            openAbout.onClick.AddListener(() =>
+            openAbout.OnClick.AddListener(() =>
             {
                 aboutCanvas.SetActive(true);
             });
-            closeAbout.onClick.AddListener(() =>
+            closeAbout.OnClick.AddListener(() =>
             {
                 aboutCanvas.SetActive(false);
             });
+            saveNExit.onClick.AddListener(SaveNExit);
+            dspEnter.OnClick.AddListener(IntoDSP);
+            delayCorrectionEnter.OnClick.AddListener(IntoDelayCorrection);
             if (GlobalSetting.IsOffline)
             {
                 logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登录";
@@ -95,6 +100,7 @@ namespace MainCore.Settings
                 logOut.transform.Find("Cap").Find("Text").gameObject.GetComponent<Text>().text = "登出";
                 logOut.OnClick.AddListener(LogOut);
             }
+
             if (!PlayerPrefs.HasKey(dataPath.BaseData.DataTag))
             {
                 dataPath.BaseData.SetValue($"{Application.persistentDataPath}");
@@ -102,10 +108,8 @@ namespace MainCore.Settings
 #if UNITY_IPHONE && !UNITY_EDITOR
             dataPath.Lock();
 #endif
-            saveNExit.OnClick.AddListener(SaveNExit);
-            dspEnter.OnClick.AddListener(IntoDSP);
             // 彩蛋们
-            SpecialEvent caiDan1 = new SpecialEvent(toggles,
+            /*SpecialEvent caiDan1 = new SpecialEvent(toggles,
                 new[]
                 {
                     (int)YayaModeInSettings.吹鸣, (int)YayaModeInSettings.森闲, (int)YayaModeInSettings.光焰,
@@ -128,7 +132,7 @@ namespace MainCore.Settings
                     InGameUIManager.ShowModalWindowWithClose("<size=15>再去主界面标题标题点十下</size>", "这也被你发现啦", () => { },
                         "枇杷树上挂 粒粒油滴下");
                     GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Poyoroid_sou;
-                });
+                });*/
             // SpecialEvent qiYongExtraJson = new SpecialEvent(toggles, new[] { 5, 6, 4, 8 }, () => { });
 //             OnSkinChanged(skinDropdown.value);
 // #if !RELEASE_VERSION || UNITY_EDITOR
@@ -147,32 +151,32 @@ namespace MainCore.Settings
             int internalMax = 3;
 #endif
             if (!GlobalSetting.IsOffline && GlobalSetting.Username.ToLowerInvariant() is "sky" or "greenball233" or "debug") internalMax = Math.Max(4, internalMax);
-            for (int i = 0; i < internalMax; i++)
+            for (var i = 0; i < internalMax; i++)
             {
-                GameObject o = Instantiate(skinItemPrefab, internalSkinParent);
+                var o = Instantiate(skinItemPrefab, internalSkinParent);
                 o.name = ((Skin)i).ToString();
-                SkinItem skinItem = o.GetComponent<SkinItem>();
+                var skinItem = o.GetComponent<SkinItem>();
                 skinItem.Init(this, false, i.ToString(), ((Skin)i).ToString());
-                internalSkinItems.Add((Skin)i, skinItem);
+                _internalSkinItems.Add((Skin)i, skinItem);
             }
 
             RefreshExternalSkins();
 
             if (GlobalSetting.CurrentSkinInfo.isExternal)
             {
-                externalSkinItems[GlobalSetting.CurrentSkinInfo.id].GetComponent<Button>().onClick.Invoke();
+                _externalSkinItems[GlobalSetting.CurrentSkinInfo.id].GetComponent<Button>().onClick.Invoke();
             }
             else
             {
-                internalSkinItems[GlobalSetting.CurrentSkinInfo.skin]?.GetComponent<Button>().onClick.Invoke();
+                _internalSkinItems[GlobalSetting.CurrentSkinInfo.skin]?.GetComponent<Button>().onClick.Invoke();
             }
             
             // 其他
             aboutCanvas.SetActive(false);
-            TextAsset textAsset = Resources.Load<TextAsset>("Others/About");
-            aboutText.text = textAsset.text;
+            var aboutTextAsset = Resources.Load<TextAsset>("Others/About");
+            aboutText.text = aboutTextAsset.text;
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)aboutText.rectTransform.parent);
-            Resources.UnloadAsset(textAsset);
+            Resources.UnloadAsset(aboutTextAsset);
         }
 
         private void LogOut()
@@ -189,58 +193,67 @@ namespace MainCore.Settings
 
         private void LogIn()
         {
-            SceneTransit.Instance.JumpScene("LoginScene");
+            SceneTransit.Instance.LeaveAdditiveScene(SceneName);
+            SceneTransit.Instance.LoadScene("LoginScene");
         }
 
         private void RefreshExternalSkins()
         {
-            for (int i = 0; i < externalSkinParent.childCount; i++)
+            for (var i = 0; i < externalSkinParent.childCount; i++)
             {
                 Destroy(externalSkinParent.GetChild(i).gameObject);
             }
 
-            externalSkinItems.Clear();
-            SkinSummary[] skinSummaries = SkinManager.Instance.GetSkinSummaries();
-            foreach (SkinSummary skinSummary in skinSummaries)
+            _externalSkinItems.Clear();
+            var skinSummaries = SkinManager.Instance.GetSkinSummaries();
+            foreach (var skinSummary in skinSummaries)
             {
-                GameObject o = Instantiate(skinItemPrefab, externalSkinParent);
-                o.name = skinSummary.id;
-                SkinItem skinItem = o.GetComponent<SkinItem>();
-                skinItem.Init(this, true, skinSummary.id, skinSummary.name);
-                externalSkinItems.Add(skinSummary.id, skinItem);
+                var go = Instantiate(skinItemPrefab, externalSkinParent);
+                go.name = skinSummary.ID;
+                var skinItem = go.GetComponent<SkinItem>();
+                skinItem.Init(this, true, skinSummary.ID, skinSummary.Name);
+                _externalSkinItems.Add(skinSummary.ID, skinItem);
             }
 
-            GameObject add = Instantiate(skinItemPrefab, externalSkinParent);
-            add.name = "Add";
-            SkinItem skinItem1 = add.GetComponent<SkinItem>();
-            skinItem1.Init(this, true, "", "＋");
+            var addGameObject = Instantiate(skinItemPrefab, externalSkinParent);
+            addGameObject.name = "Add";
+            var addSkinItem = addGameObject.GetComponent<SkinItem>();
+            addSkinItem.Init(this, true, "", "＋");
 
-            if (selectedIsExternal)
+            if (_selectedIsExternal)
             {
-                externalSkinItems[selectedId]?.SetSelected(true, selectedId);
+                _externalSkinItems[_selectedId]?.SetSelected(true, _selectedId);
             }
         }
 
         private void IntoDSP()
         {
-            string? qwq = null;
+            string qwq = null;
             if (PlayerPrefs.HasKey(dataPath.BaseData.DataTag)) qwq = PlayerPrefs.GetString(dataPath.BaseData.DataTag);
             broadCastTarget.BroadcastMessage("SaveValue");
             PlayerPrefs.Save();
             if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
-            SceneTransit.Instance.LoadScene("DSPScene");
+            SceneTransit.Instance.LoadAdditiveScene("DSPScene");
+        }
+        
+        private void IntoDelayCorrection()
+        {
+            string qwq = null;
+            if (PlayerPrefs.HasKey(dataPath.BaseData.DataTag)) qwq = PlayerPrefs.GetString(dataPath.BaseData.DataTag);
+            broadCastTarget.BroadcastMessage("SaveValue");
+            PlayerPrefs.Save();
+            if (qwq != null) PlayerPrefs.SetString(dataPath.BaseData.DataTag, qwq);
+            DelayCorrection.DelaySlider = delaySlider;
+            SceneTransit.Instance.LoadAdditiveScene("DelayCorrectionScene");
         }
 
         private void SaveNExit()
         {
             broadCastTarget.BroadcastMessage("SaveValue");
-            PlayerPrefs.SetString("selected_skin",
-                GlobalSetting.CurrentSkinInfo.isExternal
-                    ? $"e{GlobalSetting.CurrentSkinInfo.id}"
-                    : $"i{(int)GlobalSetting.CurrentSkinInfo.skin}");
             PlayerPrefs.Save();
+            
 #if UNITY_IPHONE && !UNITY_EDITOR
-            PlayerPrefs.SetString("file_path", Application.persistentDataPath);
+            PlayerPrefs.DeleteKey("file_path");
             PlayerPrefs.Save();
 
             if (!Directory.Exists(Util.DataPath))
@@ -250,7 +263,22 @@ namespace MainCore.Settings
             }
 #endif
 
-            SceneTransit.Instance.Back();
+            
+            var currentRes = GlobalSetting.OriginResolution;
+            if (PlayerPrefsExtension.GetBoolean("half_res", false))
+            {
+                Debug.Log("[SettingManager] Half Resolution Mode Enabled");
+                Screen.SetResolution(currentRes.width /= 2, currentRes.height /= 2, Screen.fullScreenMode);
+            }
+            else
+            {
+                Debug.Log("[SettingManager] Half Resolution Mode Disabled");
+                Screen.SetResolution(currentRes.width, currentRes.height, Screen.fullScreenMode);
+            }
+
+            Application.targetFrameRate = PlayerPrefs.GetInt("refresh_rate", 60);
+            
+            SceneTransit.Instance.LeaveAdditiveScene(SceneName);
         }
 
         public void UpdateSelectedSkinItem(bool isExternal, string id)
@@ -262,36 +290,40 @@ namespace MainCore.Settings
                 return;
             }
 
-            if (selectedIsExternal == isExternal && selectedId == id) return;
-            SkinInfo newSkinInfo = HitEffectManager.GetInstance().GetSkinInfo(isExternal, id);
+            if (_selectedIsExternal == isExternal && _selectedId == id) return;
+            var newSkinInfo = SkinManager.Instance.GetSkinInfo(isExternal, id);
             if (newSkinInfo == null)
             {
-                if (!isExternal) throw new ArgumentException();
+                if (!isExternal) throw new Exception("not should've been here...??");
                 SkinManager.Instance.DeleteSkinInfo(id);
                 RefreshExternalSkins();
                 return;
             }
 
-            selectedIsExternal = isExternal;
-            selectedId = id;
-            foreach (var internalSkinItem in internalSkinItems.Values)
+            _selectedIsExternal = isExternal;
+            _selectedId = id;
+            foreach (var internalSkinItem in _internalSkinItems.Values)
             {
                 internalSkinItem.SetSelected(isExternal, id);
             }
 
-            foreach (var externalSkinItem in externalSkinItems.Values)
+            foreach (var externalSkinItem in _externalSkinItems.Values)
             {
                 externalSkinItem.SetSelected(isExternal, id);
             }
 
+            Debug.Log($"[SkinManager] Switching to skin: {newSkinInfo.skinName}");
+            
             GlobalSetting.CurrentSkinInfo = newSkinInfo;
+            HitSoundManager.Instance.RefreshHitSounds();
             OnSkinChanged();
+            
+            Debug.Log($"[SkinManager] Done.");
         }
 
         private void OnSkinChanged()
         {
-            HitSoundManager.Instance.RefreshHitSounds();
-            delayCorrect.OnSkinChanged();
+            SkinManager.Instance.SaveCurrentSkinInfo();
             skinPreviewer.UpdateSkin();
             EffectSystemManager.Instance.UpdateSkin();
         }
@@ -328,22 +360,16 @@ namespace MainCore.Settings
             HitSoundManager.Instance.Play(id, 0.5f);
         }
 
-        private float tmp;
         public void PlayHitEffect(int type)
         {
-            tmp = GlobalSetting.GlobalNoteScale;
+            var tmp = GlobalSetting.GlobalNoteScale;
             GlobalSetting.GlobalNoteScale = SkinPreview.Size;
-            EffectManager hitFxObj = HitEffectManager.GetInstance()
+            var hitFxObj = HitEffectManager.GetInstance()
                 .GetObj((HitFxJudgeType)type, GlobalSetting.CurrentSkinInfo, true);
             hitFxObj.transform.position = hitEffectPos.position;
             hitFxObj.transform.rotation = Quaternion.identity;
             hitFxObj.PlayEffect();
             GlobalSetting.GlobalNoteScale = tmp;
-        }
-
-        public void Test(string text)
-        {
-            Debug.Log(text);
         }
     }
 

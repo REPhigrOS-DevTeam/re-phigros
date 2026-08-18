@@ -54,6 +54,7 @@
 #endif
 			uniform float4 _MainTex_ST;
 			uniform float4 _MainTex_TexelSize;
+			uniform float4x4 _MainTex_Xfrm;
 			uniform float _VertScale;
 
 			v2f vert(appdata_t v)
@@ -61,7 +62,11 @@
 				v2f o;
 				o.vertex = XFormObjectToClip(v.vertex);
 				o.color = v.color;
-				o.uv = OffsetAlphaPackingUV(_MainTex_TexelSize.xy, TRANSFORM_TEX(v.texcoord, _MainTex), _VertScale < 0.0);
+
+				o.uv.xy = mul(_MainTex_Xfrm, float4(v.texcoord.xy, 0.0, 1.0)).xy;
+				o.uv.xy = TRANSFORM_TEX(o.uv, _MainTex);
+
+				o.uv = OffsetAlphaPackingUV(_MainTex_TexelSize.xy, TRANSFORM_TEX(o.uv, _MainTex), _VertScale < 0.0);
 
 				return o;
 			}

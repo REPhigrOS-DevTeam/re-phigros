@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 //-----------------------------------------------------------------------------
@@ -9,46 +10,62 @@ namespace RenderHeads.Media.AVProVideo
 	/// <summary>
 	/// Data for handling authentication of encrypted AES-128 HLS streams
 	/// </summary>
-	[System.Serializable]
+	/// 
+	[Serializable]
 	public class KeyAuthData : ISerializationCallbackReceiver
 	{
-		public string keyServerToken = null;
-
-		//public string keyServerURLOverride = null;
+		[SerializeField]
+		public string keyServerToken;
 
 		[SerializeField, Multiline]
-		private string overrideDecryptionKeyBase64 = null;
-		public byte[] overrideDecryptionKey = null;
+		public string overrideDecryptionKeyBase64;
 
 		public bool IsModified()
 		{
-			return (overrideDecryptionKey != null && overrideDecryptionKey.Length > 0) 
-					|| (string.IsNullOrEmpty(overrideDecryptionKeyBase64) == false);
+			return !String.IsNullOrEmpty(keyServerToken) || !String.IsNullOrEmpty(overrideDecryptionKeyBase64);
 		}
+
+		private byte[] _overrideDecryptionKey;
+		public byte[] overrideDecryptionKey
+		{
+			get
+			{
+				return _overrideDecryptionKey;
+			}
+			set
+			{
+				_overrideDecryptionKey = value;
+				if (value == null)
+					overrideDecryptionKeyBase64 = "";
+				else
+					overrideDecryptionKeyBase64 = Convert.ToBase64String(_overrideDecryptionKey);
+			}
+		}
+
+		// ISerializationCallbackReceiver
 
 		public void OnBeforeSerialize()
 		{
-			if (overrideDecryptionKey != null && !string.IsNullOrEmpty(overrideDecryptionKeyBase64))
-			{
-				overrideDecryptionKey = null;
-			}
+			// Nothing to do here
 		}
 
 		public void OnAfterDeserialize()
 		{
-			if (string.IsNullOrEmpty(overrideDecryptionKeyBase64))
-				return;
-
-			try
+			if (!string.IsNullOrEmpty(overrideDecryptionKeyBase64))
 			{
-				// Convert overrideDecryptionKeyBase64 to overrideDecryptionKey
-				overrideDecryptionKey = System.Convert.FromBase64String(overrideDecryptionKeyBase64);
+				try
+				{
+					// Regenerate the byte[]
+					_overrideDecryptionKey = Convert.FromBase64String(overrideDecryptionKeyBase64);
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning($"Failed to decode overrideDecryptionKeyBase64, error: {e}");
+				}
 			}
-			catch (System.FormatException e)
+			else
 			{
-				Debug.LogError("Failed to deserialize decryption key, error: " + e);
-				overrideDecryptionKeyBase64 = null;
-				overrideDecryptionKey = null;
+				_overrideDecryptionKey = null;
 			}
 		}
 	}

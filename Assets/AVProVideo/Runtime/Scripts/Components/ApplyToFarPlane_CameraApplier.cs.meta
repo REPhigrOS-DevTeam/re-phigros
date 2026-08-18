@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 5b662008ef07b3b4aab4042e13a7ae8f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Components/ApplyToFarPlane_CameraApplier.cs
+  uploadId: 730303

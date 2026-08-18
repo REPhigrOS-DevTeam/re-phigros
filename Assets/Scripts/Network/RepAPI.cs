@@ -4,9 +4,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using MainCore.UI.Utils;
 using MainCore.Utilities;
 using Network.Account.Serialized;
-using Network.Account.Utils;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -34,7 +34,7 @@ namespace Network
 
         private static bool inited = false;
         public static bool Inited => inited;
-        
+
         public static string GetAPIBase()
         {
             return $"https://{(useMirror ? HostMirror : HostOriginal)}";
@@ -50,6 +50,9 @@ namespace Network
 
         public static async Task<bool> Init()
         {
+#if !RELEASE_VERSION
+            return false;
+#endif
             if (inited)
             {
                 throw new ArgumentException("Has inited");
@@ -74,6 +77,7 @@ namespace Network
                     inited = false;
                     return false;
                 }
+
                 switched = true;
                 await UniTask.SwitchToMainThread();
                 PlayerPrefs.SetInt("useMirror", useMirror ? 0 : 1);
@@ -82,6 +86,7 @@ namespace Network
                 inited = false;
                 return await Init();
             }
+
             if (data == null)
             {
                 Debug.LogError("Error occured while connect to server root page");
@@ -96,7 +101,7 @@ namespace Network
                 InGameUIManager.ShowModalWindowWithClose("致命错误", "Re:Phigros服务器内部故障，请联系开发组", Util.QuitApp, "退出程序");
                 throw new HttpRequestException($"RePhigros API Service Error, Error code: {res.status}");
             }
-            
+
             Debug.Log($"已连接{(useMirror ? "镜像站" : "主站")}");
 
             return await GetManifest();

@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: f00d6d79871a813408ae584af794ea15
 timeCreated: 1607543900
-licenseType: Pro
+licenseType: Store
 TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Licenses/LibSamplerate-License.txt
+  uploadId: 730303

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 367c3c6f75a457f40a6e4cc7207b4438
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/VideoPlayer/_AVProVideo.Extensions.VideoPlayer.asmdef
+  uploadId: 730303

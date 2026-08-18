@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+﻿//-----------------------------------------------------------------------------
+// Copyright 2015-2023 RenderHeads Ltd.  All rights reserved.
+//-----------------------------------------------------------------------------
 
-//-----------------------------------------------------------------------------
-// Copyright 2015-2022 RenderHeads Ltd.  All rights reserved.
-//-----------------------------------------------------------------------------
+using UnityEngine;
 
 namespace RenderHeads.Media.AVProVideo
 {
@@ -26,6 +26,8 @@ namespace RenderHeads.Media.AVProVideo
 		[SerializeField] AudioOutputMode _audioOutputMode = AudioOutputMode.MultipleChannels;
 		[HideInInspector, SerializeField] int _channelMask = 0xffff;
 		[SerializeField] bool _supportPositionalAudio = false;
+
+		private int _mediaPlayerInstanceID = 0;
 
 		public MediaPlayer Player
 		{
@@ -83,6 +85,12 @@ namespace RenderHeads.Media.AVProVideo
 		{
 			return _audioSource;
 		}
+		public void SetAudioSource(AudioSource source)
+		{
+			_audioSource = source;
+			if (_mediaPlayer)
+				_mediaPlayer.AudioSource = source;
+		}
 
 		public void ChangeMediaPlayer(MediaPlayer newPlayer)
 		{
@@ -91,7 +99,9 @@ namespace RenderHeads.Media.AVProVideo
 			{
 				_mediaPlayer.AudioSource = null;
 				_mediaPlayer.Events.RemoveListener(OnMediaPlayerEvent);
+				AudioOutputManager.Instance.RemovePlayerInstance(_mediaPlayerInstanceID);
 				_mediaPlayer = null;
+				_mediaPlayerInstanceID = 0;
 			}
 
 			_mediaPlayer = newPlayer;
@@ -99,6 +109,8 @@ namespace RenderHeads.Media.AVProVideo
 			{
 				_mediaPlayer.Events.AddListener(OnMediaPlayerEvent);
 				_mediaPlayer.AudioSource = _audioSource;
+				_mediaPlayerInstanceID = _mediaPlayer.GetInstanceID();
+				AudioOutputManager.Instance.AddPlayerInstance(_mediaPlayerInstanceID);
 			}
 
 			if (_supportPositionalAudio)
@@ -152,10 +164,10 @@ namespace RenderHeads.Media.AVProVideo
 			}
 		}
 
-#if (UNITY_EDITOR_WIN || UNITY_EDITOR_OSX) || (!UNITY_EDITOR && (UNITY_STANDALONE_WIN || UNITY_WSA_10_0 || UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_ANDROID))
+#if (UNITY_EDITOR_WIN || UNITY_EDITOR_OSX) || (!UNITY_EDITOR && (UNITY_STANDALONE_WIN || UNITY_WSA_10_0 || UNITY_STANDALONE_OSX || UNITY_IOS || UNITY_TVOS || UNITY_VISIONOS || UNITY_ANDROID))
 		void OnAudioFilterRead(float[] audioData, int channelCount)
 		{
-			AudioOutputManager.Instance.RequestAudio(this, _mediaPlayer, audioData, channelCount, _channelMask, _audioOutputMode, _supportPositionalAudio);
+			AudioOutputManager.Instance.RequestAudio(this, _mediaPlayer, _mediaPlayerInstanceID, audioData, channelCount, _channelMask, _audioOutputMode, _supportPositionalAudio);
 		}
 #endif
 	}

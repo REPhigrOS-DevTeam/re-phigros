@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 
 //-----------------------------------------------------------------------------
-// Copyright 2012-2021 RenderHeads Ltd.  All rights reserved.
+// Copyright 2012-2024 RenderHeads Ltd.  All rights reserved.
 //-----------------------------------------------------------------------------
 
 namespace RenderHeads.Media.AVProVideo.Editor

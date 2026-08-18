@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: f0dcaa0e9423f364cadec44ece659971
 timeCreated: 1543330778
-licenseType: Pro
+licenseType: Store
 PluginImporter:
   serializedVersion: 2
   iconMap: {}
@@ -148,3 +148,10 @@ PluginImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Plugins/WSA/UWP/x86_64/AVProVideoWinRT.dll
+  uploadId: 730303

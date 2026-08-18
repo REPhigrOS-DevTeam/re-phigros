@@ -467,6 +467,12 @@ namespace RenderHeads.Media.AVProVideo.Editor
 					{
 						durationTime = 0f;
 					}
+
+					// RJT NOTE: Sometimes current time can exceed duration temporarily before a finished event occurs so clamp for display purposes
+					if (currentTime > durationTime)
+					{
+						currentTime = durationTime;
+					}
 				}
 				
 				TimeRange timelineRange = new TimeRange(0.0, 0.001);	// A tiny default duration to prevent divide by zero's

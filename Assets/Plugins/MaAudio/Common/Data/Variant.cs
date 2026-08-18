@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,10 +7,14 @@
 using System;
 using MaTech.Common.Algorithm;
 using Newtonsoft.Json;
+using Optional;
+using Sirenix.Serialization;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace MaTech.Common.Data {
     public enum VariantType {
-        None = 0, Bool, Int, Float, Double, Fraction, FractionSimple, String, Object
+        None = 0, Bool, Int, Float, Double, Enum, Fraction, FractionSimple, String, Object
     }
 
     /// A boolean, an integer, a float-point, a fraction, a string, an object, or nothing ("None" type).
@@ -22,170 +26,132 @@ namespace MaTech.Common.Data {
     ///
     /// The equality method compares the type and value strictly, not tolerant to float-point errors.
     ///
-    /// TODO: 重构成Number类，并移除对于string和object的支持
-    /// todo: 分裂出新Variant类，并以内存块的形式支持任意类型的struct
-    [JsonConverter(typeof(VariantJsonConverter))]
-    public readonly struct Variant : IEquatable<Variant>, IBoxlessConvertible, IFormattable {
-        public VariantType Type { get; }
+    /// TODO: 分裂出Number类，并移除对于string和object的支持
+    /// TODO: 重构成新Variant类，支持4字节内任意类型的struct，用object成员记录类型
+    [Serializable]
+    [JsonConverter(typeof(JsonConverter))]
+    public partial struct Variant : IEquatable<Variant>, IConvertible, IBoxlessConvertible, IFormattable {
+        [field: SerializeField]
+        public VariantType Type { get; private set; }
 
-        private readonly FractionSimple f;
-        private readonly double d;
-        private readonly object o;
+        [SerializeField] private FractionSimple f;
+        [SerializeField] private double d;
+        [OdinSerialize] private object o;
 
         public static Variant None => new Variant();
 
-        public Variant(bool value) {
-            Type = VariantType.Bool;
-            f = new FractionSimple(value ? 1 : 0);
-            d = f.Numerator;
-            o = null;
-        }
+        public readonly bool Bool => IsNumeralOrBoolean ? !f.IsZero : (o != null);
+        public readonly int Int => f.Rounded;
+        public readonly float Float => (float)d;
+        public readonly double Double => d;
+        public readonly MetaEnum Enum => IsEnum ? MetaEnum.FromValue((string)o, f.Numerator) : MetaEnum.Empty;
+        public readonly Fraction Fraction => f;
+        public readonly FractionSimple FractionSimple => f;
+        public readonly string String => o as string;
+        public readonly object Object => o;
 
-        public Variant(int value) {
-            Type = VariantType.Int;
-            f = new FractionSimple(value);
-            d = f.Numerator;
-            o = null;
-        }
+        public readonly Option<bool> TryBool => Type == VariantType.Bool ? Option.Some(!f.IsZero) : Option.None<bool>();
+        public readonly Option<int> TryInt => Type == VariantType.Int ? Option.Some(f.Numerator) : Option.None<int>();
+        public readonly Option<float> TryFloat => Type == VariantType.Float ? Option.Some((float)d) : Option.None<float>();
+        public readonly Option<double> TryDouble => Type == VariantType.Double ? Option.Some(d) : Option.None<double>();
+        public readonly Option<MetaEnum> TryEnum => Type == VariantType.Enum ? Option.Some(ToEnum()) : Option.None<MetaEnum>();
+        public readonly Option<Fraction> TryFraction => Type == VariantType.Fraction ? Option.Some((Fraction)f) : Option.None<Fraction>();
+        public readonly Option<FractionSimple> TryFractionSimple => Type == VariantType.FractionSimple ? Option.Some(f) : Option.None<FractionSimple>();
+        public readonly Option<string> TryString => Type == VariantType.String ? Option.Some((string)o) : Option.None<string>();
+        public readonly Option<object> TryObject => Type == VariantType.Object ? Option.Some(o) : Option.None<object>();
 
-        public Variant(float value) {
-            Type = VariantType.Float;
-            f = FractionSimple.FromFloat(value);
-            d = value;
-            o = null;
-        }
+        public readonly bool IsNone => Type == VariantType.None;
+        public readonly bool IsBoolean => Type == VariantType.Bool;
+        public readonly bool IsInteger => Type == VariantType.Int;
+        public readonly bool IsFloatPoint => Type == VariantType.Float || Type == VariantType.Double;
+        public readonly bool IsEnum => Type == VariantType.Enum;
+        public readonly bool IsFraction => Type == VariantType.Fraction || Type == VariantType.FractionSimple;
+        public readonly bool IsNumeral => IsInteger || IsFloatPoint || IsFraction;
+        public readonly bool IsNumeralOrBoolean => IsNumeral || IsBoolean;
+        public readonly bool IsString => Type == VariantType.String;
+        public readonly bool IsStringEmpty => IsString && string.IsNullOrEmpty((string)o);
+        public readonly bool IsStringWhiteSpace => IsString && string.IsNullOrWhiteSpace((string)o);
+        public readonly bool IsObject => Type == VariantType.Object;
 
-        public Variant(double value) {
-            Type = VariantType.Double;
-            f = FractionSimple.FromFloat(value);
-            d = value;
-            o = null;
-        }
+        public readonly override string ToString() => ToString(null, null);
 
-        public Variant(Fraction value) {
-            Type = VariantType.Fraction;
-            f = value;
-            d = f.Double;
-            o = null;
-        }
-
-        public Variant(FractionSimple value) {
-            Type = VariantType.FractionSimple;
-            f = value;
-            d = f.Double;
-            o = null;
-        }
-
-        public Variant(string value) {
-            if (value == null) this = None;
-            else {
-                Type = VariantType.String;
-                f = FractionSimple.invalid;
-                d = Double.NaN;
-                o = value;
-            }
-        }
-
-        public Variant(object value) {
-            if (value == null) this = None;
-            else {
-                // no type infer, object in object out
-                Type = VariantType.Object;
-                f = FractionSimple.invalid;
-                d = Double.NaN;
-                o = value;
-            }
-        }
-
-        public bool Bool => IsNumeralOrBoolean ? !f.IsZero : (o != null);
-        public int Int => f.Rounded;
-        public float Float => (float)d;
-        public double Double => d;
-        public Fraction Fraction => f;
-        public FractionSimple FractionSimple => f;
-        public string String => IsString ? (string)o : null; // no conversion by default
-        public object Object => IsObject ? o : null; // no conversion by default
-
-        public override string ToString() => ToString(null, null);
-
-        public static Variant FromObject<T>(T value) => new Variant(value);
-        public T ToObject<T>() where T : class => ToObject() as T;
-        public T GetObject<T>() where T : class => Object as T;
-
-        public T To<T>(IFormatProvider provider = null) => BoxlessConvert.To<T>.FromBoxlessConvertible(this, provider);
+        public static Variant FromEnum(MetaEnum value) => new Variant(value);
+        public static Variant FromEnum<TEnum>(DataEnum<TEnum> value) where TEnum : unmanaged, Enum, IConvertible => new Variant(MetaEnum.FromEnum(value));
+        public static Variant FromEnum<TEnum>(TEnum value) where TEnum : unmanaged, Enum, IConvertible => new Variant(MetaEnum.FromEnum(value));
+        public readonly MetaEnum ToEnum() => IsEnum ? MetaEnum.FromValue((string)o, f.Numerator) : MetaEnum.Empty;
+        public readonly DataEnum<TEnum>? ToEnum<TEnum>() where TEnum : unmanaged, Enum, IConvertible => ToEnum().As<TEnum>();
+        
+        public static Variant From<T>(T value) where T : class => new Variant(value);
+        public readonly T To<T>() where T : class => ToObject() as T;
+        public readonly T As<T>() where T : class => o as T;
+        
+        public static Variant Box<T>(T value) where T : struct => new Variant(value);
+        public readonly T Unbox<T>() where T : struct => o is T t ? t : default;
 
         public static implicit operator Variant(bool value) => new Variant(value);
         public static implicit operator Variant(int value) => new Variant(value);
         public static implicit operator Variant(float value) => new Variant(value);
         public static implicit operator Variant(double value) => new Variant(value);
+        public static implicit operator Variant(MetaEnum value) => new Variant(value);
         public static implicit operator Variant(Fraction value) => new Variant(value);
         public static implicit operator Variant(FractionSimple value) => new Variant(value);
         public static implicit operator Variant(string value) => new Variant(value);
 
-        private static readonly Type typeFraction = typeof(Fraction);
-        private static readonly Type typeFractionSimple = typeof(FractionSimple);
+        readonly bool IConvertible.ToBoolean(IFormatProvider provider) => Bool;
 
-        bool IConvertible.ToBoolean(IFormatProvider provider) => Bool;
+        readonly sbyte IConvertible.ToSByte(IFormatProvider provider) => (sbyte)Int;
+        readonly short IConvertible.ToInt16(IFormatProvider provider) => (short)Int;
+        readonly int IConvertible.ToInt32(IFormatProvider provider) => Int;
+        readonly long IConvertible.ToInt64(IFormatProvider provider) => Int;
 
-        sbyte IConvertible.ToSByte(IFormatProvider provider) => (sbyte)Int;
-        short IConvertible.ToInt16(IFormatProvider provider) => (short)Int;
-        int IConvertible.ToInt32(IFormatProvider provider) => Int;
-        long IConvertible.ToInt64(IFormatProvider provider) => Int;
+        readonly byte IConvertible.ToByte(IFormatProvider provider) => (byte)Int;
+        readonly ushort IConvertible.ToUInt16(IFormatProvider provider) => (ushort)Int;
+        readonly uint IConvertible.ToUInt32(IFormatProvider provider) => (uint)Int;
+        readonly ulong IConvertible.ToUInt64(IFormatProvider provider) => (ulong)Int;
 
-        byte IConvertible.ToByte(IFormatProvider provider) => (byte)Int;
-        ushort IConvertible.ToUInt16(IFormatProvider provider) => (ushort)Int;
-        uint IConvertible.ToUInt32(IFormatProvider provider) => (uint)Int;
-        ulong IConvertible.ToUInt64(IFormatProvider provider) => (ulong)Int;
+        readonly float IConvertible.ToSingle(IFormatProvider provider) => Float;
+        readonly double IConvertible.ToDouble(IFormatProvider provider) => Double;
+        readonly decimal IConvertible.ToDecimal(IFormatProvider provider) => (decimal)Double;
 
-        float IConvertible.ToSingle(IFormatProvider provider) => Float;
-        double IConvertible.ToDouble(IFormatProvider provider) => Double;
-        decimal IConvertible.ToDecimal(IFormatProvider provider) => (decimal)Double;
+        readonly string IConvertible.ToString(IFormatProvider provider) => ToString(null, provider);
 
-        string IConvertible.ToString(IFormatProvider provider) => ToString(null, provider);
+        readonly char IConvertible.ToChar(IFormatProvider provider) => throw new InvalidCastException("Variant: Conversion to char is undefined. Try a string or manually convert the charcode to a numeric type.");
+        readonly DateTime IConvertible.ToDateTime(IFormatProvider provider) => throw new InvalidCastException("Variant: Conversion to DateTime is undefined. Try a string or a numeric timecode; choose wisely.");
 
-        char IConvertible.ToChar(IFormatProvider provider) => throw new InvalidCastException("Variant: Conversion to char is undefined. Try a string or manually convert the charcode to a numeric type.");
-        DateTime IConvertible.ToDateTime(IFormatProvider provider) => throw new InvalidCastException("Variant: Conversion to DateTime is undefined. Try a string or a numeric timecode; choose wisely.");
-
-        object IConvertible.ToType(Type type, IFormatProvider provider) {
+        readonly object IConvertible.ToType(Type type, IFormatProvider provider) {
             if (type == typeFraction) return Fraction;
             if (type == typeFractionSimple) return FractionSimple;
-            if (IsObject) Convert.ChangeType(o, type, provider);
-            throw new InvalidCastException($"Variant: Conversion to type {type} is undefined.");
+            // TODO: 支持enum
+            if (IsObject) return Convert.ChangeType(o, type, provider);
+            throw new InvalidCastException($"Variant: Conversion to type {type} is unsupported.");
         }
 
-        T IBoxlessConvertible.ToType<T>(IFormatProvider provider) {
+        [Preserve]
+        public static bool IsBoxlessConvertibleToType(Type type) => typesConvertible.Contains(type);
+        
+        readonly T IBoxlessConvertible.ToType<T>(IFormatProvider provider) {
             var type = typeof(T);
             if (type == typeFraction) return BoxlessConvert.Identity<Fraction, T>(Fraction);
             if (type == typeFractionSimple) return BoxlessConvert.Identity<FractionSimple, T>(FractionSimple);
-            throw new InvalidCastException($"Variant: Boxless conversion to type {type} is undefined.");
+            // TODO: 支持enum
+            if (IsObject) return (T)Convert.ChangeType(o, type, provider);
+            return BoxlessConvert.To<T>.FromIConvertible(this, provider); // fallback to IConvertible
         }
 
-        public bool IsNothing => Type == VariantType.None;
-        public bool IsBoolean => Type == VariantType.Bool;
-        public bool IsInteger => Type == VariantType.Int;
-        public bool IsFloatPoint => Type == VariantType.Float || Type == VariantType.Double;
-        public bool IsFraction => Type == VariantType.Fraction || Type == VariantType.FractionSimple;
-        public bool IsNumeral => IsInteger || IsFloatPoint || IsFraction;
-        public bool IsNumeralOrBoolean => IsNumeral || IsBoolean;
-        public bool IsNone => Type == VariantType.None;
-        public bool IsString => Type == VariantType.String;
-        public bool IsStringEmpty => IsString && string.IsNullOrEmpty((string)o);
-        public bool IsStringWhiteSpace => IsString && string.IsNullOrWhiteSpace((string)o);
-        public bool IsObject => Type == VariantType.Object;
-
-        public TypeCode GetTypeCode() {
+        public readonly TypeCode GetTypeCode() {
             switch (Type) {
             case VariantType.None: return TypeCode.Empty;
             case VariantType.Bool: return TypeCode.Boolean;
             case VariantType.Int: return TypeCode.Int32;
             case VariantType.Float: return TypeCode.Single;
             case VariantType.Double: return TypeCode.Double;
+            case VariantType.Enum: return TypeCode.Int32; // same as MetaEnum
             case VariantType.String: return TypeCode.String;
             default: return TypeCode.Object; // Fraction, FractionSimple, Object
             }
         }
 
-        public bool HasValueOfType(VariantType targetType, bool allowConversion = false) {
+        public readonly bool HasValueOfType(VariantType targetType, bool allowConversion = false) {
             if (Type == targetType) return true;
             if (Type == VariantType.None) return true; // false, 0, 0.0, "<None Variant>", null
             switch (targetType) {
@@ -202,34 +168,37 @@ namespace MaTech.Common.Data {
             }
         }
 
-        public string ToString(string format, IFormatProvider formatProvider) {
+        public readonly string ToString(string format, IFormatProvider formatProvider) {
             switch (Type) {
             case VariantType.None: return "<None Variant>";
             case VariantType.Bool: return Bool.ToString(formatProvider);
             case VariantType.Int: return Int.ToString(format, formatProvider);
             case VariantType.Float: return Float.ToString(format, formatProvider);
             case VariantType.Double: return Double.ToString(format, formatProvider);
+            case VariantType.Enum: return Enum.ToString(format, formatProvider);
             case VariantType.Fraction: return Fraction.ToString();
             case VariantType.FractionSimple: return FractionSimple.ToString();
-            case VariantType.String: return String;
-            case VariantType.Object: return Convert.ToString(o, formatProvider);
+            case VariantType.String: return (string)o;
+            case VariantType.Object: return o is IFormattable of ? of.ToString(format, formatProvider) : o is IConvertible oc ? oc.ToString(formatProvider) : o.ToString();
             default: return "<Undefined Variant>";
             }
         }
 
-        public object ToObject() {
+        public readonly object ToObject(bool avoidValueTypes = false) {
+            if (avoidValueTypes) return o;
             switch (Type) {
             case VariantType.Bool: return Bool;
             case VariantType.Int: return Int;
             case VariantType.Float: return Float;
             case VariantType.Double: return Double;
+            case VariantType.Enum: return Enum;
             case VariantType.Fraction: return Fraction;
             case VariantType.FractionSimple: return FractionSimple;
             default: return o; // String and Object
             }
         }
 
-        public bool Equals(Variant other) {
+        public readonly bool Equals(Variant other) {
             if (Type != other.Type) return false;
             switch (Type) {
             case VariantType.None: return true;
@@ -237,26 +206,28 @@ namespace MaTech.Common.Data {
             case VariantType.Int: return Int.Equals(other.Int);
             case VariantType.Float: return Float.Equals(other.Float);
             case VariantType.Double: return Double.Equals(other.Double);
+            case VariantType.Enum: return Enum.Equals(other.Enum);
             case VariantType.Fraction: return Fraction.Equals(other.Fraction);
             case VariantType.FractionSimple: return FractionSimple.Equals(other.FractionSimple);
-            case VariantType.String: return String.Equals(other.String);
+            case VariantType.String:
             case VariantType.Object: return Equals(o, other.o);
             default: return false;
             }
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object obj) {
             return obj is Variant other && Equals(other);
         }
 
-        public override int GetHashCode() => GetHashCode(true);
-        public int GetHashCode(bool withVariantType) {
-            if (withVariantType) return HashCode.Combine(GetHashCode(false), Type.GetHashCode());
+        public override readonly int GetHashCode() => GetHashCode(true);
+        public readonly int GetHashCode(bool withVariantType) {
+            if (withVariantType) return HashCode.Combine(GetHashCode(false), (int)Type);
             switch (Type) {
             case VariantType.Bool: return Bool.GetHashCode();
             case VariantType.Int: return Int.GetHashCode();
             case VariantType.Float: return Float.GetHashCode();
             case VariantType.Double: return Double.GetHashCode();
+            case VariantType.Enum: return Enum.GetHashCode();
             case VariantType.Fraction: return Fraction.GetHashCode();
             case VariantType.FractionSimple: return FractionSimple.GetHashCode();
             case VariantType.String:
@@ -269,47 +240,4 @@ namespace MaTech.Common.Data {
         public static bool operator!=(Variant left, Variant right) => !left.Equals(right);
     }
 
-    public class VariantJsonConverter : JsonConverter {
-        public override bool CanConvert(Type objectType) => objectType == typeof(Variant);
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
-            var variant = (Variant)value;
-            switch (variant.Type) {
-            case VariantType.None: writer.WriteNull(); break;
-            case VariantType.Bool: writer.WriteValue(variant.Bool); break;
-            case VariantType.Int: writer.WriteValue(variant.Int); break;
-            case VariantType.Float: writer.WriteValue(variant.Float); break;
-            case VariantType.Double: writer.WriteValue(variant.Double); break;
-            case VariantType.Fraction: serializer.Serialize(writer, variant.Fraction); break;
-            case VariantType.FractionSimple: serializer.Serialize(writer, variant.FractionSimple); break;
-            case VariantType.String: writer.WriteValue(variant.String); break;
-            case VariantType.Object: writer.WriteValue(variant.Object); break;
-            default: writer.WriteNull(); break;
-            }
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
-            var variant = (Variant?)existingValue ?? Variant.None;
-            switch (reader.TokenType) {
-            case JsonToken.Boolean: variant = serializer.Deserialize<bool>(reader); break;
-            case JsonToken.Integer: variant = serializer.Deserialize<int>(reader); break;
-            case JsonToken.Float: variant = serializer.Deserialize<double>(reader); break; // unfortunately we cannot distinguish between f32 & f64
-            case JsonToken.String: variant = serializer.Deserialize<string>(reader); break;
-
-            case JsonToken.Raw:
-            case JsonToken.Date:
-            case JsonToken.Bytes: variant = Variant.FromObject(serializer.Deserialize(reader)); break;
-
-            case JsonToken.StartArray:
-                var arr = FractionJsonConverter.ReadIntArrayForFraction(reader);
-                switch (arr.Count) {
-                case 2: variant = new FractionSimple(arr[0], arr[1]); break;
-                case 3: variant = new Fraction(arr[0], arr[1], arr[2]); break;
-                default: variant = Variant.None; break;
-                }
-                break;
-            }
-            return variant;
-        }
-    }
 }

@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>AVPPluginShortVersionString</key>
-	<string>2.8.5</string>
+	<string>3.2.2</string>
 	<key>AVPPluginVersion</key>
-	<string>1892</string>
+	<string>2502031555</string>
 	<key>BuildMachineOSBuild</key>
-	<string>22G90</string>
+	<string>24C101</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>AVProVideo</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.renderheads.AVPro.Video-Trial</string>
+	<string>com.renderheads.AVPro.Video-Core</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -21,32 +21,32 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.8.5</string>
+	<string>3.2.2</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1892</string>
+	<string>2502031555</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>13F100</string>
+	<string></string>
 	<key>DTPlatformName</key>
 	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>12.3</string>
+	<string>14.5</string>
 	<key>DTSDKBuild</key>
-	<string>21E226</string>
+	<string>23F73</string>
 	<key>DTSDKName</key>
-	<string>macosx12.3</string>
+	<string>macosx14.5</string>
 	<key>DTXcode</key>
-	<string>1341</string>
+	<string>1540</string>
 	<key>DTXcodeBuild</key>
-	<string>13F100</string>
+	<string>15F31d</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.13</string>
+	<string>10.14.6</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2020 RenderHeads. All rights reserved.</string>
+	<string>Copyright © 2025 RenderHeads. All rights reserved.</string>
 </dict>
 </plist>

@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 7ea26c1ee23534e45906e4c8dd184883
 timeCreated: 1609503535
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/OctahedronSphere8192.asset
+  uploadId: 730303

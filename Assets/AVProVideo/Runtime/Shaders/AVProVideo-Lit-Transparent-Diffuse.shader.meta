@@ -3,3 +3,10 @@ guid: 751148eda67f7b34fbd51bfb7951084f
 ShaderImporter:
   defaultTextures: []
   userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-Lit-Transparent-Diffuse.shader
+  uploadId: 730303

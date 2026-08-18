@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿//-----------------------------------------------------------------------------
+// Copyright 2015-2024 RenderHeads Ltd.  All rights reserved.
+//-----------------------------------------------------------------------------
+
+using System.Collections.Generic;
 using UnityEngine;
 using System;
-
-//-----------------------------------------------------------------------------
-// Copyright 2015-2021 RenderHeads Ltd.  All rights reserved.
-//-----------------------------------------------------------------------------
 
 namespace RenderHeads.Media.AVProVideo
 {
@@ -34,14 +34,32 @@ namespace RenderHeads.Media.AVProVideo
 			public bool isPcmDataReady;
 		}
 
-		private Dictionary<MediaPlayer, PlayerInstance> _instances;
+		private Dictionary<int, PlayerInstance> _instances;
 
 		private AudioOutputManager()
 		{
-			_instances = new Dictionary<MediaPlayer, PlayerInstance>();
+			_instances = new Dictionary<int, PlayerInstance>();
 		}
 
-		public void RequestAudio(AudioOutput outputComponent, MediaPlayer mediaPlayer, float[] audioData, int audioChannelCount, int channelMask, AudioOutput.AudioOutputMode audioOutputMode, bool supportPositionalAudio)
+		public void AddPlayerInstance(int mediaPlayerInstanceID)
+		{
+			_instances[mediaPlayerInstanceID] = new PlayerInstance()
+			{
+				outputs = new HashSet<AudioOutput>(),
+				pcmData = null
+			};
+		}
+
+		public void RemovePlayerInstance(int mediaPlayerInstanceID)
+		{
+			if (_instances.ContainsKey(mediaPlayerInstanceID))
+			{
+				_instances.Remove(mediaPlayerInstanceID);
+			}
+		}
+
+		// [MOZ] mediaPlayerInstanceID is the value returned by mediaPlayer.GetInstanceID() which we cannot call as this method is not called on the main thread.
+		public void RequestAudio(AudioOutput outputComponent, MediaPlayer mediaPlayer, int mediaPlayerInstanceID, float[] audioData, int audioChannelCount, int channelMask, AudioOutput.AudioOutputMode audioOutputMode, bool supportPositionalAudio)
 		{
 			if (mediaPlayer == null || mediaPlayer.Control == null)
 			{
@@ -67,9 +85,9 @@ namespace RenderHeads.Media.AVProVideo
 
 			// Find or create an instance
 			PlayerInstance instance = null;
-			if (!_instances.TryGetValue(mediaPlayer, out instance))
+			if (!_instances.TryGetValue(mediaPlayerInstanceID, out instance))
 			{
-				instance = _instances[mediaPlayer] = new PlayerInstance()
+				instance = _instances[mediaPlayerInstanceID] = new PlayerInstance()
 				{
 					outputs = new HashSet<AudioOutput>(),
 					pcmData = null

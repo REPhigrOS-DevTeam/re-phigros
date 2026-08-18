@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: BackgroundBlur Config
   m_EditorClassIdentifier: 
   radius: 4
-  iteration: 4
-  maxDepth: 6
+  iteration: 3
+  maxDepth: 4
   strength: 0

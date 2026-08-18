@@ -17,7 +17,7 @@
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "REPhityOS",
             "CompanyName": "totorowldox",
-            "Version": "1.28"
+            "Version": "1.52"
         },
         {
             "$type": "Unity.Build.Common.RunSettings, Unity.Build",
@@ -33,10 +33,6 @@
             "SceneInfos": [
                 {
                     "Scene": "GlobalObjectId_V1-1-14fb2726c792eb84abb8a85cc6d26fad-102900000-0",
-                    "AutoLoad": false
-                },
-                {
-                    "Scene": "GlobalObjectId_V1-1-239461c72289fa94d8ca07ddb86590d9-102900000-0",
                     "AutoLoad": false
                 },
                 {
@@ -56,11 +52,7 @@
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-627027ef07d0484408277989b163b309-102900000-0",
-                    "AutoLoad": false
-                },
-                {
-                    "Scene": "GlobalObjectId_V1-1-6e7d485c042492e4191f6d6ca0c528d7-102900000-0",
+                    "Scene": "GlobalObjectId_V1-1-ffbb6edaa01f39c428740cfee4a72a68-102900000-0",
                     "AutoLoad": false
                 },
                 {
@@ -68,19 +60,15 @@
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-bd44713326932b443935dbae5a16d819-102900000-0",
-                    "AutoLoad": false
-                },
-                {
                     "Scene": "GlobalObjectId_V1-1-3b29ec2a34427a441975579c31731f86-102900000-0",
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-c099d178b8c4df549b58eadda1e262ba-102900000-0",
+                    "Scene": "GlobalObjectId_V1-1-05760e7d57ba7334cb1ae5539d256fb5-102900000-0",
                     "AutoLoad": false
                 },
                 {
-                    "Scene": "GlobalObjectId_V1-1-cd01a74094628da45aff6b2bd0be8bb7-102900000-0",
+                    "Scene": "GlobalObjectId_V1-1-7e0aad95016560b43bbc7884ac9ece06-102900000-0",
                     "AutoLoad": false
                 }
             ]

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -52,7 +50,7 @@ namespace MainCore.Data
         public float endTime { get; set; }
         public string shader { get; set; }
         public bool global { get; set; }
-        public Dictionary<string, JToken> vars { get; set; }
+        public JObject vars { get; set; }
         public ExtraPropertyType[] varTypes { get; set; }
 
         public enum ExtraPropertyType
@@ -84,48 +82,5 @@ namespace MainCore.Data
         [JsonProperty("bpm")] public List<Bpm> Bpm { get; set; }
         [JsonProperty("videos")] public List<Video> Videos { get; set; }
         [JsonProperty("effects")] public List<Effect> Effects { get; set; }
-    }
-
-    public class ValueConverter : TypeConverter
-    {
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-        {
-            Debug.Log("123");
-            return sourceType == typeof(double);
-        }
-
-        public override bool CanConvertTo(ITypeDescriptorContext context, Type sourceType)
-        {
-            Debug.Log("123");
-            return sourceType == typeof(double);
-        }
-
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
-            List<Value> result = new(1);
-            result[0].start = (float) value;
-            result[0].end = (float) value;
-            result[0].easingType = 0;
-            result[0].startTime = new[] {0, 0, 0};
-            result[0].endTime = new[] {10000, 0, 0};
-            return result;
-        }
-
-        /*public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
-        {
-            return destinationType == typeof(int);
-        }
-
-        public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
-        {
-            if (value is int)
-            {
-                return ((int)value).ToString();
-            }
-            else
-            {
-                throw new ArgumentException("Invalid input");
-            }
-        }*/
     }
 }

@@ -18,7 +18,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 		private AnimCollapseSection _sectionDevModeState;
 		private AnimCollapseSection _sectionDevModeTexture;
 		private AnimCollapseSection _sectionDevModeHapNotchLCDecoder;
-		private AnimCollapseSection _sectionDevModeBufferedFrames;
 		private AnimCollapseSection _sectionDevModePlaybackQuality;
 
 		private static readonly GUIContent _guiTextMetaData = new GUIContent("MetaData");
@@ -183,46 +182,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			}
 		}
 
-		private float _lastBufferedFrameCount;
-		private float _lastFreeFrameCount;
-
-		private void OnInspectorGUI_DevMode_BufferedFrames()
-		{
-			MediaPlayer mediaPlayer = (this.target) as MediaPlayer;
-			if (mediaPlayer.Control != null)
-			{
-				IBufferedDisplay bufferedDisplay = mediaPlayer.BufferedDisplay;
-				if (bufferedDisplay != null)
-				{
-					BufferedFramesState state = bufferedDisplay.GetBufferedFramesState();
-
-					GUILayout.BeginHorizontal();
-					EditorGUILayout.PrefixLabel(_guiTextBufferedFrames);
-					Rect progressRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-					EditorGUI.ProgressBar(progressRect, _lastBufferedFrameCount, state.bufferedFrameCount.ToString());
-					GUILayout.EndHorizontal();
-
-					GUILayout.BeginHorizontal();
-					EditorGUILayout.PrefixLabel(_guiTextFreeFrames);
-					progressRect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-					EditorGUI.ProgressBar(progressRect, _lastFreeFrameCount, state.freeFrameCount.ToString());
-					GUILayout.EndHorizontal();
-
-					_lastBufferedFrameCount = Mathf.MoveTowards(_lastBufferedFrameCount, state.bufferedFrameCount / 12f, Time.deltaTime);
-					_lastFreeFrameCount = Mathf.MoveTowards(_lastFreeFrameCount, state.freeFrameCount / 12f, Time.deltaTime);
-
-					//EditorGUILayout.LabelField(_guiTextDisplayTimestamp, new GUIContent(mediaPlayer.TextureProducer.GetTextureTimeStamp().ToString() + " " + (mediaPlayer.TextureProducer.GetTextureTimeStamp() / Helper.SecondsToHNS).ToString() + "s"));
-					//EditorGUILayout.LabelField(_guiTextMinTimestamp, new GUIContent(state.minTimeStamp.ToString() + " " + (state.minTimeStamp / Helper.SecondsToHNS).ToString() + "s"));
-					//EditorGUILayout.LabelField(_guiTextMaxTimestamp, new GUIContent(state.maxTimeStamp.ToString() + " " + (state.maxTimeStamp / Helper.SecondsToHNS).ToString() + "s"));
-					if (GUILayout.Button(_guiTextFlush))
-					{
-						// Seek causes a flush
-						mediaPlayer.Control.Seek(mediaPlayer.Control.GetCurrentTime());
-					}
-				}
-			}
-		}
-
 		private void OnInspectorGUI_DevMode_PresentationQuality()
 		{
 			MediaPlayer mediaPlayer = (this.target) as MediaPlayer;
@@ -268,10 +227,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 				if (mediaPlayer.PlatformOptionsWindows.useHapNotchLC)
 				{
 					AnimCollapseSection.Show(_sectionDevModeHapNotchLCDecoder);
-				}
-				if (mediaPlayer.PlatformOptionsWindows.bufferedFrameSelection != BufferedFrameSelectionMode.None)
-				{
-					AnimCollapseSection.Show(_sectionDevModeBufferedFrames);
 				}
 #endif
 			}

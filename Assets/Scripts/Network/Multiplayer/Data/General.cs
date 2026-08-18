@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using JetBrains.Annotations;
-using MainCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -222,7 +221,6 @@ namespace Network.Multiplayer.Data
         [JsonProperty("SongDifficulty")] public string SongDifficulty;
         [JsonProperty("SongCharter")] public string SongCharter;
         [JsonProperty("SongIllustrator")] public string SongIllustrator;
-        [JsonProperty("MusicLength")] public float MusicLength;
     }
 
     public enum ClientOperate

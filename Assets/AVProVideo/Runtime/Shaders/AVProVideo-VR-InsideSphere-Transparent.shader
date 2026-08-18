@@ -55,6 +55,7 @@
 	#if STEREO_CUSTOM_UV
 				float2 uv2 : TEXCOORD1;	// Custom uv set for right eye (left eye is in TEXCOORD0)
 	#endif
+				float3 normal : NORMAL;
 #endif
 
 #ifdef UNITY_STEREO_INSTANCING_ENABLED
@@ -114,12 +115,9 @@
 				o.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
 				#if LAYOUT_EQUIRECT180
 				o.uv.x = ((o.uv.x - 0.5) * 2.0) + 0.5;
+
 				// Set value for clipping if UV area is behind viewer
-				o.uv.z = -1.0;
-				if (v.uv.x > 0.25 && v.uv.x < 0.75)
-				{
-					o.uv.z = 1.0;
-				}
+				o.uv.z = -v.normal.z;
 				#endif
 				o.uv.xy = float2(1.0-o.uv.x, o.uv.y);
 #endif
@@ -250,7 +248,8 @@
 					featherDirection.z *= 0.5;
 #endif
 
-					float d = min(uv.x - featherDirection.x, min((uv.y - featherDirection.y), min(featherDirection.z - uv.x, featherDirection.w - uv.y)));
+//					float d = min(uv.x - featherDirection.x, min((uv.y - featherDirection.y), min(featherDirection.z - uv.x, featherDirection.w - uv.y)));
+					float d = (uv.x - featherDirection.x) * (uv.y - featherDirection.y) * (featherDirection.z - uv.x) * (featherDirection.w - uv.y) * 10.0;
 					float a = smoothstep(0.0, _EdgeFeather, d);
 					col.a *= a;
 				}

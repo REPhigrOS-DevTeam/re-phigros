@@ -1,10 +1,13 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#nullable enable
+
 using System;
+using MaTech.Common.Algorithm;
 using UnityEngine;
 
 namespace MaTech.Common.Utils {
@@ -66,6 +69,13 @@ namespace MaTech.Common.Utils {
             return (int)to - (int)from;
         }
 
+        public static bool Near(float a, float b, float delta = float.Epsilon) => Math.Abs(a - b) < delta;
+        public static bool Near(double a, double b, double delta = double.Epsilon) => Math.Abs(a - b) < delta;
+        
+        public static float Lerp(float a, float b, float k) => Mathf.Lerp(a, b, k); 
+        public static float LerpUnclamped(float a, float b, float k) => Mathf.LerpUnclamped(a, b, k); 
+        public static float InverseLerp(float a, float b, float value) => Mathf.InverseLerp(a, b, value); 
+
         /// <summary> 用法同UnityEngine.Mathf.Lerp </summary>
         public static double Lerp(double a, double b, double k) => LerpUnclamped(a, b, Saturate(k));
         /// <summary> 用法同UnityEngine.Mathf.LerpUnclamped </summary>
@@ -81,6 +91,13 @@ namespace MaTech.Common.Utils {
         }
         public static double LinearMap(double sourceA, double sourceB, double destA, double destB, double value) {
             return Lerp(destA, destB, InverseLerpUnclamped(sourceA, sourceB, value));
+        }
+
+        public static float CurveMap(IInterpolator interpolator, float sourceA, float sourceB, float destA, float destB, float value) {
+            return Mathf.Lerp(destA, destB, (float)interpolator.Map(InverseLerpUnclamped(sourceA, sourceB, value)));
+        }
+        public static double CurveMap(IInterpolator interpolator, double sourceA, double sourceB, double destA, double destB, double value) {
+            return Lerp(destA, destB, interpolator.Map(InverseLerpUnclamped(sourceA, sourceB, value)));
         }
 
         public static double LerpExp(double a, double b, double k) => LerpExpUnclamped(a, b, Saturate(k));
@@ -100,9 +117,8 @@ namespace MaTech.Common.Utils {
         }
 
         /// <summary> 用法同hlsl的step函数 </summary>
-        public static float Step(float a, float x) {
-            return x >= a ? 1 : 0;
-        }
+        public static float Step(float a, float x) => x >= a ? 1 : 0;
+        public static double Step(double a, double x) => x >= a ? 1 : 0;
 
         // https://web.archive.org/web/20100613230051/http://www.devmaster.net/forums/showthread.php?t=5784
         // x in [-pi, pi], max error 0.001

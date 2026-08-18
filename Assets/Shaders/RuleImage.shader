@@ -5,12 +5,10 @@ Shader "Unlit/RuleImage"
     Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {} //Main Texture, leave empty
-		_TranTex ("Transition Texture", 2D) = "black" {} //Transition texture. Leave blank if using color
 		_PatternTex ("Pattern Texture", 2d) = "white" {} //The pattern transition texture
 		_Cutoff("Progress", Range (0, 1)) = 0 //Cut off slider
-		_Factor("Edge Transition", Range(1, 10)) = 2.5 //factor of the edge transition
+		_Factor("Edge Transition", Range(0, 1)) = 0.1 //factor of the edge transition
 		_Color("Color", Color) = (0,0,0,0) //defaults to black
-		[MaterialToggle] _UseColor("Use Color", Float) = 0 //color or texture toggle
 	}
 	SubShader
 	{
@@ -43,12 +41,11 @@ Shader "Unlit/RuleImage"
 			};
 
 			sampler2D _MainTex;
-			sampler2D _TranTex;
+			//sampler2D _TranTex;
 			sampler2D _PatternTex;
-			float _Cutoff;
+			fixed _Cutoff;
 			fixed4 _Color;
-			float _UseColor;
-			half _Factor;
+			fixed _Factor;
 
 			v2f vert (appdata v)
 			{
@@ -58,22 +55,33 @@ Shader "Unlit/RuleImage"
 				return o;
 			}
 			
-			fixed4 frag(v2f i) : SV_Target
+			fixed cast_value(fixed value, fixed oldmin, fixed oldmax, fixed newmin, fixed newmax)
 			{
-				fixed4 transit = tex2D(_PatternTex, i.uv);
-				fixed4 tranTex = tex2D(_TranTex, i.uv);
-				//checks the blue attribute of the pattern and cuts off in respect to that
-				if(transit.r < _Cutoff){
-					// if _UseColor is enabled, use color instead
-					if(_UseColor > 0)
-						return _Color;
-					// _Use color is not enabled, use the _TranTex
-					return tranTex;
-				}
-				if(_UseColor > 0)
-					return _Color * _Cutoff * (1 - _Factor * (transit.r - _Cutoff));
-				return tranTex * _Cutoff * (1 - _Factor * (transit.r - _Cutoff));
+				value = clamp(oldmin, oldmax, value);
+				return (value-oldmin)/(oldmax-oldmin)*(newmax-newmin)+newmin;
 			}
+
+			
+			fixed4 frag(v2f i) : SV_Target
+    		{
+    		    _Cutoff = 1 - cast_value(_Cutoff, 0.1, 0.9, 0.0, 1.0);
+    			
+    			if (_Cutoff <= 0.1) _Factor = cast_value(_Cutoff, 0.0, 0.1, 0.0, _Factor);
+    			else if (_Cutoff >= 0.9) _Factor = cast_value(_Cutoff, 0.9, 1.0, _Factor, 0.0);
+
+    		    fixed4 transit = tex2D(_PatternTex, i.uv);
+    		    //fixed4 tranTex = tex2D(_TranTex, i.uv);
+    			
+    		    if(_Cutoff < 0.005) return _Color; //Edge cut
+    			if(_Cutoff > 0.995) return _Color * 0;
+
+    			fixed fmin = _Cutoff - _Factor;
+    			fixed fmax = _Cutoff + _Factor;
+
+    			fixed pct = (transit.r - fmin) / (fmax - fmin);
+    			fixed res = smoothstep(0, 1, pct);
+    			return _Color * res;
+    		}
 			ENDCG
 		}
 	}

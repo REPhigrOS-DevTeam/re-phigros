@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using MainCore.Utilities;
+using MainCore.Data;
+using MainCore.Data.Serialized;
+using MainCore.Settings;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -16,8 +18,6 @@ namespace MainCore
         private Dictionary<string, List<EffectManager>> pool = new();
 
         private Dictionary<string, EffectManager> prefabs = new();
-
-        private Dictionary<Skin, SkinInfo> skinInfos = new Dictionary<Skin, SkinInfo>();
 
         public AudioClip defaultClickAC, defaultDragAC, defaultFlickAC;
 
@@ -122,26 +122,6 @@ namespace MainCore
             pool.Clear();
             objectsInUse.Clear();
             prefabs.Clear();
-        }
-
-        public SkinInfo GetInternalSkinInfo(Skin skin)
-        {
-            if (skinInfos == null) throw new ArgumentException();
-            if (skinInfos.ContainsKey(skin)) return skinInfos[skin];
-            SkinInfo loadSkinInfo = Resources.Load<SkinInfo>($"Skin/{skin}");
-            if (loadSkinInfo)
-            {
-                skinInfos.Add(skin, loadSkinInfo);
-                return loadSkinInfo;
-            }
-
-            throw new ArgumentException($"Unable to load internal Skin from \"Skin/{skin}\"");
-        }
-
-        public SkinInfo GetSkinInfo(bool isExternal, string id)
-        {
-            if (isExternal) Debug.Log(id);
-            return isExternal ? SkinManager.Instance.GetExternalSkinInfo(id) : GetInternalSkinInfo((Skin)int.Parse(id));
         }
     }
 

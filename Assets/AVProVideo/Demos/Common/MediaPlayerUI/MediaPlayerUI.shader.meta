@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 8b83f1522b53ad44a9a271e7db8aa527
 timeCreated: 1546682502
-licenseType: Pro
+licenseType: Store
 ShaderImporter:
   defaultTextures: []
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/MediaPlayerUI.shader
+  uploadId: 730303

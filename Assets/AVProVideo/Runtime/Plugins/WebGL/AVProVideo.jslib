@@ -66,7 +66,8 @@ var AVProVideoWebGL =
 		// NOTE: When loading from the indexedDB (Application.persistentDataPath), 
 		//       URL.createObjectURL() must be used get a valid URL.  See:
 		//       http://www.misfitgeek.com/html5-off-line-storing-and-retrieving-videos-with-indexeddb/
-		path = Pointer_stringify(path);
+		//path = Pointer_stringify(path);
+		path = UTF8ToString(path);
 		_count++;
 
 		var vid = document.createElement("video");

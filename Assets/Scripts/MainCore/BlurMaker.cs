@@ -1,15 +1,18 @@
 using LeTai.Asset.TranslucentImage;
 using UnityEngine;
 
-[RequireComponent(typeof(TranslucentImageSource))]
-public class BlurMaker : MonoBehaviour
+namespace MainCore
 {
-    [SerializeField] private float strength;
-    private void Awake()
+    [RequireComponent(typeof(TranslucentImageSource))]
+    public class BlurMaker : MonoBehaviour
     {
-        var source = GetComponent<TranslucentImageSource>();
-        ScalableBlurConfig config = ScriptableObject.CreateInstance<ScalableBlurConfig>();
-        config.Strength = strength;
-        source.BlurConfig = config;
+        [SerializeField] private float strength;
+        private void Awake()
+        {
+            var source = GetComponent<TranslucentImageSource>();
+            ScalableBlurConfig config = ScriptableObject.CreateInstance<ScalableBlurConfig>();
+            config.Strength = strength;
+            source.BlurConfig = config;
+        }
     }
 }

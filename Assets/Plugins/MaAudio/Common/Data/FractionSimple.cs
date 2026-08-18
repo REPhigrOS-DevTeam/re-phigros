@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -63,6 +63,8 @@ namespace MaTech.Common.Data {
         public static explicit operator float(FractionSimple fraction) { return fraction.Float; }
         public static explicit operator double(FractionSimple fraction) { return fraction.Double; }
         
+        public static implicit operator FractionSimple(int integer) => new FractionSimple(integer);
+        
         public FractionSimple Inversed => new FractionSimple(_den, _num);
 
         public FractionSimple Normalized {
@@ -83,6 +85,7 @@ namespace MaTech.Common.Data {
             }
         }
 
+        public int Floored => _den == 0 ? 0 : _num / _den;
         public int Rounded => _den == 0 ? 0 : (_num + _den / 2) / _den;
         public int Ceiling => _den == 0 ? 0 : (_num + _den - 1) / _den;
 
@@ -211,7 +214,7 @@ namespace MaTech.Common.Data {
         /// </summary>
         /// <param name="value"> The float-point value </param>
         /// <param name="denominator"> Denominator for rounding </param>
-        /// <param name="mode"> Rounding mode as specified for <see cref="MathUtil.RoundToInt"/> </param>
+        /// <param name="mode"> Rounding mode for <see cref="MathUtil.RoundToInt(double, MathUtil.RoundingMode)"/> </param>
         public static FractionSimple FromFloatRounded(double value, int denominator, MathUtil.RoundingMode mode = MathUtil.RoundingMode.Round) {
             int numerator = MathUtil.RoundToInt(value * denominator, mode);
             return new FractionSimple(numerator, denominator).Normalized;

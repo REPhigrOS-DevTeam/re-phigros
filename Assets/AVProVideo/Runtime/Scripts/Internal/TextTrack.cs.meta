@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 70b7a3055e537f74cb49d2fc4e6989e6
 timeCreated: 1438695622
-licenseType: Pro
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []
@@ -10,3 +10,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Internal/TextTrack.cs
+  uploadId: 730303

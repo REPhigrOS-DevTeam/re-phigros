@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: 4313ef3d8aef8764ea98fd3a15361c9b
 timeCreated: 1601367920
-licenseType: Pro
+licenseType: Store
 DefaultImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Scenes/Demo_DisplayComponents.unity
+  uploadId: 730303

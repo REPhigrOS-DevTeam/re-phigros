@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: db39bb6249db0924bb87d6e0bb294ed3
 timeCreated: 1609503593
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: 2100000
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/Demo-360.mat
+  uploadId: 730303

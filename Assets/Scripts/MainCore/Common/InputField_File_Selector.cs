@@ -14,7 +14,7 @@ namespace MainCore.Common
         [SerializeField] private string[] fileExtensions;
         [SerializeField] private FileBrowser.PickMode pickMode;
         private InputField_String_Setting inputFieldStringSetting;
-        public InputField_String_Setting BaseData => inputFieldStringSetting;
+        public InputField_String_Setting BaseData => inputFieldStringSetting??gameObject.GetComponent<InputField_String_Setting>();
         private bool locked;
 
         private void Awake()

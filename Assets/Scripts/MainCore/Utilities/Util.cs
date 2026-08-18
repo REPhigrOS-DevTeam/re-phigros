@@ -9,14 +9,8 @@ using System.Text;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
 using MainCore.UI;
+using MainCore.UI.Utils;
 using Newtonsoft.Json;
-using NLayer;
-#if true
-using Uniasset.Audio;
-using Uniasset.Image;
-#else
-using Unimage;
-#endif
 using UnityEngine;
 using UnityEngine.Networking;
 #if UNITY_EDITOR
@@ -55,44 +49,17 @@ namespace MainCore.Utilities
 
         public static Texture2D ReadFileAsTexture(byte[] data)
         {
-#if true
-            ImageAsset imageAsset = new ImageAsset(); // 不建议using
-            imageAsset.Load(data);
-            Texture2D texture2D = imageAsset.ToTexture2D(noLongerReadable: false);
-            imageAsset.Dispose();
-            return texture2D;
-#else
-            try
-            {
-                UnimageProcessor unimageProcessor = new UnimageProcessor();
-                unimageProcessor.Load(data);
-                unimageProcessor.Resize(unimageProcessor.Width, unimageProcessor.Height);
-                Texture2D texture = unimageProcessor.GetTexture(noLongerReadable: false);
-                unimageProcessor.Dispose();
-                return texture;
-            }
-            catch (UnimageException)
-            {
-                return null;
-            }
-#endif
+            Texture2D texture = new Texture2D(0, 0);
+
+            if (texture.LoadImage(data)) return texture;
+            throw new FormatException();
         }
 
         public static async UniTask<Texture2D> ReadFileAsTextureAsync(byte[] data)
         {
-#if true
-            await UniTask.SwitchToMainThread();
-            ImageAsset imageAsset = new ImageAsset(); // 不建议using
-            await imageAsset.LoadAsync(data);
-            Texture2D texture2D = await imageAsset.ToTexture2DAsync(noLongerReadable: false);
-            imageAsset.Dispose();
-            return texture2D;
-#else
             await UniTask.SwitchToMainThread();
             return ReadFileAsTexture(data);
-#endif
         }
-
         public static (Sprite, Exception) ReadFileAsSprite(byte[] data, float ppu = 100f)
         {
             try
@@ -111,31 +78,32 @@ namespace MainCore.Utilities
         {
             try
             {
-                await UniTask.SwitchToMainThread();
+                //await UniTask.SwitchToMainThread();
                 Texture2D texture = await ReadFileAsTextureAsync(data);
                 return (Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height),
-                    new Vector2(0.5f, 0.5f), ppu, 1), null);
+                    new Vector2(0.5f, 0.5f), ppu, 1, SpriteMeshType.FullRect), null);
             }
             catch (Exception e)
             {
                 return (null, e);
             }
         }
+        
 
-        public static AudioClip ReadMusicAsAudioClip(string path, string clipName = "")
-        {
-            AudioAsset audioAsset = new AudioAsset();
-            byte[] readAllBytes = File.ReadAllBytes(path);
-            audioAsset.Load(readAllBytes);
-            NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
-            float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
-            int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
-            nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
-            AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
-                false);
-            audioClip.SetData(pcmBuffer, 0);
-            return audioClip;
-        }
+        // public static AudioClip ReadMusicAsAudioClip(string path, string clipName = "")
+        // {
+        //     AudioAsset audioAsset = new AudioAsset();
+        //     byte[] readAllBytes = File.ReadAllBytes(path);
+        //     audioAsset.Load(readAllBytes);
+        //     NativeAudioDecoder nativeAudioDecoder = audioAsset.GetAudioDecoder(frameBufferSize: audioAsset.SampleRate * 64);
+        //     float[] pcmBuffer = new float[nativeAudioDecoder.SampleCount];
+        //     int sampleCount = (int)(nativeAudioDecoder.SampleCount / nativeAudioDecoder.ChannelCount);
+        //     nativeAudioDecoder.Read<float>(pcmBuffer, sampleCount);
+        //     AudioClip audioClip = AudioClip.Create(clipName, sampleCount, nativeAudioDecoder.ChannelCount, nativeAudioDecoder.SampleRate,
+        //         false);
+        //     audioClip.SetData(pcmBuffer, 0);
+        //     return audioClip;
+        // }
 
         public static async UniTask<AudioClip> ReadMusicAsAudioClipAsync(string path, string clipName = "")
         {
@@ -150,7 +118,18 @@ namespace MainCore.Utilities
             //     false);
             // audioClip.SetData(pcmBuffer, 0);
             // return audioClip;
+            
             AudioType? audioType = await GetAudioTypeFromFile(path);
+            //await UniTask.SwitchToMainThread();
+            //Uri.TryCreate(path, UriKind.Absolute, out Uri uri);
+            UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(FilePathToUri(path), audioType??AudioType.UNKNOWN);
+            await uwr.SendWebRequest();
+            if (uwr.result != UnityWebRequest.Result.Success) throw new ArgumentException();
+            AudioClip audioClip1 = DownloadHandlerAudioClip.GetContent(uwr);
+            audioClip1.name = clipName;
+            return audioClip1;
+            
+            /*
             switch (audioType)
             {
                 case null:
@@ -168,21 +147,21 @@ namespace MainCore.Utilities
                     mpegFile.Dispose();
                     return ac;
                 }
-                case AudioType.OGGVORBIS:
-                {
+                // case AudioType.OGGVORBIS:
+                // {
                     // Load the data into a stream
                 
-                    NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
-                    int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
-                    
-                    float[] samples = new float[vorbis.TotalSamples];
-                    int _ = vorbis.ReadSamples(samples, 0, samples.Length);
-                
-                    AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
-                        false);
-                    ac.SetData(samples, 0);
-                    vorbis.Dispose();
-                    return ac;
+                    // NVorbis.VorbisReader vorbis = new NVorbis.VorbisReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    // int samplecount = (int)(vorbis.TotalSamples / vorbis.Channels);
+                    //
+                    // float[] samples = new float[vorbis.TotalSamples];
+                    // int _ = vorbis.ReadSamples(samples, 0, samples.Length);
+                    //
+                    // AudioClip ac = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate,
+                    //     false);
+                    // ac.SetData(samples, 0);
+                    // vorbis.Dispose();
+                    // return ac;
                     // use PCMReader
                     //
                     // AudioClip ac1 = AudioClip.Create(clipName, samplecount, vorbis.Channels, vorbis.SampleRate, false,
@@ -203,8 +182,15 @@ namespace MainCore.Utilities
                     //     });
                     // // Return the clip
                     // return ac1;
-                }
+                // }
                 case AudioType.WAV:
+                {
+                    WAV wav = new WAV(await File.ReadAllBytesAsync(path));
+                    AudioClip audioClip = AudioClip.Create(clipName, wav.SampleCount, wav.ChannelCount, wav.Frequency, false);
+                    audioClip.SetData(wav.TotalChannel, 0);
+                    return audioClip;
+                }
+                case AudioType.OGGVORBIS:
                 case AudioType.UNKNOWN:
                 {
                     await UniTask.SwitchToMainThread();
@@ -218,7 +204,7 @@ namespace MainCore.Utilities
                 }
                 default:
                     throw new ArgumentOutOfRangeException();
-            }
+            }*/
         }
 
         private static async UniTask<AudioType?> GetAudioTypeFromFile(string path)
@@ -485,7 +471,7 @@ namespace MainCore.Utilities
             }
         }
 
-        public static string DataPath => PlayerPrefs.GetString("file_path", GetGameFilePath());
+        public static string DataPath => GetGameFilePath();
 
         public static bool Contains(this int[] arr, int i)
         {
@@ -501,7 +487,7 @@ namespace MainCore.Utilities
 
         public static void DisplayNetworkException(string original)
         {
-            Debug.LogError(original);
+            Debug.LogError($"[NetworkException] {original}");
             int lastIndexOf = original.LastIndexOf('{');
             if (lastIndexOf != -1) original = original.Substring(0, lastIndexOf);
             InGameUIManager.ShowModalWindowWithClose("错误", original, () => { }, "确定");
@@ -567,21 +553,63 @@ namespace MainCore.Utilities
             return new Color(colorByte[1] / 255f, colorByte[2] / 255f, colorByte[3] / 255f, colorByte[0] / 255f);
         }
 
-        public static string GetGameFilePath()
+        private static string GetGameFilePath()
         {
             return Application.platform switch
             {
-                RuntimePlatform.OSXEditor => Application.persistentDataPath,
-                RuntimePlatform.OSXPlayer => Application.persistentDataPath,
-                RuntimePlatform.WindowsPlayer => Application.persistentDataPath,
-                RuntimePlatform.WindowsEditor => Application.persistentDataPath,
-                RuntimePlatform.IPhonePlayer => Application.persistentDataPath,
-                RuntimePlatform.LinuxPlayer => Application.persistentDataPath,
-                RuntimePlatform.LinuxEditor => Application.persistentDataPath,
-                RuntimePlatform.Android => new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data")
-                    .FullName,
-                _ => throw new ArgumentOutOfRangeException()
+                RuntimePlatform.OSXEditor or RuntimePlatform.OSXPlayer or RuntimePlatform.IPhonePlayer => 
+                    Application.persistentDataPath,
+                _ => PlayerPrefs.GetString("file_path", GetDefaultGameFilePath())
             };
+        }
+
+        private static string GetDefaultGameFilePath()
+        {
+            return Application.platform switch
+            {
+                RuntimePlatform.Android => 
+                    new DirectoryInfo(Application.persistentDataPath + "/../../../../RPGR-Data").FullName,
+                _ => Application.persistentDataPath
+            };
+        }
+        
+        public static Uri FilePathToUri(string filePath)
+        {
+            Uri.TryCreate(filePath, UriKind.Absolute, out var uri);
+            return uri;
+            /*
+            filePath = Path.GetFullPath(filePath).Replace("\\", "/").Replace(" ", "%20");
+            string pathRoot = Path.GetPathRoot(filePath).Replace("\\", "/");
+            int system;
+            if (pathRoot.EndsWith(":/"))
+            {
+                system = 0; // Windows
+            }
+            else if (pathRoot == "/")
+            {
+                system = 1; // 其他系统
+            }
+            else
+            {
+                system = -1;
+            }
+            
+            if (system == -1) throw new ArgumentException("Invalid file path: " + filePath, nameof(filePath));
+
+            filePath = filePath.Substring(pathRoot.Length);
+
+            /*string pathSeparator = system switch
+            {
+                0 => "\\",
+                1 => "/",
+                _ => throw new ArgumentOutOfRangeException()
+            };#1#
+            string prefix = system switch
+            {
+                0 => "file:///",
+                _ =>"file://"
+            };
+            return $"{prefix}{pathRoot}{string.Join('/', filePath.Split("/").ToList().Select(UnityWebRequest.EscapeURL))}";*/
         }
 
 #if !RELEASE_VERSION

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,10 @@ namespace MaTech.Audio {
         private readonly AsyncLock lockLoading = new AsyncLock();
         
         private long currentCacheSize;
+    
+        #if UNITY_EDITOR
+        private static bool warnedAboutMP3DecoderInEditor = false;
+        #endif
 
         public async UniTask<AudioClip> LoadAudioClip(string url, bool isGlobal) {
             using (await lockLoading.LockAsync()) {
@@ -39,7 +43,7 @@ namespace MaTech.Audio {
                 var clip = await RequestAudioClip(url);
                 
                 #if UNITY_EDITOR
-                Debug.Log($"Loaded AudioClip {Path.GetFileName(url)}");
+                Debug.Log($"[MaAudio] Loaded AudioClip from file {Path.GetFileName(url)}");
                 #endif
                 
                 listAudio.Add(url, clip);
@@ -62,28 +66,39 @@ namespace MaTech.Audio {
         }
 
         private async UniTask<AudioClip> RequestAudioClip(string url) {
-            if (url == null) return null;
+            if (url is null) return null;
             
             AudioType audioType = GetAudioTypeByPath(url);
-            // #if UNITY_STANDALONE
-            // if (audioType == AudioType.MPEG) {
-            //     throw new System.NotImplementedException("MP3 decoders not present in builds. Implement a MP3 decoder here and output the decoded data as an AudioClip.");
-            // }
-            // #endif
 
             await UniTask.SwitchToMainThread();
             
             #if UNITY_EDITOR
-            if (url.StartsWith("Assets") && !url.Contains("StreamingAssets")) return AssetDatabase.LoadAssetAtPath<AudioClip>(url);
+            if (url.StartsWith("Assets") && !url.Contains("StreamingAssets")) {
+                return AssetDatabase.LoadAssetAtPath<AudioClip>(url);
+            }
             #endif
             
             using var request = UnityWebRequestMultimedia.GetAudioClip(url, audioType);
             await request.SendWebRequest();
             
-            if (request.result != UnityWebRequest.Result.Success) {
-                Debug.LogError($"Cannot load audio file \"{url}\"");
+            if (request.result is not UnityWebRequest.Result.Success) {
+                Debug.LogError($"[MaAudio] Cannot load audio file \"{url}\", audio type {audioType}");
+                #if !UNITY_EDITOR && !UNITY_2022_OR_NEWER
+                if (audioType == AudioType.MPEG) {
+                    Debug.LogError("In non-editor builds, MP3 decoder might not exist or having poor support in older version of Unity due to licensing issues.");
+                }
+                #endif
                 return null;
             }
+            
+            #if UNITY_EDITOR
+            if (audioType is AudioType.MPEG && !warnedAboutMP3DecoderInEditor) {
+                Debug.LogWarning("In non-editor builds, MP3 decoder might not exist or having poor support in older version of Unity due to licensing issues. " +
+                                 "In Extra, different decoder implementations may set different lengths of blank before audio starts, which might create audio-syncing issues across platforms. " +
+                                 "Please avoid using MP3 audio sources in builds.");
+                warnedAboutMP3DecoderInEditor = true;
+            }
+            #endif
             
             return DownloadHandlerAudioClip.GetContent(request);
         }

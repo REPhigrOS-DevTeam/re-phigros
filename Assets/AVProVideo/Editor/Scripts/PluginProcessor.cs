@@ -25,6 +25,7 @@ using UnityEditor.Build.Reporting;
 #endif
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.Compilation;
 
 //-----------------------------------------------------------------------------
 // Copyright 2015-2021 RenderHeads Ltd.  All rights reserved.
@@ -202,9 +203,31 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
 #if (UNITY_EDITOR && UNITY_ANDROID)
             aFilesToDelete.Add( new SFileToDelete( "Android/guava-27.1-android.jar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/libs/arm64-v8a/libc++_shared.so" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/libs/armeabi-v7a/libc++_shared.so" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/libs/x86/libc++_shared.so" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/libs/x86_64/libc++_shared.so" ) );
+
+			aFilesToDelete.Add( new SFileToDelete( "Android/guava-31.1-android.jar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-common.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-container.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-database.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-datasource.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-datasource-cronet.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-datasource-okhttp.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-datasource-rtmp.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-decoder.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-extractor.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer-dash.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer-hls.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer-rtsp.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer-smoothstreaming.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/media3-exoplayer-workmanager.aar" ) );
+			aFilesToDelete.Add( new SFileToDelete( "Android/rtmp-client-3.2.0.aar" ) );
 #endif
 
-            if ( aFilesToDelete.Count > 0 )
+			if( aFilesToDelete.Count > 0 )
             {
                 int iNumFoundFilesToDelete = 0;
                 string aFilesToDeleteString = "";
@@ -233,9 +256,9 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
                 if( iNumFoundFilesToDelete > 0 )
                 {
-                    string message = ( iNumFoundFilesToDelete == 1 ) ? "A legacy AVPro Video plugin file has been found that requires deleting in order to build." : "Legacy AVPro Video plugin files have been found that require deleting in order to build.";
+                    string message = ( iNumFoundFilesToDelete == 1 ) ? "A legacy AVPro Video plugin file(s) have been found that requires deleting in order to build." : "Legacy AVPro Video plugin files have been found that require deleting in order to build.";
                     Debug.Log("[AVProVideo] " + message + " Files: " + aFilesToDeleteString );
-                    if ( EditorUtility.DisplayDialog( "AVPro Video Legacy File", message + "\n\nDelete the following files?\n\n" + aFilesToDeleteString, "Delete", "Ignore" ) )
+                    if( EditorUtility.DisplayDialog( "AVPro Video Legacy File", message + "\n\nDelete the following files?\n\n" + aFilesToDeleteString, "Delete", "Ignore" ) )
                     {
                         foreach( SFileToDelete fileToDelete in aFilesToDelete )
                         {
@@ -245,7 +268,10 @@ namespace RenderHeads.Media.AVProVideo.Editor
                                 Debug.Log( "[AVProVideo] Deleting " + fileToDelete.fullPath );
                             }
                         }
-                    }
+
+						AssetDatabase.Refresh();
+						CompilationPipeline.RequestScriptCompilation();
+					}
                 }
             }
         }

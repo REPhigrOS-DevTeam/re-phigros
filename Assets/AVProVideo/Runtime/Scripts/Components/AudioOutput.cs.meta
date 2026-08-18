@@ -6,3 +6,10 @@ MonoImporter:
   executionOrder: 0
   icon: {fileID: 2800000, guid: bb83b41b53a59874692b83eab5873998, type: 3}
   userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/Components/AudioOutput.cs
+  uploadId: 730303

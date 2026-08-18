@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using MainCore.Utilities;
 using Network.Chart;
 using Network.Multiplayer.Data;
 using Network.Multiplayer.Managers;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -190,7 +188,7 @@ public class MPServerTest : MonoBehaviour
         SocketManager.OnUpdateSongReceived += OnSongReceived;
         SocketManager.OnGameStarted += playerList =>
         {
-            GlobalSetting.playerList = playerList;
+            GlobalSetting.PlayerList = playerList;
             EnterGame();
         };
         SocketManager.OnGetRoomListSucceeded += list =>
@@ -271,7 +269,6 @@ public class MPServerTest : MonoBehaviour
                 $" - 难度：{info.SongDifficulty}\n" +
                 $" - 谱师：{info.SongCharter}\n" +
                 $" - 曲绘绘师：{info.SongIllustrator}\n" +
-                $" - 曲目长度：{info.MusicLength:0.##}s\n" +
                 $" - [备用]文件夹名称：{info.FolderName}",
                 MessageType.Room);
         OnUpdateSongReceived(id, type, JObject.FromObject(info));
@@ -413,8 +410,8 @@ public class MPServerTest : MonoBehaviour
 
     private async Task<bool> ProcessChart(string directory)
     {
-#if true
-        GlobalSetting.ChartFolderPath = directory;
+#if false
+        GlobalSetting.CurrentBeatmapInfo.BasePath = directory;
         string originalPath = PlayerPrefs.GetString("chartFolderPath", Application.persistentDataPath);
         PlayerPrefs.SetString("chartFolderPath", directory);
         PlayerPrefs.Save();
@@ -469,8 +466,8 @@ public class MPServerTest : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        await Main.InitChartAuto(GlobalSetting.ChartPath, false, false).ConfigureAwait(false);
-        if (GlobalSetting.InfoType == InfoType.InfoYml) Main.ApplyPhiraOffset((float)obj);
+        await ChartLoader.InitChartAuto(GlobalSetting.ChartPath, false, false).ConfigureAwait(false);
+        if (GlobalSetting.InfoType == InfoType.InfoYml) ChartLoader.ApplyPhiraOffset((float)obj);
 
         // extra init
         string extraJsonPath = directory + "/extra.json";
@@ -511,8 +508,10 @@ public class MPServerTest : MonoBehaviour
             InGameUIManager.ShowModalWindowWithClose("错误", "无法读取曲绘", () => { }, "确定");
         }
 
-        Main.music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
-#else
+        Main.Music = await Util.ReadMusicAsAudioClipAsync(GlobalSetting.MusicPath);
+
+//#else
+
         ChartInfo chartInfo = ChartInfo.FromJson(await File.ReadAllTextAsync(debugInfoFile));
         if (chartInfo.Chart == null)
         {
@@ -539,7 +538,6 @@ public class MPServerTest : MonoBehaviour
         GlobalSetting.IsMultiplayer = true;
         GlobalSetting.YayaKawaii = GlobalSetting.YayaMode.冲;
         GlobalSetting.PepoyoDaisuki = GlobalSetting.PepoyoMode.Waraninja;
-        GlobalSetting.UsingApi = false;
         GlobalSetting.ReadUserSettings();
         GlobalSetting.AutoPlay = false;
         GlobalSetting.StrictJudgeMode = false;
@@ -581,7 +579,7 @@ public class MPServerTest : MonoBehaviour
 
     private void SetButtonState(RoomState state)
     {
-        if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return;
+        if (!IsFromUnityThread || Convert.ToString((int)state, 2).Replace("0", "").Length > 1) return; // 仅输入单个RoomState
         foreach (GameObject button in buttonToState.Keys)
         {
             button.SetActive((buttonToState[button] & state) == state);

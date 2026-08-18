@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 974b97843636e6841af4b649195a68db
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/Common/MediaPlayerUI/SubtitleLine.prefab
+  uploadId: 730303

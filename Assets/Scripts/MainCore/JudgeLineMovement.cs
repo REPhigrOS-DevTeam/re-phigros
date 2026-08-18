@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using MainCore.Data;
@@ -142,9 +141,11 @@ namespace MainCore
             }
 
             if (!IsImage)
+            {
                 TargetScale = new Vector2(
-                    236 * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
+                    236f * 2.5f * Camera.main.orthographicSize * GlobalSetting.Aspect / sr.sprite.texture.width,
                     220 * 0.008f * Camera.main.orthographicSize / sr.sprite.texture.height);
+            }
             if (GlobalSetting.FormatVersion == 1)
             {
                 foreach (judgeLineSpeedEvent b in Line.speedEvents)
@@ -161,7 +162,7 @@ namespace MainCore
                 PositionX.Add(0f);
             ProcessingNotes = Line.notesBelow.Concat(Line.notesAbove).ToList();
             ArrangeFloorPosition();
-            if (GlobalSetting.IsMirror)
+            if (GlobalSetting.IsMirror && GlobalSetting.RestartCount == 1)
             {
                 for (var layer = 0; layer < Line.rpeLayers.Count; layer++)
                 {
@@ -194,7 +195,7 @@ namespace MainCore
         {
             ProcessingNotes.Remove(i);
             NoteMovement t;
-            if (GlobalSetting.IsMirror)
+            if (GlobalSetting.IsMirror && GlobalSetting.RestartCount == 1)
                 i.positionX = -i.positionX;
             switch (type)
             {
@@ -368,10 +369,6 @@ namespace MainCore
         {
             await new WaitForSeconds(0.2f);
             transform.localScale = TargetScale;
-            if (GlobalSetting.Is3D)
-            {
-                JudgeLineTopTransform.eulerAngles = new Vector3(30, 0, 0);
-            }
         }
 
         public float CalculateNoteHeight(float time)
@@ -719,6 +716,11 @@ namespace MainCore
 
                     float startT = i.startTime;
                     float endT = i.endTime;
+                    if (startT >= PgrTime)
+                    {
+                        targetStr = "";
+                        return targetStr;
+                    }
                     string start = i.start;
                     string end = i.end;
                     var now = EaseUtils.GetEaseResult((EaseUtils.EaseType)i.easingType, PgrTime - startT,
@@ -739,7 +741,7 @@ namespace MainCore
                     {
                         if (end.Length >= start.Length)
                         {
-                            int deltaLength = (end.Length - start.Length) * Mathf.RoundToInt(now);
+                            int deltaLength = Mathf.RoundToInt((end.Length - start.Length) * now);
                             int deltaPoint = start.Length + deltaLength;
                             if (end.StartsWith(start))
                                 targetStr = end.Substring(0, deltaPoint);
@@ -749,7 +751,7 @@ namespace MainCore
                         }
                         else
                         {
-                            int deltaLength = (start.Length - end.Length) * Mathf.RoundToInt(now);
+                            int deltaLength = Mathf.RoundToInt((start.Length - end.Length) * now);
                             int deltaPoint = start.Length - deltaLength;
                             if (start.StartsWith(end))
                                 targetStr = start.Substring(0, deltaPoint);

@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: 913089523f966664fa6e14e68ef44722
 timeCreated: 1607543899
-licenseType: Pro
+licenseType: Store
 TextScriptImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Licenses/Hap-License.txt
+  uploadId: 730303

@@ -372,7 +372,7 @@ namespace MainCore.Utilities
 
     public static class Rpe2Json
     {
-        public static async Task<Chart> Chart123(string chart, bool showMessage)
+        public static async Task<(Chart, float[])> Chart123(string chart, bool showMessage, List<int[]> list)
         {
             RpeChartData rpeChartData = JsonUtility.FromJson<RpeChartData>(chart);
             Chart retChart = new Chart();
@@ -386,9 +386,9 @@ namespace MainCore.Utilities
                 .Sum(x => x.notes
                     .Where(y => !y.isFake)
                     .ToArray().Length);
-            if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
+            /*if (rpeChartData.META.RPEVersion >= 0 && GlobalSetting.InfoType <= InfoType.RpeJson)
             {
-                GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
+                /*GlobalSetting.MusicPath = Path.Combine(GlobalSetting.ChartFolderPath,
                     rpeChartData.META.song);
                 GlobalSetting.IllustrationPath =
                     Path.Combine(GlobalSetting.ChartFolderPath, rpeChartData.META.background);
@@ -396,8 +396,8 @@ namespace MainCore.Utilities
                 GlobalSetting.Composer = rpeChartData.META.composer;
                 GlobalSetting.Illustrator = "Unknown";
                 GlobalSetting.ChartName = rpeChartData.META.name;
-                GlobalSetting.Difficulty = rpeChartData.META.level;
-            }
+                GlobalSetting.Difficulty = rpeChartData.META.level;#1#
+            }*/
 
             //Convert BPM
             rpeChartData.BPMList.OrderBy(x => x.startTime.Frac()).ToList().ForEach(x =>
@@ -431,7 +431,7 @@ namespace MainCore.Utilities
                 //Convert extended
                 if (rpeChartData.judgeLineList[i].Texture != "line.png")
                 {
-                    var path = Path.Combine(GlobalSetting.ChartFolderPath,
+                    var path = Path.Combine(GlobalSetting.CurrentBeatmapInfo.BasePath,
                         rpeChartData.judgeLineList[i].Texture);
                     if (File.Exists(path))
                     {
@@ -857,7 +857,21 @@ namespace MainCore.Utilities
 
             retChart.maxZOrder = maximumZOrder;
 
-            return retChart;
+            float[] qwq;
+            if (list is { Count: > 0 })
+            {
+                qwq = new float[list.Count];
+                for (var i = 0; i < list.Count; i++)
+                {
+                    qwq[i] = RecalcTime(bpms, list[i].Frac());
+                }
+            }
+            else
+            {
+                qwq = Array.Empty<float>();
+            }
+
+            return (retChart, qwq);
         }
 
         private static float RecalcTime(List<BpmEvent> bpms, float time)

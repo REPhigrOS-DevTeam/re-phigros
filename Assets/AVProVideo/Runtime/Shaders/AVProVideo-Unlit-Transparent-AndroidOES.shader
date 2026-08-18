@@ -2,12 +2,13 @@
 {
 	Properties
 	{
-		_MainTex ("Base (RGB)", 2D) = "black" {}
-		_ChromaTex("Chroma", 2D) = "gray" {}			// For fallback shader
+		_MainTex ("Base (RGB)", 2D) = "black" { }
+		_ChromaTex("Chroma", 2D) = "gray" { }			// For fallback shader
 		_Color("Main Color", Color) = (1,1,1,1)			// For fallback shader
 
 		[KeywordEnum(None, Top_Bottom, Left_Right)] AlphaPack("Alpha Pack", Float) = 0
 		[Toggle(APPLY_GAMMA)] _ApplyGamma("Apply Gamma", Float) = 0
+		[Toggle(USE_YPCBCR)] _UseYpCbCr("Use YpCbCr", Float) = 0
 	}
 	SubShader
 	{
@@ -22,7 +23,7 @@
 		{
 			GLSLPROGRAM
 
-			#pragma only_renderers gles gles3
+			#pragma only_renderers gles3
 			// TODO: replace use multi_compile_local instead (Unity 2019.1 feature)
 			#pragma multi_compile ALPHAPACK_NONE ALPHAPACK_TOP_BOTTOM ALPHAPACK_LEFT_RIGHT
 			#pragma multi_compile __ APPLY_GAMMA
@@ -33,89 +34,71 @@
 			#extension GL_OES_EGL_image_external_essl3 : enable
 			precision mediump float;
 
-			#ifdef VERTEX
-
 			#include "UnityCG.glslinc"
+			#if defined(STEREO_MULTIVIEW_ON)
+				UNITY_SETUP_STEREO_RENDERING
+			#endif
 			#define SHADERLAB_GLSL
 			#include "AVProVideo.cginc"
-		
-#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-			varying vec4 texVal;
-#else
-			varying vec2 texVal;
-#endif
 
+			#ifdef VERTEX
+
+			#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+			out vec4 texVal;
+			#else
+			out vec2 texVal;
+			#endif
+			
 			uniform vec4 _MainTex_ST;
 			uniform vec4 _MainTex_TexelSize;
-			uniform mat4 _TextureMatrix;
-
-			/// @fix: explicit TRANSFORM_TEX(); Unity's preprocessor chokes when attempting to use the TRANSFORM_TEX() macro in UnityCG.glslinc
-			/// 	(as of Unity 4.5.0f6; issue dates back to 2011 or earlier: http://forum.unity3d.com/threads/glsl-transform_tex-and-tiling.93756/)
-			vec2 transformTex(vec4 texCoord, vec4 texST) 
-			{
-				return (texCoord.xy * texST.xy + texST.zw);
-			}
+			uniform mat4 _MainTex_Xfrm;
 
 			void main()
 			{
 				gl_Position = XFormObjectToClip(gl_Vertex);
-				texVal.xy = transformTex(gl_MultiTexCoord0, _MainTex_ST);
+
+				texVal.xy = gl_MultiTexCoord0.xy;
 
 				// Apply texture transformation matrix - adjusts for offset/cropping (when the decoder decodes in blocks that overrun the video frame size, it pads)
-				texVal.xy = (_TextureMatrix * vec4(texVal.x, texVal.y, 0.0, 1.0) ).xy;
+				texVal.xy = (_MainTex_Xfrm * vec4(texVal.x, texVal.y, 0.0, 1.0) ).xy;
+				texVal.xy = TRANSFORM_TEX_ST(texVal, _MainTex_ST);
 
-	#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-				texVal = OffsetAlphaPackingUV(_MainTex_TexelSize.xy, texVal.xy, _MainTex_ST.y < 0.0);
-			#if defined(ALPHAPACK_TOP_BOTTOM)
-				texVal.yw = texVal.wy;
-			#endif
-	#endif
+				#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+					texVal = OffsetAlphaPackingUV(_MainTex_TexelSize.xy, texVal.xy, _MainTex_ST.y < 0.0);
+					#if defined(ALPHAPACK_TOP_BOTTOM)
+						texVal.yw = texVal.wy;
+					#endif
+				#endif
 			}
-			#endif
+			#endif	// VERTEX
 
 			#ifdef FRAGMENT
 
-#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-			varying vec4 texVal;
-#else
-			varying vec2 texVal;
-#endif
+			#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+			in vec4 texVal;
+			#else
+			in vec2 texVal;
+			#endif
 
-#if defined(USING_DEFAULT_TEXTURE)
+			#if defined(USING_DEFAULT_TEXTURE)
 			uniform sampler2D _MainTex;
-#else
+			#else
 			uniform samplerExternalOES _MainTex;
-#endif
-
-#if defined(APPLY_GAMMA)
-			vec3 GammaToLinear(vec3 col)
-			{
-				return col * (col * (col * 0.305306011 + 0.682171111) + 0.012522878);
-			}
-#endif
+			#endif
 
 			void main()
 			{
+				vec4 col = texture(_MainTex, texVal.xy);
 
-	#if defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-				vec4 col = texture2D(_MainTex, texVal.xy);
-	#else
-				vec4 col = vec4(1.0, 1.0, 0.0, 1.0);
-	#endif
+				#if defined(APPLY_GAMMA)
+					col.rgb = GammaToLinear(col.rgb);
+				#endif
 
-	#if defined(APPLY_GAMMA)
-				col.rgb = GammaToLinear(col.rgb);
-	#endif
-
-	#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
-		#if defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-				vec3 rgb = texture2D(_MainTex, texVal.zw).rgb;
-				col.a = (rgb.r + rgb.g + rgb.b) / 3.0;
-		#else
-				col.a = 1.0;
-		#endif
-	#endif
-
+				#if defined(ALPHAPACK_TOP_BOTTOM) || defined(ALPHAPACK_LEFT_RIGHT)
+					vec3 rgb = texture(_MainTex, texVal.zw).rgb;
+					col.a = (rgb.r + rgb.g + rgb.b) / 3.0;
+				#endif
+				
 				gl_FragColor = col;
 			}
 			#endif

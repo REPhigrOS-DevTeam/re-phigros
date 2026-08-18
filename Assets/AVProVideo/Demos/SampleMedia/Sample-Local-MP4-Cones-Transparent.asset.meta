@@ -1,9 +1,16 @@
 fileFormatVersion: 2
 guid: 4844808027b36464d9a0540bf1de6663
 timeCreated: 1604318423
-licenseType: Pro
+licenseType: Store
 NativeFormatImporter:
   mainObjectFileID: -1
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Demos/SampleMedia/Sample-Local-MP4-Cones-Transparent.asset
+  uploadId: 730303

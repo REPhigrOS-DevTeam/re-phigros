@@ -1,142 +1,121 @@
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
-using UnityEngine;
+using Cysharp.Threading.Tasks;
 
-public static class InGameUIManager
+namespace MainCore.UI.Utils
 {
-    private static ConcurrentQueue<WindowInfo> queue = new();
-    public static bool IsActive => InGameModalWindow.Instance.IsActive;
-
-    /// <summary>
-    /// 打开一个模态窗口
-    /// </summary>
-    /// <param name="title">标题</param>
-    /// <param name="content">内容</param>
-    /// <param name="confirmAction">确认后的行动</param>
-    /// /// <param name="confirmtext">确认按钮的text</param>
-    /// <param name="cancelAction">取消后的行动</param>
-    /// <param name="canceltext">取消按钮的text</param>
-    public static void ShowModalWindow(string title, string content, Action confirmAction = null,
-        string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
-        Action alternateAction = null, string alternatetext = "Alternate")
+    public static class InGameUIManager
     {
-        if (IsActive)
+        private static readonly ConcurrentQueue<WindowInfo> Queue = new();
+        public static bool IsActive => InGameModalWindow.Instance.IsActive;
+
+        /// <summary>
+        /// 打开一个模态窗口
+        /// </summary>
+        /// <param name="title">标题</param>
+        /// <param name="content">内容</param>
+        /// <param name="confirmAction">确认后的行动</param>
+        /// /// <param name="confirmtext">确认按钮的text</param>
+        /// <param name="cancelAction">取消后的行动</param>
+        /// <param name="canceltext">取消按钮的text</param>
+        public static void ShowModalWindow(string title, string content, Action confirmAction = null,
+            string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
+            Action alternateAction = null, string alternatetext = "Alternate")
         {
-            queue.Enqueue(new WindowInfo
+            if (IsActive)
             {
-                withClose = false,
-                title = title,
-                content = content,
-                confirmAction = confirmAction,
-                confirmText = confirmtext,
-                cancelAction = cancelAction,
-                cancelText = canceltext,
-                alternateAction = alternateAction,
-                alternateText = alternatetext
-            });
-            return;
+                Queue.Enqueue(new WindowInfo
+                {
+                    title = title,
+                    content = content,
+                    confirmAction = confirmAction,
+                    confirmText = confirmtext,
+                    cancelAction = cancelAction,
+                    cancelText = canceltext,
+                    alternateAction = alternateAction,
+                    alternateText = alternatetext
+                });
+                return;
+            }
+
+            InGameModalWindow.Instance.Show(title, content, confirmAction, confirmtext, cancelAction, canceltext,
+                alternateAction, alternatetext);
         }
 
-        InGameModalWindow.Instance.Show(title, content, confirmAction, confirmtext, cancelAction, canceltext,
-            alternateAction, alternatetext);
-    }
-
-    /// <summary>
-    /// 打开一个模态窗口，一旦按下按钮就消失
-    /// </summary>
-    public static void ShowModalWindowWithClose(string title, string content, Action confirmAction,
-        string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
-        Action alternateAction = null, string alternatetext = "Alternate")
-    {
-        if (IsActive)
+        /// <summary>
+        /// 打开一个模态窗口，一旦按下按钮就消失
+        /// </summary>
+        public static void ShowModalWindowWithClose(string title, string content, Action confirmAction,
+            string confirmtext = "Confirm", Action cancelAction = null, string canceltext = "Cancel",
+            Action alternateAction = null, string alternatetext = "Alternate")
         {
-            queue.Enqueue(new WindowInfo
+            confirmAction += HideModalWindow;
+
+            if (cancelAction != null)
             {
-                withClose = true,
-                title = title,
-                content = content,
-                confirmAction = confirmAction,
-                confirmText = confirmtext,
-                cancelAction = cancelAction,
-                cancelText = canceltext,
-                alternateAction = alternateAction,
-                alternateText = alternatetext
-            });
-            return;
+                cancelAction += HideModalWindow;
+            }
+
+            if (alternateAction != null)
+            {
+                alternateAction += HideModalWindow;
+            }
+
+            ShowModalWindow(title, content, confirmAction, confirmtext, cancelAction, canceltext, alternateAction, alternatetext);
         }
 
-        confirmAction += HideModalWindow;
-
-        if (cancelAction != null)
-        {
-            cancelAction += HideModalWindow;
-        }
-
-        if (alternateAction != null)
-        {
-            alternateAction += HideModalWindow;
-        }
-
-        InGameModalWindow.Instance.Show(title, content, confirmAction, confirmtext, cancelAction, canceltext,
-            alternateAction, alternatetext);
-    }
-
-    /// <summary>
-    /// 隐藏模态窗口，无动画
-    /// </summary>
-    public static void HideModalWindowForcely()
-    {
-        InGameModalWindow.Instance.HideForcely();
-    }
-
-    /// <summary>
-    /// 隐藏模态窗口
-    /// </summary>
-    public static void HideModalWindow()
-    {
-        InGameModalWindow.Instance.Hide();
-    }
-
-    public static void CheckWindowToShow()
-    {
-        if (queue.Count == 0) return;
-        if (!queue.TryDequeue(out WindowInfo windowInfo)) return;
-        if (windowInfo.withClose)
+        public static void ShowModalWindowWithCloseFromWindowInfo(WindowInfo windowInfo)
         {
             windowInfo.confirmAction += HideModalWindow;
-
-            if (windowInfo.cancelAction != null)
-            {
-                windowInfo.cancelAction += HideModalWindow;
-            }
-
-            if (windowInfo.alternateAction != null)
-            {
-                windowInfo.alternateAction += HideModalWindow;
-            }
+            if (windowInfo.cancelAction != null) windowInfo.cancelAction += HideModalWindow;
+            if (windowInfo.alternateAction != null) windowInfo.alternateAction += HideModalWindow;
+            ShowModalWindowFromWindowInfo(windowInfo);
         }
 
-        InGameModalWindow.Instance.Show(windowInfo.title, windowInfo.content, windowInfo.confirmAction,
-            windowInfo.confirmText, windowInfo.cancelAction, windowInfo.cancelText, windowInfo.alternateAction,
-            windowInfo.alternateText);
-    }
+        public static void ShowModalWindowFromWindowInfo(WindowInfo windowInfo)
+        {
+            ShowModalWindow(windowInfo.title, windowInfo.content, windowInfo.confirmAction, windowInfo.confirmText, windowInfo.cancelAction, windowInfo.cancelText, windowInfo.alternateAction, windowInfo.alternateText);
+        }
 
-    public static IEnumerator Join()
-    {
-        yield return new WaitWhile(() => IsActive);
-    }
+        /// <summary>
+        /// 隐藏模态窗口，无动画
+        /// </summary>
+        public static void HideModalWindowForcely()
+        {
+            InGameModalWindow.Instance.HideForcely();
+        }
 
-    class WindowInfo
-    {
-        public bool withClose;
-        public string title;
-        public string content;
-        public Action confirmAction;
-        public string confirmText;
-        public Action cancelAction;
-        public string cancelText;
-        public Action alternateAction;
-        public string alternateText;
+        /// <summary>
+        /// 隐藏模态窗口
+        /// </summary>
+        public static void HideModalWindow()
+        {
+            InGameModalWindow.Instance.Hide();
+        }
+
+        public static void CheckWindowToShow()
+        {
+            if (Queue.Count == 0) return;
+            if (!Queue.TryDequeue(out WindowInfo windowInfo)) return;
+
+            ShowModalWindowFromWindowInfo(windowInfo);
+        }
+
+        public static async UniTask Join()
+        {
+            await UniTask.WaitWhile(() => IsActive);
+        }
+
+        public class WindowInfo
+        {
+            public string title;
+            public string content;
+            public Action confirmAction;
+            public string confirmText;
+            public Action cancelAction;
+            public string cancelText;
+            public Action alternateAction;
+            public string alternateText;
+        }
     }
 }

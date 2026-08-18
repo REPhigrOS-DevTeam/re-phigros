@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 //-----------------------------------------------------------------------------
 // Copyright 2015-2022 RenderHeads Ltd.  All rights reserved.
@@ -8,9 +8,6 @@ namespace RenderHeads.Media.AVProVideo
 {
 	public partial class MediaPlayer : MonoBehaviour
 	{
-
-#region Events
-
 		// Event state
 		private bool _eventFired_MetaDataReady = false;
 		private bool _eventFired_ReadyToPlay = false;
@@ -24,6 +21,7 @@ namespace RenderHeads.Media.AVProVideo
 		private int _eventState_PreviousHeight = 0;
 		private int _previousSubtitleIndex = -1;
 		private bool _finishedFrameOpenCheck = false;
+		private bool _eventState_Paused = false;
 
 		#if UNITY_EDITOR
 		public static MediaPlayerLoadEvent InternalMediaLoadedEvent = new MediaPlayerLoadEvent();
@@ -45,137 +43,155 @@ namespace RenderHeads.Media.AVProVideo
 			_finishedFrameOpenCheck = false;
 		}
 
-		private void UpdateEvents()
+		private void CheckAndClearStartedAndFinishedEvents()
 		{
-			if (_events != null && _controlInterface != null && _events.HasListeners())
+			//NOTE: Fixes a bug where the event was being fired immediately, so when a file is opened, the finishedPlaying fired flag gets set but
+			//is then set to true immediately afterwards due to the returned value
+			_finishedFrameOpenCheck = false;
+			if (IsHandleEvent(MediaPlayerEvent.EventType.FinishedPlaying))
 			{
-				//NOTE: Fixes a bug where the event was being fired immediately, so when a file is opened, the finishedPlaying fired flag gets set but
-				//is then set to true immediately afterwards due to the returned value
-				_finishedFrameOpenCheck = false;
-				if (IsHandleEvent(MediaPlayerEvent.EventType.FinishedPlaying))
+				if (FireEventIfPossible(MediaPlayerEvent.EventType.FinishedPlaying, _eventFired_FinishedPlaying))
 				{
-					if (FireEventIfPossible(MediaPlayerEvent.EventType.FinishedPlaying, _eventFired_FinishedPlaying))
-					{
-						_eventFired_FinishedPlaying = !_finishedFrameOpenCheck;
-					}
-				}
-
-				// Reset some event states that can reset during playback
-				{
-					// Keep track of whether the Playing state has changed
-					if (_eventFired_Started && IsHandleEvent(MediaPlayerEvent.EventType.Started) &&
-						_controlInterface != null && !_controlInterface.IsPlaying() && !_controlInterface.IsSeeking())
-					{
-						// Playing has stopped
-						_eventFired_Started = false;
-					}
-
-					// NOTE: We check _controlInterface isn't null in case the scene is unloaded in response to the FinishedPlaying event
-					if (_eventFired_FinishedPlaying && IsHandleEvent(MediaPlayerEvent.EventType.FinishedPlaying) &&
-						_controlInterface != null && _controlInterface.IsPlaying() && !_controlInterface.IsFinished())
-					{
-						bool reset = true;
-#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && (UNITY_STANDALONE_WIN || UNITY_WSA))
-						reset = false;
-						if (_infoInterface.HasVideo())
-						{
-							// Some streaming HLS/Dash content don't provide a frame rate
-							if (_infoInterface.GetVideoFrameRate() > 0f)
-							{
-								// Don't reset if within a frame of the end of the video, important for time > duration workaround
-								float secondsPerFrame = 1f / _infoInterface.GetVideoFrameRate();
-								if (_infoInterface.GetDuration() - _controlInterface.GetCurrentTime() > secondsPerFrame)
-								{
-									reset = true;
-								}
-							}
-							else
-							{
-								// Just check if we're not beyond the duration
-								if (_controlInterface.GetCurrentTime() < _infoInterface.GetDuration())
-								{
-									reset = true;
-								}
-							}
-						}
-						else
-						{
-							// For audio only media just check if we're not beyond the duration
-							if (_controlInterface.GetCurrentTime() < _infoInterface.GetDuration())
-							{
-								reset = true;
-							}
-						}
-#endif
-						if (reset)
-						{
-							//Debug.Log("Reset");
-							_eventFired_FinishedPlaying = false;
-						}
-					}
-				}
-
-				// Events that can only fire once
-				{
-					_eventFired_MetaDataReady = FireEventIfPossible(MediaPlayerEvent.EventType.MetaDataReady, _eventFired_MetaDataReady);
-					_eventFired_ReadyToPlay = FireEventIfPossible(MediaPlayerEvent.EventType.ReadyToPlay, _eventFired_ReadyToPlay);
-					_eventFired_Started = FireEventIfPossible(MediaPlayerEvent.EventType.Started, _eventFired_Started);
-					_eventFired_FirstFrameReady = FireEventIfPossible(MediaPlayerEvent.EventType.FirstFrameReady, _eventFired_FirstFrameReady);
-				}
-
-				// Events that can fire multiple times
-				{
-					// Subtitle changing
-					if (FireEventIfPossible(MediaPlayerEvent.EventType.SubtitleChange, false))
-					{
-						_previousSubtitleIndex = _subtitlesInterface.GetSubtitleIndex();
-					}
-
-					// Resolution changing
-					if (FireEventIfPossible(MediaPlayerEvent.EventType.ResolutionChanged, false))
-					{
-						_eventState_PreviousWidth = _infoInterface.GetVideoWidth();
-						_eventState_PreviousHeight = _infoInterface.GetVideoHeight();
-					}
-
-					// Stalling
-					if (IsHandleEvent(MediaPlayerEvent.EventType.Stalled))
-					{
-						bool newState = _infoInterface.IsPlaybackStalled();
-						if (newState != _eventState_PlaybackStalled)
-						{
-							_eventState_PlaybackStalled = newState;
-
-							var newEvent = _eventState_PlaybackStalled ? MediaPlayerEvent.EventType.Stalled : MediaPlayerEvent.EventType.Unstalled;
-							FireEventIfPossible(newEvent, false);
-						}
-					}
-					// Seeking
-					if (IsHandleEvent(MediaPlayerEvent.EventType.StartedSeeking))
-					{
-						bool newState = _controlInterface.IsSeeking();
-						if (newState != _eventState_PlaybackSeeking)
-						{
-							_eventState_PlaybackSeeking = newState;
-
-							var newEvent = _eventState_PlaybackSeeking ? MediaPlayerEvent.EventType.StartedSeeking : MediaPlayerEvent.EventType.FinishedSeeking;
-							FireEventIfPossible(newEvent, false);
-						}
-					}
-					// Buffering
-					if (IsHandleEvent(MediaPlayerEvent.EventType.StartedBuffering))
-					{
-						bool newState = _controlInterface.IsBuffering();
-						if (newState != _eventState_PlaybackBuffering)
-						{
-							_eventState_PlaybackBuffering = newState;
-
-							var newEvent = _eventState_PlaybackBuffering ? MediaPlayerEvent.EventType.StartedBuffering : MediaPlayerEvent.EventType.FinishedBuffering;
-							FireEventIfPossible(newEvent, false);
-						}
-					}
+					_eventFired_FinishedPlaying = !_finishedFrameOpenCheck;
 				}
 			}
+
+			if (_eventFired_FinishedPlaying &&
+				IsHandleEvent(MediaPlayerEvent.EventType.FinishedPlaying) &&
+				_controlInterface.IsPlaying() &&
+				!_controlInterface.IsFinished())
+			{
+				bool reset = true;
+// RJT NOTE: Commented out for now as seems over-aggressive and can lead to freeze conditions as seen in: https://github.com/RenderHeads/UnityPlugin-AVProVideo/issues/1692
+// - If we need to reinstate then we'd likely need considerably more tolerance, especially on slower machines
+#if false//UNITY_EDITOR_WIN || (!UNITY_EDITOR && (UNITY_STANDALONE_WIN || UNITY_WSA))
+				reset = false;
+				if (_infoInterface.HasVideo())
+				{
+					// Some streaming HLS/Dash content don't provide a frame rate
+					if (_infoInterface.GetVideoFrameRate() > 0f)
+					{
+						// Don't reset if within a frame of the end of the video, important for time > duration workaround
+						float secondsPerFrame = 1f / _infoInterface.GetVideoFrameRate();
+						if (_infoInterface.GetDuration() - _controlInterface.GetCurrentTime() > secondsPerFrame)
+						{
+							reset = true;
+						}
+					}
+					else
+					{
+						// Just check if we're not beyond the duration
+						if (_controlInterface.GetCurrentTime() < _infoInterface.GetDuration())
+						{
+							reset = true;
+						}
+					}
+				}
+				else
+				{
+					// For audio only media just check if we're not beyond the duration
+					if (_controlInterface.GetCurrentTime() < _infoInterface.GetDuration())
+					{
+						reset = true;
+					}
+				}
+#endif
+				if (reset)
+				{
+					//Debug.Log("Reset");
+					_eventFired_FinishedPlaying = false;
+				}
+			}
+		}
+
+		private void HandleOneShotEvents()
+		{
+			_eventFired_MetaDataReady = FireEventIfPossible(MediaPlayerEvent.EventType.MetaDataReady, _eventFired_MetaDataReady);
+			_eventFired_ReadyToPlay = FireEventIfPossible(MediaPlayerEvent.EventType.ReadyToPlay, _eventFired_ReadyToPlay);
+			_eventFired_Started = FireEventIfPossible(MediaPlayerEvent.EventType.Started, _eventFired_Started);
+			_eventFired_FirstFrameReady = FireEventIfPossible(MediaPlayerEvent.EventType.FirstFrameReady, _eventFired_FirstFrameReady);
+		}
+
+		private void HandleRecurringEvents()
+		{
+			// Subtitle changing
+			if (FireEventIfPossible(MediaPlayerEvent.EventType.SubtitleChange, false))
+			{
+				_previousSubtitleIndex = _subtitlesInterface.GetSubtitleIndex();
+			}
+
+			// Resolution changing
+			if (FireEventIfPossible(MediaPlayerEvent.EventType.ResolutionChanged, false))
+			{
+				_eventState_PreviousWidth = _infoInterface.GetVideoWidth();
+				_eventState_PreviousHeight = _infoInterface.GetVideoHeight();
+			}
+
+			// Stalling
+			if (IsHandleEvent(MediaPlayerEvent.EventType.Stalled))
+			{
+				bool newState = _infoInterface.IsPlaybackStalled();
+				if (newState != _eventState_PlaybackStalled)
+				{
+					_eventState_PlaybackStalled = newState;
+
+					var newEvent = _eventState_PlaybackStalled ? MediaPlayerEvent.EventType.Stalled : MediaPlayerEvent.EventType.Unstalled;
+					FireEventIfPossible(newEvent, false);
+				}
+			}
+			// Seeking
+			if (IsHandleEvent(MediaPlayerEvent.EventType.StartedSeeking))
+			{
+				bool newState = _controlInterface.IsSeeking();
+				if (newState != _eventState_PlaybackSeeking)
+				{
+					_eventState_PlaybackSeeking = newState;
+
+					var newEvent = _eventState_PlaybackSeeking ? MediaPlayerEvent.EventType.StartedSeeking : MediaPlayerEvent.EventType.FinishedSeeking;
+					FireEventIfPossible(newEvent, false);
+				}
+			}
+			// Buffering
+			if (IsHandleEvent(MediaPlayerEvent.EventType.StartedBuffering))
+			{
+				bool newState = _controlInterface.IsBuffering();
+				if (newState != _eventState_PlaybackBuffering)
+				{
+					_eventState_PlaybackBuffering = newState;
+
+					var newEvent = _eventState_PlaybackBuffering ? MediaPlayerEvent.EventType.StartedBuffering : MediaPlayerEvent.EventType.FinishedBuffering;
+					FireEventIfPossible(newEvent, false);
+				}
+			}
+
+			// Pausing
+			if (IsHandleEvent(MediaPlayerEvent.EventType.Paused))
+			{
+				bool newState = _controlInterface.IsPaused();
+				if (newState != _eventState_Paused)
+				{
+					_eventState_Paused = newState;
+					var newEvent = _eventState_Paused ? MediaPlayerEvent.EventType.Paused : MediaPlayerEvent.EventType.Unpaused;
+					FireEventIfPossible(newEvent, false);
+				}
+			}
+		}
+
+		private void UpdateEvents()
+		{
+			if (_controlInterface == null)
+				return;
+			if (_events == null || !_events.HasListeners())
+				return;
+
+			// Reset some event states that can reset during playback
+			CheckAndClearStartedAndFinishedEvents();
+			
+			// Events that can only fire once
+			HandleOneShotEvents();
+
+			// Events that can fire multiple times
+			HandleRecurringEvents();
 		}
 
 		protected bool IsHandleEvent(MediaPlayerEvent.EventType eventType)
@@ -205,65 +221,79 @@ namespace RenderHeads.Media.AVProVideo
 
 		private bool CanFireEvent(MediaPlayerEvent.EventType et, bool hasFired)
 		{
+			if (_controlInterface == null)
+				return false;
+			if (_events == null)
+				return false;
+			if (hasFired)
+				return false;
+			if (!IsHandleEvent(et))
+				return false;
+
 			bool result = false;
-			if (_events != null && _controlInterface != null && !hasFired && IsHandleEvent(et))
+			switch (et)
 			{
-				switch (et)
+				case MediaPlayerEvent.EventType.FinishedPlaying:
+					result = (!_controlInterface.IsLooping() && _controlInterface.CanPlay() && _controlInterface.IsFinished());
+					break;
+				case MediaPlayerEvent.EventType.MetaDataReady:
+					result = (_controlInterface.HasMetaData());
+					break;
+				case MediaPlayerEvent.EventType.FirstFrameReady:
+					// [MOZ 20/1/21] Removed HasMetaData check as preventing the event from being triggered on (i|mac|tv)OS
+					result = (_textureInterface != null && _controlInterface.CanPlay() /*&& _controlInterface.HasMetaData()*/ && _textureInterface.GetTextureFrameCount() > 0);
+					break;
+				case MediaPlayerEvent.EventType.ReadyToPlay:
+					result = (!_controlInterface.IsPlaying() && _controlInterface.CanPlay() && !_autoPlayOnStart);
+					break;
+				case MediaPlayerEvent.EventType.Started:
+					result = (_controlInterface.IsPlaying());
+					break;
+				case MediaPlayerEvent.EventType.SubtitleChange:
 				{
-					case MediaPlayerEvent.EventType.FinishedPlaying:
-						result = (!_controlInterface.IsLooping() && _controlInterface.CanPlay() && _controlInterface.IsFinished());
-						break;
-					case MediaPlayerEvent.EventType.MetaDataReady:
-						result = (_controlInterface.HasMetaData());
-						break;
-					case MediaPlayerEvent.EventType.FirstFrameReady:
-						// [MOZ 20/1/21] Removed HasMetaData check as preventing the event from being triggered on (i|mac|tv)OS
-						result = (_textureInterface != null && _controlInterface.CanPlay() /*&& _controlInterface.HasMetaData()*/ && _textureInterface.GetTextureFrameCount() > 0);
-						break;
-					case MediaPlayerEvent.EventType.ReadyToPlay:
-						result = (!_controlInterface.IsPlaying() && _controlInterface.CanPlay() && !_autoPlayOnStart);
-						break;
-					case MediaPlayerEvent.EventType.Started:
-						result = (_controlInterface.IsPlaying());
-						break;
-					case MediaPlayerEvent.EventType.SubtitleChange:
+					result = (_previousSubtitleIndex != _subtitlesInterface.GetSubtitleIndex());
+					if (!result)
 					{
-						result = (_previousSubtitleIndex != _subtitlesInterface.GetSubtitleIndex());
-						if (!result)
-						{
-							result = _baseMediaPlayer.InternalIsChangedTextCue();
-						}
-						break;
+						result = _baseMediaPlayer.InternalIsChangedTextCue();
 					}
-					case MediaPlayerEvent.EventType.Stalled:
-						result = _infoInterface.IsPlaybackStalled();
-						break;
-					case MediaPlayerEvent.EventType.Unstalled:
-						result = !_infoInterface.IsPlaybackStalled();
-						break;
-					case MediaPlayerEvent.EventType.StartedSeeking:
-						result = _controlInterface.IsSeeking();
-						break;
-					case MediaPlayerEvent.EventType.FinishedSeeking:
-						result = !_controlInterface.IsSeeking();
-						break;
-					case MediaPlayerEvent.EventType.StartedBuffering:
-						result = _controlInterface.IsBuffering();
-						break;
-					case MediaPlayerEvent.EventType.FinishedBuffering:
-						result = !_controlInterface.IsBuffering();
-						break;
-					case MediaPlayerEvent.EventType.ResolutionChanged:
-						result = (_infoInterface != null && (_eventState_PreviousWidth != _infoInterface.GetVideoWidth() || _eventState_PreviousHeight != _infoInterface.GetVideoHeight()));
-						break;
-					default:
-						Debug.LogWarning("[AVProVideo] Unhandled event type");
-						break;
+					break;
 				}
+				case MediaPlayerEvent.EventType.Stalled:
+					result = _infoInterface.IsPlaybackStalled();
+					break;
+				case MediaPlayerEvent.EventType.Unstalled:
+					result = !_infoInterface.IsPlaybackStalled();
+					break;
+				case MediaPlayerEvent.EventType.StartedSeeking:
+					result = _controlInterface.IsSeeking();
+					break;
+				case MediaPlayerEvent.EventType.FinishedSeeking:
+					result = !_controlInterface.IsSeeking();
+					break;
+				case MediaPlayerEvent.EventType.StartedBuffering:
+					result = _controlInterface.IsBuffering();
+					break;
+				case MediaPlayerEvent.EventType.FinishedBuffering:
+					result = !_controlInterface.IsBuffering();
+					break;
+				case MediaPlayerEvent.EventType.ResolutionChanged:
+					result = (_infoInterface != null && (_eventState_PreviousWidth != _infoInterface.GetVideoWidth() || _eventState_PreviousHeight != _infoInterface.GetVideoHeight()));
+					break;
+
+				case MediaPlayerEvent.EventType.Paused:
+					result = _controlInterface.IsPaused();
+					break;
+
+				case MediaPlayerEvent.EventType.Unpaused:
+					result = !_controlInterface.IsPaused();
+					break;
+
+				default:
+					Debug.LogWarning("[AVProVideo] Unhandled event type");
+					break;
 			}
 			return result;
 		}
-#endregion // Events
-
 	}
-}
+
+}	// namespace RenderHeads.Media.AVProVideo

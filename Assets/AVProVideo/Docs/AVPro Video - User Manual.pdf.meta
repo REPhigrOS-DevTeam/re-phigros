@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: 07174a511872628448e2ac649a06da70
 timeCreated: 1607701805
-licenseType: Pro
+licenseType: Store
 DefaultImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Docs/AVPro Video - User Manual.pdf
+  uploadId: 730303

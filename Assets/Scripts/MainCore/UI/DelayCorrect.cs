@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using DG.Tweening;
-using MainCore.Utilities;
+using MainCore.Data;
+using MainCore.Settings;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,7 +40,7 @@ namespace MainCore.UI
             // 预加载
             foreach (Skin skin in Enum.GetValues(typeof(Skin)))
             {
-                SkinInfo skinInfo = HitEffectManager.GetInstance().GetInternalSkinInfo(skin);
+                SkinInfo skinInfo = SkinManager.Instance.GetInternalSkinInfo(skin);
                 EffectManager effectManager = HitEffectManager.GetInstance().GetObj(HitFxJudgeType.Perfect, skinInfo);
                 effectManager.transform.position = Camera.main.transform.position - new Vector3(0f, 0f, 1f);
                 effectManager.PlayEffect();
@@ -49,9 +48,9 @@ namespace MainCore.UI
 
             sfx = GetComponent<AudioSource>();
             sfx.volume = volume;
+            if (sfx) sfx.PlayScheduled(AudioSettings.dspTime + 3f);
             await UniTask.Delay(3000);
-            speed = 1400 / beatTime;
-            if (sfx) sfx.PlayScheduled(AudioSettings.dspTime);
+            speed = 1400.0f / beatTime;
             delay = beatTime / 2f;
             // auxiliaryLineTransform.localPosition = new Vector2(0f, 1000f);
             HeartBeat();

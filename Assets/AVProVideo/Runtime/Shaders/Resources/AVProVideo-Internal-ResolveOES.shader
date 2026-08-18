@@ -44,6 +44,7 @@
 			// TODO: replace use multi_compile_local instead (Unity 2019.1 feature)
 			#pragma multi_compile MONOSCOPIC STEREO_TOP_BOTTOM STEREO_LEFT_RIGHT
 			#pragma multi_compile ALPHAPACK_NONE ALPHAPACK_TOP_BOTTOM ALPHAPACK_LEFT_RIGHT
+			#pragma multi_compile FORCEEYE_NONE FORCEEYE_LEFT FORCEEYE_RIGHT
 			#pragma multi_compile __ APPLY_GAMMA
 			#pragma multi_compile __ USE_HSBC
 			#pragma multi_compile __ USING_URP
@@ -66,12 +67,16 @@
 			uniform vec4 _Color;
 			uniform vec4 _MainTex_ST;
 			uniform vec4 _MainTex_TexelSize;
-			uniform mat4 _TextureMatrix;
+			uniform mat4 _MainTex_Xfrm;
 			uniform float _VertScale;
 
 			INLINE bool Android_IsStereoEyeLeft()
 			{
-				#if defined(STEREO_MULTIVIEW_ON)
+				#if defined(FORCEEYE_LEFT)
+					return true;
+				#elif defined(FORCEEYE_RIGHT)
+					return false;
+				#elif defined(STEREO_MULTIVIEW_ON)
 					int eyeIndex = SetupStereoEyeIndex();
 					return (eyeIndex == 0);
 				#else
@@ -96,11 +101,9 @@
 
 				varColor = gl_Color * _Color;
 
-				varTexCoord.xy = transformTex(gl_MultiTexCoord0, _MainTex_ST);
-				varTexCoord.zw = vec2(0.0, 0.0);
-
 				// Apply texture transformation matrix - adjusts for offset/cropping (when the decoder decodes in blocks that overrun the video frame size, it pads)
-				varTexCoord.xy = (_TextureMatrix * vec4(varTexCoord.x, varTexCoord.y, 0.0, 1.0)).xy;
+				varTexCoord.xy = (_MainTex_Xfrm * vec4(gl_MultiTexCoord0.x, gl_MultiTexCoord0.y, 0.0, 1.0)).xy;
+				varTexCoord.zw = vec2(0.0, 0.0);
 
 			#if defined(STEREO_TOP_BOTTOM) || defined(STEREO_LEFT_RIGHT)
 				vec4 scaleOffset = GetStereoScaleOffset(Android_IsStereoEyeLeft(), false);

@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 8b1c70b7e7502564e93d418de9017d1f
 timeCreated: 1592337480
-licenseType: Pro
+licenseType: Store
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []
@@ -10,3 +10,10 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Scripts/AssetTypes/MediaReference.cs
+  uploadId: 730303

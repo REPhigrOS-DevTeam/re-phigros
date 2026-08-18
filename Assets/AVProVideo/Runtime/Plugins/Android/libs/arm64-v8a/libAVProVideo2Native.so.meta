@@ -1,12 +1,12 @@
 fileFormatVersion: 2
 guid: 16580ba152d1f204a9d04de92628f82e
 timeCreated: 1510239370
-licenseType: Pro
+licenseType: Store
 PluginImporter:
   serializedVersion: 1
   iconMap: {}
   executionOrder: {}
-  isPreloaded: 0
+  isPreloaded: 1
   platformData:
     Android:
       enabled: 1
@@ -22,3 +22,10 @@ PluginImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Plugins/Android/libs/arm64-v8a/libAVProVideo2Native.so
+  uploadId: 730303

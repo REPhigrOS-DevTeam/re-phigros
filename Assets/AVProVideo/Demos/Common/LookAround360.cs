@@ -26,7 +26,11 @@ namespace RenderHeads.Media.AVProVideo.Demos
 			bool result = false;
 		#if UNITY_2019_3_OR_NEWER
 			var xrDisplaySubsystems = new List<UnityEngine.XR.XRDisplaySubsystem>();
-			SubsystemManager.GetInstances<UnityEngine.XR.XRDisplaySubsystem>(xrDisplaySubsystems);
+			#if UNITY_2020_2_OR_NEWER
+				SubsystemManager.GetSubsystems<UnityEngine.XR.XRDisplaySubsystem>(xrDisplaySubsystems);
+			#else
+				SubsystemManager.GetInstances<UnityEngine.XR.XRDisplaySubsystem>(xrDisplaySubsystems);
+			#endif
 			foreach (var xrDisplay in xrDisplaySubsystems)
 			{
 				if (xrDisplay.running)

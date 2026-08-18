@@ -27,7 +27,7 @@ namespace MainCore.PostProcessing
 
         private void Awake()
         {
-            data = GlobalSetting.ExtraEvents;
+            data = GlobalSetting.CurrentBeatmapInfo.ExtraEvents;
             Arrangement();
             totalMaterials = new Material[data.Effects.Count];
             for (var i = 0; i < data.Effects.Count; i++)
@@ -169,13 +169,13 @@ namespace MainCore.PostProcessing
             {
                 shaderNames.Add(shaderName);
                 totalMaterials[id] = new Material(shader);
-                Debug.Log($"Loading shader succeeded: {shaderName}.");
+                Debug.Log($"[ExtraShaderProvider] Shader {shaderName} loaded.");
                 return;
             }
             
             notExistShader.Add(shaderName);
             totalMaterials[id] = null;
-            Debug.LogError($"Error loading shader : {shaderName}, maybe not builtin shaders.");
+            Debug.LogError($"[ExtraShaderProvider] Error loading shader : {shaderName}, maybe not builtin shaders.");
         }
 
         private Effect.ExtraPropertyType PreloadProperty(string shaderName, string propertyName, JToken property)
@@ -194,7 +194,7 @@ namespace MainCore.PostProcessing
                 }
                 catch
                 {
-                    Debug.LogError($"Property {propertyName} in {shaderName} of type {property.GetType()} is not supported");
+                    Debug.LogError($"[ExtraShaderProvider] Property {propertyName} in {shaderName} of type {property.GetType()} is not supported");
                     return Effect.ExtraPropertyType.Undefined;
                 }
             }
@@ -219,13 +219,17 @@ namespace MainCore.PostProcessing
                         {
                             value.realStartTime = RecalcTime(value.startTime.Frac());
                             value.realEndTime = RecalcTime(value.endTime.Frac());
+
+                            if (value.realEndTime == value.realStartTime)
+                            {
+                                value.realEndTime += .01f;
+                            }
                         }
 
                         if (value.realStartTime > currentTime || value.realEndTime < currentTime)
                         {
                             continue;
                         }
-
                         var f = EaseUtils.GetEaseResult((EaseUtils.EaseType) value.easingType,
                             currentTime - value.realStartTime, value.realEndTime - value.realStartTime,
                             value.start, value.end, value.easingLeft, value.easingRight);

@@ -3,3 +3,10 @@ guid: 1ca6555d94ddb204c87e9fe549085b3c
 ShaderImporter:
   defaultTextures: []
   userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-Unlit.shader
+  uploadId: 730303

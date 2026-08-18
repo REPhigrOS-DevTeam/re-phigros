@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +27,8 @@ namespace MaTech.Common.Tools {
     [CustomPropertyDrawer(typeof(HelpBoxAttribute))]
     public class HelpBoxDrawer : DecoratorDrawer {
         public override float GetHeight() {
-            var helpBoxStyle = GUI.skin?.GetStyle("helpbox");
+            if (GUI.skin == null) return base.GetHeight();
+            var helpBoxStyle = GUI.skin.GetStyle("helpbox");
             if (helpBoxStyle == null) return base.GetHeight();
             var helpBoxAttribute = (HelpBoxAttribute)attribute;
             return Mathf.Max(40f, helpBoxStyle.CalcHeight(new GUIContent(helpBoxAttribute.Text), EditorGUIUtility.currentViewWidth) + 4);

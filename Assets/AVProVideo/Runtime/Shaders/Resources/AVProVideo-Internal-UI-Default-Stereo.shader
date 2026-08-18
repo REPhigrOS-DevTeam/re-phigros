@@ -86,6 +86,7 @@ Shader "AVProVideo/Internal/UI/Stereo"
 #endif
 			uniform float4 _MainTex_ST;
 			uniform float4 _MainTex_TexelSize;
+			uniform float4x4 _MainTex_Xfrm;
 
 			v2f vert(appdata_t IN)
 			{
@@ -97,7 +98,8 @@ Shader "AVProVideo/Internal/UI/Stereo"
 				OUT.vertex.xy += (_ScreenParams.zw-1.0)*float2(-1,1);
 #endif
 
-				OUT.texcoord.xy = IN.texcoord.xy;
+				OUT.texcoord.xy = mul(_MainTex_Xfrm, float4(IN.texcoord.xy, 0.0, 1.0)).xy;
+				OUT.texcoord.xy = TRANSFORM_TEX(OUT.texcoord.xy, _MainTex);
 
 #if STEREO_TOP_BOTTOM | STEREO_LEFT_RIGHT
 				float4 scaleOffset = GetStereoScaleOffset(IsStereoEyeLeft(), _MainTex_ST.y < 0.0);

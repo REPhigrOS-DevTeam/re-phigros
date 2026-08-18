@@ -227,7 +227,7 @@ namespace MainCore
                 {
                     status = NoteStat.Good;
                     GlobalSetting.ScoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.ScoreCounter.early++;
+                    GlobalSetting.ScoreCounter.Early++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
                 else if (deltaTime > -GlobalSetting.GetJudgeTime().gTime)
@@ -240,7 +240,7 @@ namespace MainCore
                 {
                     status = NoteStat.Good;
                     GlobalSetting.ScoreCounter.Add(NoteStat.Good);
-                    GlobalSetting.ScoreCounter.late++;
+                    GlobalSetting.ScoreCounter.Late++;
                     GlobalSetting.PlayNoteSound(notetype);
                 }
 
@@ -267,7 +267,7 @@ namespace MainCore
         {
             GameObject badTapInstance = Instantiate(badTap, cachedTransform.position, cachedTransform.rotation);
             badTapInstance.transform.localScale = cachedTransform.lossyScale;
-            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.click_bad);
+            badTapInstance.GetComponent<BadTap>().Play(GlobalSetting.CurrentSkinInfo.paintBadColor, GlobalSetting.CurrentSkinInfo.clickBad);
         }
     }
 }

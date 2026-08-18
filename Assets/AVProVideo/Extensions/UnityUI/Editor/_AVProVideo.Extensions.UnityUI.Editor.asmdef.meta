@@ -1,8 +1,15 @@
 fileFormatVersion: 2
 guid: 163aa7dfc21664e47a9d1ce803fb3e3f
 timeCreated: 1591797492
-licenseType: Pro
+licenseType: Store
 DefaultImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Extensions/UnityUI/Editor/_AVProVideo.Extensions.UnityUI.Editor.asmdef
+  uploadId: 730303

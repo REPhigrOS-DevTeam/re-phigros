@@ -3,3 +3,10 @@ guid: 46b84ca7ab6291e4fb6c57ac48d01e8f
 ShaderImporter:
   defaultTextures: []
   userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278893
+  packageName: AVPro Video v3 - Core Edition
+  packageVersion: 3.2.2
+  assetPath: Assets/AVProVideo/Runtime/Shaders/AVProVideo-VR-InsideSphere.shader
+  uploadId: 730303

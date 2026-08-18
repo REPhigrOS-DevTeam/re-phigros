@@ -1,7 +1,6 @@
 using MainCore.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
-using Utilities;
 
 namespace MainCore.UI
 {

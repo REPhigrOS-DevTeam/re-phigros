@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023, LuiCat (as MaTech)
+﻿// Copyright (c) 2024, LuiCat (as MaTech)
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -74,9 +74,8 @@ namespace MaTech.Common.Tools {
                 }
             } catch (Exception ex) {
                 Debug.LogError("[FileListDrawer] Error happened when scanning the folder. Check parameter in [FileList] attribute. See the exception for more info.");
-                throw ex;
+                Debug.LogException(ex);
             }
-
         }
     }
     #endif

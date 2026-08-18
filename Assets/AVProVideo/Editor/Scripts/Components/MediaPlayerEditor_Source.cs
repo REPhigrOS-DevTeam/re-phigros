@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 
 //-----------------------------------------------------------------------------
 // Copyright 2015-2021 RenderHeads Ltd.  All rights reserved.
@@ -61,10 +60,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 					if (GUILayout.Button("Rewind"))
 					{
 						mediaPlayer.Rewind(true);
-					}
-					if (GUILayout.Button("Preroll"))
-					{
-						mediaPlayer.RewindPrerollPause();
 					}
 					if (GUILayout.Button("End"))
 					{
@@ -200,11 +195,13 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			}
 			else
 			{
-				bool isPlatformAndroid = (platform == Platform.Android) || (platform == Platform.Unknown && BuildTargetGroup.Android == UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup);
+				bool isPlatformAndroid = platform == Platform.Android;
+				isPlatformAndroid |= (platform == Platform.Unknown && BuildTargetGroup.Android == UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup);
+				
 				bool isPlatformIOS = (platform == Platform.iOS);
 				isPlatformIOS |= (platform == Platform.Unknown && BuildTargetGroup.iOS == UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup);
+				
 				bool isPlatformTVOS = (platform == Platform.tvOS);
-
 				isPlatformTVOS |= (platform == Platform.Unknown && BuildTargetGroup.tvOS == UnityEditor.EditorUserBuildSettings.selectedBuildTargetGroup);
 
 				// Test file extensions
@@ -233,9 +230,13 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
 				if (fullPath.Contains("://"))
 				{
+					if (fullPath.ToLower().Contains("rtsp://"))
+					{
+						EditorHelper.IMGUI.NoticeBox(MessageType.Warning, "RTMP protocol is not supported by AVPro Video, except when Windows DirectShow is used with an external codec library (eg LAV Filters) and Android (limited functionality when using the MediaPlayer API)");
+					}
 					if (fullPath.ToLower().Contains("rtmp://"))
 					{
-						EditorHelper.IMGUI.NoticeBox(MessageType.Warning, "RTMP protocol is not supported by AVPro Video, except when Windows DirectShow is used with an external codec library (eg LAV Filters)");
+						EditorHelper.IMGUI.NoticeBox(MessageType.Warning, "RTMP protocol is not supported by AVPro Video, except when Windows DirectShow is used with an external codec library (eg LAV Filters) and Android when ExoPlayer is used");
 					}
 					if (fullPath.ToLower().Contains("youtube.com/watch"))
 					{
@@ -304,7 +305,8 @@ namespace RenderHeads.Media.AVProVideo.Editor
 
 					if (platform == Platform.Unknown || platform == MediaPlayer.GetPlatform())
 					{
-						if (!System.IO.File.Exists(fullPath))
+						bool fileExists = System.IO.File.Exists(fullPath);
+						if (!fileExists)
 						{
 							EditorHelper.IMGUI.NoticeBox(MessageType.Error, "File not found");
 						}
@@ -314,18 +316,35 @@ namespace RenderHeads.Media.AVProVideo.Editor
 							// This approach is very slow, so we only run it when the app isn't playing
 							if (!Application.isPlaying)
 							{
-								string comparePath = fullPath.Replace('\\', '/');
-								string folderPath = System.IO.Path.GetDirectoryName(comparePath);
-								if (!string.IsNullOrEmpty(folderPath))
+								string folderPath = System.IO.Path.GetDirectoryName(fullPath);
+								// Skip empty paths and network shares
+								if (!string.IsNullOrEmpty(folderPath) && !folderPath.StartsWith("\\\\"))
 								{
-
-									string[] files = System.IO.Directory.GetFiles(folderPath, "*", System.IO.SearchOption.TopDirectoryOnly);
+									string[] files;
 									bool caseMatch = false;
+									try
+									{
+										string ext = System.IO.Path.GetExtension(fullPath);
+										files = System.IO.Directory.GetFiles(folderPath, $"*{ext}", System.IO.SearchOption.TopDirectoryOnly);
+									}
+									catch
+									{
+										// Directory.GetFiles can fail if the folder path cannot be resolved such as if it is a network share
+										files = null;
+										caseMatch = true;
+									}
 									if (files != null && files.Length > 0)
 									{
+										string modifiedFullPath = fullPath;
+#if UNITY_EDITOR_WIN
+										// Ensure fullPath is not using \ for the comparison
+										modifiedFullPath = modifiedFullPath.Replace('\\', '/');
+#endif
 										for (int i = 0; i < files.Length; i++)
 										{
-											if (files[i].Replace('\\', '/') == comparePath)
+											string filePath = System.IO.Path.Combine(folderPath, files[i]);
+											filePath = filePath.Replace('\\', '/');
+											if (filePath == modifiedFullPath)
 											{
 												caseMatch = true;
 												break;

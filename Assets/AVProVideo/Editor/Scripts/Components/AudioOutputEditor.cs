@@ -18,25 +18,33 @@ namespace RenderHeads.Media.AVProVideo.Editor
 		private static readonly GUIContent _guiTextChannels = new GUIContent("Channels");
 		private static readonly string[] _channelMaskOptions = { "1", "2", "3", "4", "5", "6", "7", "8" };
 
-		private SerializedProperty _propChannelMask;
+		private SerializedProperty _propMediaPlayer;
 		private SerializedProperty _propAudioOutputMode;
+		private SerializedProperty _propSupportPositionalAudio;
+		private SerializedProperty _propChannelMask;
 		private int _unityAudioSampleRate;
 		private int _unityAudioSpeakerCount;
 		private string _bufferedMs;
 
 		void OnEnable()
 		{
-			_propChannelMask = this.CheckFindProperty("_channelMask");
+			_propMediaPlayer = this.CheckFindProperty("_mediaPlayer");
 			_propAudioOutputMode = this.CheckFindProperty("_audioOutputMode");
+			_propSupportPositionalAudio = this.CheckFindProperty("_supportPositionalAudio");
+			_propChannelMask = this.CheckFindProperty("_channelMask");
 			_unityAudioSampleRate = Helper.GetUnityAudioSampleRate();
 			_unityAudioSpeakerCount = Helper.GetUnityAudioSpeakerCount();
 		}
-		
+
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
 
-			DrawDefaultInspector();
+			AudioOutput audioOutput = (AudioOutput)this.target;
+
+			EditorGUILayout.PropertyField(_propMediaPlayer);
+			EditorGUILayout.PropertyField(_propAudioOutputMode);
+			EditorGUILayout.PropertyField(_propSupportPositionalAudio);
 
 			// Display the channel mask as either a bitfield or value slider
 			if ((AudioOutput.AudioOutputMode)_propAudioOutputMode.enumValueIndex == AudioOutput.AudioOutputMode.MultipleChannels)
@@ -64,7 +72,6 @@ namespace RenderHeads.Media.AVProVideo.Editor
 			EditorGUILayout.LabelField("Sample Rate", _unityAudioSampleRate.ToString() + "hz");
 			EditorGUILayout.Space();
 
-			AudioOutput audioOutput = (AudioOutput)this.target;
 			if (audioOutput != null)
 			{
 				if (audioOutput.Player != null && audioOutput.Player.Control != null)

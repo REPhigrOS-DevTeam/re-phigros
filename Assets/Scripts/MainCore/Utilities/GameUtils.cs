@@ -7,6 +7,8 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using MainCore.Data;
+using MainCore.Settings;
+using MainCore.UI.Utils;
 using Network.Multiplayer.Data;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -37,6 +39,9 @@ namespace MainCore.Utilities
             return new Vector2(xy.x * ScreenDelta, xy.y);
         }
 
+        public static UniTask WaitForSceneLoaded(this AsyncOperation operation) =>
+            UniTask.WaitUntil(() => operation.progress >= .9f);
+
         public static float GetAspectX(float x)
         {
             return x * ScreenDelta;
@@ -47,13 +52,6 @@ namespace MainCore.Utilities
             var config = AudioSettings.GetConfiguration();
             config.dspBufferSize = (int)Math.Pow(2, pow);
             return AudioSettings.Reset(config);
-        }
-
-        public static void AddTestCount()
-        {
-#if UNITY_EDITOR
-            Main.Mian.TEST_COUNT++;
-#endif
         }
 
         public static void Print(this Exception exception)
@@ -356,10 +354,17 @@ namespace MainCore.Utilities
             RpeChartData.RpeMeta rpeMeta = null;
             if (File.Exists(phiraInfoPath))
             {
-                IDeserializer deserializer = new DeserializerBuilder().Build();
-                phiraChartInfoData =
-                    deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
-                infoType = InfoType.InfoYml;
+                IDeserializer deserializer = new DeserializerBuilder().IgnoreUnmatchedProperties().Build();
+                try
+                {
+                    phiraChartInfoData =
+                        deserializer.Deserialize<PhiraChartInfoData>(await File.ReadAllTextAsync(phiraInfoPath));
+                    infoType = InfoType.InfoYml;
+                }
+                catch(Exception e)
+                {
+                    InGameUIManager.ShowModalWindowWithClose("警告", $"错误的info.yml格式\n{e.Message}", () => { }, "确认");
+                }
             }
             else
             {
@@ -406,44 +411,49 @@ namespace MainCore.Utilities
 
                 if (!useLchzh)
                 {
-                    string[] jsons = Directory.GetFiles(directory, "*.json")
-                        .Where(str => Path.GetFileName(str).ToLowerInvariant() != "extra.json").ToArray();
-                    if (jsons.Length > 0)
+                    // info init
+                    var infoPath = directory + "/info.txt";
+                    if (File.Exists(infoPath))
                     {
-                        string ch = await File.ReadAllTextAsync(jsons[0]);
-                        if (!ch.Contains("formatVersion") && ch.Contains("}") && ch.Contains("numOfNotes"))
-                        {
-                            rpeMeta = JsonUtility.FromJson<RpeChartData>(ch).META;
-                            infoType = InfoType.RpeJson;
-                        }
+                        infoTxtReader = new InfoTxtReader(infoPath);
+                        infoType = InfoType.InfoTxt;
                     }
                     else
                     {
-                        // info init
-                        var infoPath = directory + "/info.txt";
-                        if (File.Exists(infoPath))
+                        string[] jsons = Directory.GetFiles(directory, "*.json")
+                            .Where(str => Path.GetFileName(str).ToLowerInvariant() != "extra.json").ToArray();
+                        if (jsons.Length > 0)
                         {
-                            infoTxtReader = new InfoTxtReader(infoPath);
-                            infoType = InfoType.InfoTxt;
+                            string ch = await File.ReadAllTextAsync(jsons[0]);
+                            if (!ch.Contains("formatVersion") && ch.Contains("}") && ch.Contains("numOfNotes"))
+                            {
+                                rpeMeta = JsonUtility.FromJson<RpeChartData>(ch).META;
+                                infoType = InfoType.RpeJson;
+                            }
                         }
                     }
                 }
             }
 
-            string musicPath = directory + "/" +
-                               (phiraChartInfoData != null && !string.IsNullOrEmpty(phiraChartInfoData.music)
-                                   ? phiraChartInfoData.music
-                                   : lchzhInfo != null
-                                       ? lchzhInfo.Music
-                                       : rpeMeta != null
-                                           ? rpeMeta.song
-                                           : infoTxtReader != null
-                                               ? infoTxtReader.GetSongFileName()
-                                               : Path.GetFileName(Directory.GetFiles(directory)
-                                                   .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
-                                                       Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+            // string musicPath = directory + "/" +
+            //                    (phiraChartInfoData != null && !string.IsNullOrEmpty(phiraChartInfoData.music)
+            //                        ? phiraChartInfoData.music
+            //                        : lchzhInfo != null
+            //                            ? lchzhInfo.Music
+            //                            : rpeMeta != null
+            //                                ? rpeMeta.song
+            //                                : infoTxtReader != null
+            //                                    ? infoTxtReader.GetSongFileName()
+            //                                    : Path.GetFileName(Directory.GetFiles(directory)
+            //                                        .Where(s => new List<string> { ".wav", ".ogg", ".mp3" }.Contains(
+            //                                            Path.GetExtension(s).ToLowerInvariant())).ToArray()[0]));
+            //
 
-            float? musicLength = (await Util.ReadMusicAsAudioClipAsync(musicPath))?.length;
+            if (infoType == InfoType.Empty)
+            {
+                return (null, InfoType.Empty, null);
+            }
+            
             return (new SongInfo
             {
                 FolderName = Path.GetFileName(directory),
@@ -467,8 +477,7 @@ namespace MainCore.Utilities
                     rpeMeta != null ? rpeMeta.charter :
                     infoTxtReader != null ? infoTxtReader.GetCharter() : "Unknown",
                 SongIllustrator = phiraChartInfoData != null ? phiraChartInfoData.illustrator :
-                    lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown",
-                MusicLength = musicLength ?? -1f
+                    lchzhInfo != null ? lchzhInfo.Illustrator : "Unknown"
             }, infoType, infoType switch
             {
                 InfoType.Empty => null,
@@ -480,7 +489,7 @@ namespace MainCore.Utilities
                 _ => throw new ArgumentOutOfRangeException()
             });
         }
-
+        
         public static async UniTask<(SongInfo, InfoType infoType, GameFilePathInfo, object)> GetInfoForPlay(
             string directory)
         {
@@ -517,9 +526,12 @@ namespace MainCore.Utilities
                     break;
                 case InfoType.RpeJson:
                     RpeChartData.RpeMeta rpeMeta = obj as RpeChartData.RpeMeta;
-                    gameFilePathInfo.Chart = Directory.GetFiles(directory, "*.json").Select(Path.GetFileName).Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
+                    gameFilePathInfo.Chart = Directory.GetFiles(directory, "*.json").Select(Path.GetFileName)
+                        .Where(str => str.ToLowerInvariant() != "extra.json").ToArray()[0];
                     gameFilePathInfo.Music = rpeMeta.song;
                     gameFilePathInfo.Illustration = rpeMeta.background;
+                    break;
+                case InfoType.Internal:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -577,8 +589,8 @@ namespace MainCore.Utilities
                 return null;
             }
 
-            SkinInfo skinInfo = ScriptableObject.CreateInstance<SkinInfo>();
-            skinInfo.name = skinInfo.skinName = phiraSkinInfoData.name;
+            SkinInfo skinInfo = new SkinInfo();
+            skinInfo.skinName = phiraSkinInfoData.name;
             skinInfo.author = phiraSkinInfoData.author;
             skinInfo.description = phiraSkinInfoData.description == "" ? "无" : phiraSkinInfoData.description;
             skinInfo.hitFxDuration = phiraSkinInfoData.hitFxDuration;
@@ -587,7 +599,7 @@ namespace MainCore.Utilities
             skinInfo.hitFxTinted = phiraSkinInfoData.hitFxTinted;
             skinInfo.hideParticles = phiraSkinInfoData.hideParticles;
             skinInfo.holdKeepHead = phiraSkinInfoData.holdKeepHead;
-            // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat;
+            // skinInfo.holdRepeat = phiraSkinInfoData.holdRepeat; // TODO: holdRepeat
             skinInfo.holdRepeat = false;
             skinInfo.holdCompact = phiraSkinInfoData.holdCompact;
             if (phiraSkinInfoData.colorPerfect.ToLowerInvariant() == "0xe1ffec9f")
@@ -632,19 +644,24 @@ namespace MainCore.Utilities
 
             skinInfo.hitFx = hitFx.ToArray();
             // 读取note们
-            (skinInfo.click_bad, _) = (skinInfo.click, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
-            (skinInfo.clickMh, _) = await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
+            (skinInfo.clickBad, _) = (skinInfo.click, _) =
+                await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click.png"));
+            (skinInfo.clickMh, _) =
+                await Util.ReadFileAsSpriteAsync(await File.ReadAllBytesAsync($"{dirPath}/click_mh.png"));
             Texture2D dragTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag.png"));
             skinInfo.drag = Sprite.Create(dragTex, new Rect(0, 0, dragTex.width, dragTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * dragTex.width / skinInfo.click.rect.width, 1);
-            Texture2D dragMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
+            Texture2D dragMhTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/drag_mh.png"));
             skinInfo.dragMh = Sprite.Create(dragMhTex, new Rect(0, 0, dragMhTex.width, dragMhTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.clickMh.pixelsPerUnit * dragMhTex.width / skinInfo.clickMh.rect.width,
                 1);
-            Texture2D flickTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
+            Texture2D flickTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick.png"));
             skinInfo.flick = Sprite.Create(flickTex, new Rect(0, 0, flickTex.width, flickTex.height),
                 new Vector2(0.5f, 0.5f), skinInfo.click.pixelsPerUnit * flickTex.width / skinInfo.click.rect.width, 1);
-            Texture2D flickMhTex = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
+            Texture2D flickMhTex =
+                await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/flick_mh.png"));
             skinInfo.flickMh = Sprite.Create(flickMhTex, new Rect(0, 0, flickMhTex.width, flickMhTex.height),
                 new Vector2(0.5f, 0.5f),
                 skinInfo.clickMh.pixelsPerUnit * flickMhTex.width / skinInfo.clickMh.rect.width,
@@ -652,17 +669,18 @@ namespace MainCore.Utilities
             try
             {
                 // hold
-                Texture2D holdTexture = await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
-                Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[0],
-                    phiraSkinInfoData.holdAtlas[1], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width);
+                Texture2D holdTexture =
+                    await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold.png"));
+                Sprite[] holdSprites = SplitTexture("hold", holdTexture, phiraSkinInfoData.holdAtlas[1],
+                    phiraSkinInfoData.holdAtlas[0], skinInfo.click.pixelsPerUnit, skinInfo.click.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHead = holdSprites[0];
                 skinInfo.holdBody = holdSprites[1];
                 skinInfo.holdEnd = holdSprites[2];
                 skinInfo.holdLengthFactor = skinInfo.holdBody.rect.height / skinInfo.holdBody.pixelsPerUnit;
                 Texture2D holdMhTexture =
                     await Util.ReadFileAsTextureAsync(await File.ReadAllBytesAsync($"{dirPath}/hold_mh.png"));
-                Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[0],
-                    phiraSkinInfoData.holdAtlasMH[1], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width);
+                Sprite[] holdMhSprites = SplitTexture("hold_mh", holdMhTexture, phiraSkinInfoData.holdAtlasMH[1],
+                    phiraSkinInfoData.holdAtlasMH[0], skinInfo.clickMh.pixelsPerUnit, skinInfo.clickMh.rect.width, skinInfo.holdCompact);
                 skinInfo.holdHeadMh = holdMhSprites[0];
                 skinInfo.holdBodyMh = holdMhSprites[1];
                 skinInfo.holdEndMh = holdMhSprites[2];
@@ -674,25 +692,27 @@ namespace MainCore.Utilities
                 InGameUIManager.ShowModalWindowWithClose("错误", "Hold贴图高度不足", () => { }, "确定");
                 return null;
             }
-
-            // BUG: 无法正常播放打击音
+            
             await UniTask.SwitchToMainThread();
-            skinInfo.clickAC = File.Exists($"{dirPath}/click.ogg")
+            skinInfo.clickAc = File.Exists($"{dirPath}/click.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/click.ogg", "click")
                 : SkinManager.Instance.defaultClickAC;
-            skinInfo.dragAC = File.Exists($"{dirPath}/drag.ogg")
+            skinInfo.clickAcPath = $"{dirPath}/click.ogg";
+            skinInfo.dragAc = File.Exists($"{dirPath}/drag.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/drag.ogg", "drag")
                 : SkinManager.Instance.defaultDragAC;
-            skinInfo.flickAC = File.Exists($"{dirPath}/flick.ogg")
+            skinInfo.dragAcPath = $"{dirPath}/drag.ogg";
+            skinInfo.flickAc = File.Exists($"{dirPath}/flick.ogg")
                 ? await Util.ReadMusicAsAudioClipAsync($"{dirPath}/flick.ogg", "flick")
                 : SkinManager.Instance.defaultFlickAC;
+            skinInfo.flickAcPath = $"{dirPath}/flick.ogg";
 
             return skinInfo;
         }
 
         private static Sprite[] SplitTexture(string namePrefix, Texture2D texture, int startPixel, int endPixel,
             float clickPpu,
-            float clickWidth)
+            float clickWidth, bool holdCompact)
         {
             if (startPixel + endPixel > texture.height)
             {
@@ -700,13 +720,13 @@ namespace MainCore.Utilities
             }
 
             float ppu = clickPpu * texture.width / clickWidth;
-            Sprite head = Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), new Vector2(0.5f, 1f),
-                ppu, 1);
+            Sprite head = startPixel > 0 ? Sprite.Create(texture, new Rect(0f, 0f, texture.width, startPixel), holdCompact ? new Vector2(0.5f, 0.5f) : new Vector2(0.5f, 1f),
+                ppu, 1) : Sprite.Create(new Texture2D(0, 0), Rect.zero, Vector2.zero, ppu, 1);
             Sprite body = Sprite.Create(texture,
                 new Rect(0f, startPixel, texture.width, texture.height - startPixel - endPixel), new Vector2(0.5f, 1f),
                 ppu, 1);
-            Sprite end = Sprite.Create(texture, new Rect(0f, texture.height - endPixel, texture.width, endPixel),
-                new Vector2(0.5f, 0f), ppu, 1);
+            Sprite end = endPixel > 0 ? Sprite.Create(texture, new Rect(0f, texture.height - endPixel, texture.width, endPixel),
+                new Vector2(0.5f, 0f), ppu, 1) : Sprite.Create(new Texture2D(0, 0), Rect.zero, Vector2.zero, ppu, 1);
             head.name = $"{namePrefix}_head";
             body.name = $"{namePrefix}_body";
             end.name = $"{namePrefix}_end";
@@ -733,6 +753,65 @@ namespace MainCore.Utilities
             return result.ToArray();
         }
 #endif
+
+        public static void UnzipChartArchive(string zipFile, Action onUnZipFinished,
+            Action<InGameUIManager.WindowInfo> logger)
+        {
+            string songFolderName = Path.GetFileNameWithoutExtension(zipFile);
+            string destFolderPath = Path.Combine(Util.DataPath, songFolderName);
+            if (Directory.Exists(destFolderPath))
+            {
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "提示",
+                    content = $"歌曲“{songFolderName}已存在，确认覆盖？”",
+                    confirmAction = () =>
+                    {
+                        Directory.Delete(destFolderPath, true);
+                        Unzip();
+                        onUnZipFinished();
+                    },
+                    confirmText = "确定",
+                    cancelAction = InGameUIManager.HideModalWindow,
+                    cancelText = "取消"
+                });
+                return;
+            }
+
+            Unzip();
+            onUnZipFinished();
+
+            void Unzip()
+            {
+                if (!File.Exists(zipFile)) // 防止确认覆盖期间文件被删
+                {
+                    logger(new InGameUIManager.WindowInfo
+                    {
+                        title = "错误",
+                        content = "文件不存在",
+                        confirmAction = () => { },
+                        confirmText = "确定"
+                    });
+                    return;
+                }
+
+                ZipUtils.UnZip(zipFile, destFolderPath);
+                string externalTextureZip = destFolderPath + "/" + "texture.zip";
+                if (File.Exists(externalTextureZip))
+                {
+                    ZipUtils.UnZip(externalTextureZip, destFolderPath);
+                    File.Delete(externalTextureZip);
+                }
+
+                logger(new InGameUIManager.WindowInfo
+                {
+                    title = "提示",
+                    content = "解压成功",
+                    confirmAction = () => { },
+                    confirmText = "确定"
+                });
+            }
+        }
     }
 
     public class GameFilePathInfo

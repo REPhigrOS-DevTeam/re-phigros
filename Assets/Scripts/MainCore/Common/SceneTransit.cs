@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -12,7 +13,7 @@ namespace MainCore.Common
 {
     public class SceneTransit : MonoSingleton<SceneTransit>
     {
-        public static Action OnSceneClosing = () => { };
+        public static readonly UnityEvent OnSceneClosing = new();
         private static readonly int UseColor = Shader.PropertyToID("_UseColor");
         private static readonly int Cutoff = Shader.PropertyToID("_Cutoff");
         private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
@@ -20,7 +21,7 @@ namespace MainCore.Common
         [SerializeField] private List<Texture2D> ruleImages;
 
         [SerializeField] private Material transitionMaterial;
-        private Material transitMaterial = null;
+        private Material _transitMaterial = null;
 
         private class NavigationInfo
         {
@@ -33,18 +34,12 @@ namespace MainCore.Common
 
         protected override void OnAwake()
         {
-            transitMaterial = transitionImage.material
+            _transitMaterial = transitionImage.material
 #if UNITY_EDITOR
                     = Instantiate(transitionMaterial) // 防止本地mat文件每次都变动
 #endif
                 ;
             JumpScene(SceneManager.GetActiveScene().name);
-            Scale = new float[width, height];
-            for (int index1 = 0; index1 < width; ++index1)
-            {
-                for (int index2 = 0; index2 < height; ++index2)
-                    Scale[index1, index2] = 0.0f;
-            }
         }
 
         /// <summary>
@@ -77,31 +72,51 @@ namespace MainCore.Common
 
         private void EnterScene(string sceneName, int type = 1)
         {
+            OnSceneClosing?.Invoke();
             switch (type)
             {
                 case 0:
-                    OnSceneClosing.Invoke();
-                    SceneManager.LoadScene(sceneName); // 直入
+                    TransitTo(sceneName, false); // 不用galgame转场
                     break;
                 case 1:
                     TransitTo(sceneName); // 原来的转场
                     break;
-                case 2:
-                    DoScene(sceneName); // DR3的转场
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            OnSceneClosing?.RemoveAllListeners();
         }
 
-        public void Back()
+        public async void LoadAdditiveScene(string sceneName)
+        {
+            await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            var transitAnimation =
+                (from GameObject go
+                        in GameObject.FindGameObjectsWithTag("SceneTransitAnimation")
+                    where go.scene.name == sceneName
+                    select go).FirstOrDefault();
+            transitAnimation?.GetComponent<SceneTransitAnimation>().Enter();
+        }
+        
+        public async void LeaveAdditiveScene(string sceneName)
+        {
+            var transitAnimation =
+                (from GameObject go
+                        in GameObject.FindGameObjectsWithTag("SceneTransitAnimation")
+                    where go.scene.name == sceneName
+                    select go).FirstOrDefault();
+            await UniTask.Delay(transitAnimation!.GetComponent<SceneTransitAnimation>().Quit());
+            SceneManager.UnloadSceneAsync(sceneName);
+        }
+
+        public void Back(bool useOldTransition = true)
         {
             if (navStack.Count == 1)
                 return;
 
             navStack.Pop();
             var lastScene = navStack.Peek();
-            TransitTo(lastScene.SceneName);
+            TransitTo(lastScene.SceneName, useOldTransition);
         }
 
         public void ReplaceScene(string sceneName)
@@ -123,128 +138,73 @@ namespace MainCore.Common
             });
         }
 
-        private async void TransitTo(string sceneName)
+        private async void TransitTo(string sceneName, bool useOldTransition = true)
         {
             transitionImage.raycastTarget = true;
             var operation = SceneManager.LoadSceneAsync(sceneName);
             operation.allowSceneActivation = false;
+            
+            await LeaveCurrentScene();
 
+            if (useOldTransition)
+            {
+                _transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
+                _transitMaterial.DOFloat(1f, Cutoff, .5f);
+                await UniTask.Delay(500);
+                operation.allowSceneActivation = true;
+                await operation;
+                _transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
+                _transitMaterial.DOFloat(0f, Cutoff, .5f).OnComplete(() => { _transitMaterial.SetFloat(Cutoff, 0f); })
+                    .OnKill(() => { _transitMaterial.SetFloat(Cutoff, 0f); });
+                InitAnimation();
+                await UniTask.Delay(500);
+            }
+            else
+            {
+                await AllowSwitch(operation);
+            }
+            
+            await PlayEnterAnimation();
+            transitionImage.raycastTarget = false;
+        }
+        
+        private static async UniTask LeaveCurrentScene()
+        {
+            await PlayQuitAnimation();
+        }
+
+        private static async UniTask AllowSwitch(AsyncOperation operation)
+        {
+            operation.allowSceneActivation = true;
+            await operation;
+            InitAnimation();
+        }
+
+        public static void InitAnimation()
+        {
             GameObject transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
             if (transitAnimation)
             {
-                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
+                transitAnimation.GetComponent<SceneTransitAnimation>().Init();
             }
+        }
 
-            transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
-            transitMaterial.DOFloat(1f, Cutoff, .5f);
-
-            OnSceneClosing.Invoke();
-            await UniTask.Delay(500);
-            operation.allowSceneActivation = true;
-
-            transitMaterial.SetTexture(PatternTex, ruleImages[Random.Range(0, ruleImages.Count)]);
-            transitMaterial.DOFloat(0f, Cutoff, .5f).OnComplete(() => { transitMaterial.SetFloat(Cutoff, 0f); })
-                .OnKill(() => { transitMaterial.SetFloat(Cutoff, 0f); });
-            await UniTask.Delay(500);
-            transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
+        public static async UniTask PlayEnterAnimation()
+        {
+            GameObject transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
             if (transitAnimation)
             {
-                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit());
+                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Enter() + 000);
             }
-
-            transitionImage.raycastTarget = false;
         }
 
-        // DR3的转场
-
-        [SerializeField] private Texture img;
-        [SerializeField] private int width = 16;
-        [SerializeField] private int height = 9;
-        private float[,] Scale;
-        private Vector2 blocksize;
-        private bool flag;
-
-        private void DoScene(string SceneName)
+        public static async UniTask PlayQuitAnimation()
         {
-            if (flag) return;
-            blocksize = new Vector2(Screen.width / (float)width, Screen.height / (float)height);
-            StartCoroutine(ShowFade(SceneName));
-        }
-
-        private IEnumerator ShowFade(string SceneName)
-        {
-            Resources.UnloadUnusedAssets();
-            int timer = 0;
-            flag = true;
-            while (true)
+            GameObject transitAnimation = GameObject.FindWithTag("SceneTransitAnimation");
+            if (transitAnimation)
             {
-                for (int index1 = 0; index1 < width; ++index1)
-                {
-                    for (int index2 = 0; index2 < height; ++index2)
-                    {
-                        if (index1 + index2 < timer)
-                        {
-                            Scale[index1, index2] += 0.1f;
-                            if (Scale[index1, index2] >= 1.0)
-                                Scale[index1, index2] = 1f;
-                        }
-                    }
-                }
-
-                ++timer;
-                if (timer < width + height + 11)
-                    yield return new WaitForSeconds(0.01f);
-                else
-                    break;
-            }
-
-            DOTween.KillAll();
-            yield return null;
-            OnSceneClosing.Invoke();
-            SceneManager.LoadScene(SceneName);
-            yield return null;
-            timer = 0;
-            while (true)
-            {
-                for (int index3 = 0; index3 < width; ++index3)
-                {
-                    for (int index4 = 0; index4 < height; ++index4)
-                    {
-                        if (index3 + index4 < timer)
-                        {
-                            Scale[index3, index4] -= 0.1f;
-                            if (Scale[index3, index4] <= 0.0)
-                                Scale[index3, index4] = 0.0f;
-                        }
-                    }
-                }
-
-                ++timer;
-                if (timer < width + height + 11)
-                    yield return new WaitForSeconds(0.01f);
-                else
-                    break;
-            }
-
-            flag = false;
-            yield return null;
-        }
-
-        private void OnGUI()
-        {
-            if (!flag) return;
-            for (int index1 = 0; index1 < width; ++index1)
-            {
-                for (int index2 = 0; index2 < height; ++index2)
-                    GUI.DrawTextureWithTexCoords(
-                        new Rect(
-                            (float)(blocksize.x * (double)index1 + (1.0 - Scale[index1, index2]) * 0.5 * blocksize.x),
-                            (float)(blocksize.y * (double)index2 + (1.0 - Scale[index1, index2]) * 0.5 * blocksize.y),
-                            Scale[index1, index2] * blocksize.x, Scale[index1, index2] * blocksize.y), img,
-                        new Rect((float)(0.5 * (1.0 - Scale[index1, index2])),
-                            (float)(0.5 * (1.0 - Scale[index1, index2])), Scale[index1, index2],
-                            Scale[index1, index2]));
-            }
+                await UniTask.Delay(transitAnimation.GetComponent<SceneTransitAnimation>().Quit() + 000);
+            }   
         }
     }
 }
